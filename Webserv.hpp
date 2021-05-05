@@ -45,6 +45,7 @@
 # include "Session.hpp"
 # include "Config.hpp"
 # include "ParseRequest.hpp"
+# include "ParseConfig.hpp"
 
 
 

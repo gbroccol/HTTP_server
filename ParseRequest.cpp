@@ -49,6 +49,8 @@ ParseRequest::~ParseRequest()
 
 	void					ParseRequest::addToBuffer(std::string str)
 	{
+
+		std::cout << GREEN << "--- BUFFER ---" << std::endl << str << BW << std::endl << std::endl;
 		// std::string *tmp = static_cast<std::string *>(str);
 		// _buff += *tmp;
 
@@ -67,6 +69,8 @@ ParseRequest::~ParseRequest()
 
 
 // Body coding: gzip
+
+		// std::cout << GREEN << "--- BUFFER ---" << std::endl << _buff << BW << std::endl << std::endl;
 
 		if (_buff.find("\r\n", 0) != std::string::npos)
 			this->parseHTTPRequest();
@@ -89,6 +93,8 @@ ParseRequest::~ParseRequest()
 			tmp.clear();
 			tmp.insert(0, _buff, 0, pos);
 			_buff = _buff.erase(0, pos + 2); // !!!
+
+			// std::cout << "delete " << pos << std::endl;
 
 			if (_parsPart == PRE_PART)
 				parseStartingLine(tmp.c_str());
@@ -130,6 +136,7 @@ ParseRequest::~ParseRequest()
 
 	void					ParseRequest::parseHeaders(std::string header)
 	{
+		// std::cout << RED << "Header to parse - " << header << BW << std::endl;
 		std::cout << RED << "Header " << BW;
 
 		size_t pos;
@@ -165,6 +172,8 @@ ParseRequest::~ParseRequest()
 		if (checkEndBody(body))
 		{
 			// handler
+			std::cout << "finish 1" << std::endl;
+			getchar();
 
 			clearData();
 			_parsPart = PRE_PART;

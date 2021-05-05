@@ -12,13 +12,18 @@
 
 #include "Webserv.hpp"
 
-int main(void)
+int main(int argc,  char **argv)
 {
     Server server;
 	Config config;
+	ParseConfig parse;
+	
 
 
 // parse config and set attributes
+	if(argc != 2)
+		return -1;
+	parse.parseFile(argv[1]);
 	char filename[4] = {'l', 'o', 'g'};
 	config.setPort(8080);
 	config.setLogFile(filename);

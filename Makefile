@@ -7,7 +7,8 @@ FLAGS =		-Wall -Werror -Wextra -g -std=c++98
 # HEADER = /.
 
 SRCS =		main.cpp \
-			ParseRequest.cpp
+			ParseRequest.cpp\
+			ParseConfig.cpp
 
 OBJ =		$(SRCS:.cpp=.o)
 
