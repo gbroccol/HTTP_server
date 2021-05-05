@@ -54,6 +54,20 @@ ParseRequest::~ParseRequest()
 
 		_buff += str;
 
+
+// 		Starting Line GET / HTTP/1.1
+
+// Header Host: 127.0.0.1:8080
+// Header User-Agent: Go-http-client/1.1
+// Header Accept-Encoding: gzip
+// Starting Line Host:  127.0.0.1:8080
+
+// Header User-Agent: Go-http-client/1.1
+// Header Accept-Encoding: gzip
+
+
+// Body coding: gzip
+
 		if (_buff.find("\r\n", 0) != std::string::npos)
 			this->parseHTTPRequest();
 	}
@@ -150,6 +164,8 @@ ParseRequest::~ParseRequest()
 	{
 		if (checkEndBody(body))
 		{
+			// handler
+
 			clearData();
 			_parsPart = PRE_PART;
 			parseStartingLine(body.c_str());
