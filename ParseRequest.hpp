@@ -22,6 +22,11 @@
 #define YELLOW "\033[0;33m"
 #define PURPLE "\033[0;35m"
 
+#define	PRE_PART 0
+#define	START_LINE_PART 1
+#define HEADERS_PART 2
+#define BODY_PART 3
+
 class ParseRequest
 {
 
@@ -32,6 +37,8 @@ class ParseRequest
 		std::string								version;
 
 		std::map <std::string, std::string>		headers;
+
+		std::string								body;
 	};
 	
 
@@ -43,9 +50,19 @@ class ParseRequest
 
 		ParseRequest &			operator=( ParseRequest const & rhs );
 
-		void					addToBuffer(std::string str);
+		void					addToBuffer(std::string str); // change to void *
 
-		void					addRequest();
+
+
+		void					parseHTTPRequest();
+		void					parseStartingLine(std::string startLine);
+		void					parseHeaders(std::string header);
+		void					parseMessageBody(std::string body);
+		size_t					checkEndBody(std::string body);
+		void					clearData();
+
+
+
 
 		std::string				getBuff();
 		
@@ -54,7 +71,8 @@ class ParseRequest
 
 		std::string				_buff;
 		struct data				_data;
-		// std::string				_method;
+		
+		size_t					_parsPart;
 
 
 

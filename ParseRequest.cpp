@@ -6,6 +6,8 @@
 
 ParseRequest::ParseRequest()
 {
+	_parsPart = PRE_PART;
+	clearData();
 }
 
 // ParseRequest::ParseRequest( const ParseRequest & src )
@@ -47,51 +49,137 @@ ParseRequest::~ParseRequest()
 
 	void					ParseRequest::addToBuffer(std::string str)
 	{
+		// std::string *tmp = static_cast<std::string *>(str);
+		// _buff += *tmp;
+
 		_buff += str;
+
 		if (_buff.find("\r\n", 0) != std::string::npos)
-			this->addRequest();
+			this->parseHTTPRequest();
 	}
 
-	void					ParseRequest::addRequest()
+	void					ParseRequest::parseHTTPRequest()
 	{
-		size_t pos = _buff.find("\r\n", 0);
-
-		// std::cout << RED << "pos = " << pos << BW << std::endl;
-
-		// std::cout << RED << _buff << BW << std::endl;
-
-		if (_data.method.length() == 0)
+		size_t pos;
+		std::string tmp;
+		
+		while ((pos = _buff.find("\r\n", 0)) != std::string::npos)
 		{
-			char tmp[pos];
-			_buff.copy(tmp, pos, 0);
+			if (pos == 0 && _parsPart == HEADERS_PART)
+			{
+				_parsPart = BODY_PART;
+				_buff = _buff.erase(0, 2);
+				continue ;
+			}
+		
+			tmp.clear();
+			tmp.insert(0, _buff, 0, pos);
+			_buff = _buff.erase(0, pos + 2); // !!!
 
-			_data.method = "GET";
-			_data.path = "/";
-			_data.version = "HTTP/1.1";
+			if (_parsPart == PRE_PART)
+				parseStartingLine(tmp.c_str());
+			else if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
+				parseHeaders(tmp);
+			else if (_parsPart == BODY_PART)
+				parseMessageBody(tmp);
+		}
+	}
 
-			std::cout << BLUE << _data.method << " " << _data.path << " " << _data.version << BW << std::endl;
+	void					ParseRequest::parseStartingLine(std::string head)
+	{
+		std::cout << RED << "Starting Line " << BW;
 
-			_buff = _buff.erase(0, pos + 2);
+		size_t pos = 0;
+		
+		// Find request type
+		if ((pos = head.find(" ", 0)) != std::string::npos) // error
+		{
+			_data.method.insert(0, head, 0, pos);
+			head.erase(0, pos + 1);
+		}
+		
+		// Find path
+		if ((pos = head.find(" ", 0)) != std::string::npos) // error
+		{
+			_data.path.insert(0, head, 0, pos);
+			head.erase(0, pos + 1);
+		}
+		
+		// Find HTTP version
+		pos = head.size(); // error
+		_data.version.insert(0, head, 0, pos);
+
+		std::cout << BLUE << _data.method << " " << _data.path << " " << _data.version << BW << std::endl << std::endl;
+
+		_parsPart = START_LINE_PART;
+	}
+
+	void					ParseRequest::parseHeaders(std::string header)
+	{
+		std::cout << RED << "Header " << BW;
+
+		size_t pos;
+
+		pos = header.find(":", 0);
+		std::string key;
+		key.clear();
+		key.insert(0, header, 0, pos);
+		header = header.erase(0, pos + 2);
+
+		pos = header.find("\r\n", 0);
+		std::string value;
+		value.clear();
+		value.insert(0, header, 0, pos);
+		header = header.erase(0, pos + 2);
+	
+		_data.headers.insert(std::pair<std::string, std::string> (key, value));
+		std::cout << BLUE << key << ": " << value << BW << std::endl;
+
+		
+		if (_buff.find("\r\n", 0) == 0)
+		{
+			_parsPart = BODY_PART;
+			_buff = _buff.erase(0, 2);
+			std::cout << std::endl;
 		}
 		else
-		{
-			pos = _buff.find(":", 0);
-			std::string key;
-			key.clear();
-			key.insert(0, _buff, 0, pos);
-			_buff = _buff.erase(0, pos + 2);
-			// std::cout << YELLOW << "pos = " << pos << BW << std::endl;
-			
-			pos = _buff.find("\r\n", 0);
-			std::string value;
-			value.clear();
-			value.insert(0, _buff, 0, pos);
-			_buff = _buff.erase(0, pos + 2);
-			// std::cout << YELLOW << "pos = " << pos << BW << std::endl;
+			_parsPart = HEADERS_PART;
+	}
 
-			_data.headers.insert(std::pair<std::string, std::string> (key, value));
-			std::cout << BLUE << key << ": " << value << BW << std::endl;
+	void					ParseRequest::parseMessageBody(std::string body)
+	{
+		if (checkEndBody(body))
+		{
+			clearData();
+			_parsPart = PRE_PART;
+			parseStartingLine(body.c_str());
+			parseHTTPRequest();
+			return;
 		}
+		_data.body += body;
+		_data.body += "\r\n";
+
+		std::cout  << std::endl << RED << "Body " << BW;
+		std::cout << BLUE << _data.body << BW << std::endl;
+
+	}
+
+	size_t					ParseRequest::checkEndBody(std::string body)
+	{
+		if (body[0] == 'G')
+		{
+			std::cout << "stop" << std::endl  << std::endl;
+			return 1;
+		}
+		return 0;
+	}
+	void					ParseRequest::clearData()
+	{
+		_data.method.clear();
+		_data.path.clear();
+		_data.version.clear();
+		_data.headers.clear();
+		_data.body.clear();
 	}
 
 /*
