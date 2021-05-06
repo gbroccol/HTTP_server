@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:09 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/05 18:41:04 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/06 16:45:59 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,17 +23,20 @@ class Server
 private:
 	int listenSocket;
 	FILE *res;
-	// std::vector<Session *> sessions;
-	Session ** sessions;
-	int sessions_count;
+	std::vector<Session *> sessions;
+	fd_set readfds;
+	fd_set writefds;
 
 public:
+	Server(void);
+	~Server(void);
 	void init(const Config & config);
 	void run(void);
 	void accept_client(void);
 	Session * make_new_session(int fd, struct sockaddr_in *from);
 	void remove_session(int sd);
 	void close_session(int sd);
+	void close_all_sessions(void);
 };
 
 #endif

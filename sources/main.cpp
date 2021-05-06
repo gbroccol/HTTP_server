@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:27:49 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/05 18:40:49 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/06 14:48:02 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 // int main(int argc,  char **argv)
 int main(void)
 {
-    Server server;
+	Server server;
 	Config config;
 	ParseConfig parse;
 	
@@ -30,7 +30,6 @@ int main(void)
 	config.setPort(8080);
 	config.setLogFile(filename);
 
-// init and run  server
 	try 
 	{
 		server.init(config);

@@ -6,11 +6,23 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/05 18:41:54 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/06 17:59:57 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+
+Server::Server(void)
+{
+	this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
+	return;
+}
+
+Server::~Server(void)
+{
+	close_all_sessions();
+	return;
+}
 
 void Server::init(const Config & config)
 {
@@ -40,38 +52,39 @@ void Server::init(const Config & config)
 		throw std::runtime_error("Could not create a log file");
 	}
 	this->res = f;
-
-	this->sessions = (Session **)malloc(sizeof(Session*) * INIT_SESS_ARR_SIZE);
-   	this->sessions_count = INIT_SESS_ARR_SIZE;
-   	for(int i = 0; i < INIT_SESS_ARR_SIZE; i++)
-     	this->sessions[i] = NULL;
-	// this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
-	// this->sessions_count = INIT_SESS_ARR_SIZE;
 }
 	
 void Server::run(void)
 {
-	fd_set readfds;
 	int i, sr, ssr, maxfd;
 	for(;;) {
 		FD_ZERO(&readfds);
+		FD_ZERO(&writefds);
 		FD_SET(this->listenSocket, &readfds);
 		maxfd = this->listenSocket;
-		for(i = 0; i < this->sessions_count; i++) {
+		for(i = 0; i < (int)this->sessions.size(); i++) {
 			if(this->sessions[i]) {
 				FD_SET(i, &readfds);
 				if(i > maxfd)
 					maxfd = i;
 			}
 		}
-		sr = select(maxfd+1, &readfds, NULL, NULL, NULL);
+		sr = select(maxfd+1, &readfds, &writefds, NULL, NULL);
 		if (sr == -1)
 			throw std::runtime_error("Select error");
 		if (FD_ISSET(this->listenSocket, &readfds))
 			accept_client();
-		for (i = 0; i < this->sessions_count; i++) {
+		for (i = 0; i < (int)this->sessions.size(); i++) 
+		{
 			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
 				ssr = this->sessions[i]->do_read();
+				if (ssr == 2)
+					this->sessions[i]->do_write("HTTP/1.1 200 OK\r\n\r\n<html><head>Welcome</head></html>\n", &writefds);
+				else if (!ssr)
+					close_session(i);
+			}
+			if (this->sessions[i] && FD_ISSET(i, &writefds)) {
+				ssr = this->sessions[i]->send_message();
 				if (!ssr)
 					close_session(i);
 			}
@@ -81,29 +94,21 @@ void Server::run(void)
 
 void Server::accept_client(void)
 {
-	int sd, i;
+	int sd;
 	struct sockaddr_in addr;
 	socklen_t len = sizeof(addr);
 	sd = accept(this->listenSocket, (struct sockaddr*) &addr, &len);
-	if (sd == -1) {
-		// perror("accept");
-		return;
-	}
+	if (sd == -1)
+		throw std::runtime_error("Accept error");
 
-	if (sd >= this->sessions_count) 
+	if (sd >= (int)this->sessions.size()) 
 	{
-		// this->sessions_count.resize(this->sessions_count, NULL);
-		int newlen = this->sessions_count;
+		int newlen = this->sessions.size();
 		while(sd >= newlen)
 			newlen += INIT_SESS_ARR_SIZE;
-		this->sessions = (Session **)realloc(this->sessions, newlen * sizeof(Session *));
-		for(i = this->sessions_count; i < newlen; i++)
-			this->sessions[i] = NULL;
-		this->sessions_count = newlen;
+		this->sessions.resize(newlen, NULL);
 	}
-		
 	this->sessions[sd] = make_new_session(sd, &addr);
-    // this->sessions[sd]->make_new_session(sd, &addr);
 }
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
@@ -114,8 +119,7 @@ Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 	sess->from_port = ntohs(from->sin_port);
 	sess->buf_used = 0;
 	sess->state = fsm_start;
-	
-	sess->send_string("HTTP/1.1 200 OK\r\n");
+
 	return sess;
 }
 
@@ -132,4 +136,13 @@ void Server::close_session(int sd)
 	if(this->sessions[sd]->state == fsm_finish)
 		this->sessions[sd]->commit(this->res);
 	remove_session(sd);
+}
+
+void Server::close_all_sessions(void)
+{
+	for (size_t i = 0; i < this->sessions.size(); i++)
+	{
+		if (this->sessions[i])
+			close_session(i);
+	}
 }
