@@ -11,19 +11,26 @@
 /* ************************************************************************** */
 
 #include "Webserv.hpp"
+# include "Server.hpp"
+# include "Session.hpp"
+# include "Config.hpp"
+# include "ParseRequest.hpp"
 
 int main(int argc,  char **argv)
 {
     Server server;
 	Config config;
-	ParseConfig parse;
 	
 
 
 // parse config and set attributes
 	if(argc != 2)
+	{
+		std::cout << "Incorrect argc"<<std::endl;
 		return -1;
-	parse.parseFile(argv[1]);
+	}
+	config.getFile(argv[1]);
+	
 	char filename[4] = {'l', 'o', 'g'};
 	config.setPort(8080);
 	config.setLogFile(filename);

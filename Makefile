@@ -8,7 +8,7 @@ FLAGS =		-Wall -Werror -Wextra -g -std=c++98
 
 SRCS =		main.cpp \
 			ParseRequest.cpp\
-			ParseConfig.cpp
+			Config.cpp
 
 OBJ =		$(SRCS:.cpp=.o)
 
