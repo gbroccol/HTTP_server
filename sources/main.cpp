@@ -6,34 +6,38 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:27:49 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 13:54:41 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 14:05:17 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Webserv.hpp"
-#include "Server.hpp"
-#include "Config.hpp"
-#include "ParseConfig.hpp"
+# include "Server.hpp"
+# include "Session.hpp"
+# include "Config.hpp"
+# include "ParseRequest.hpp"
 
-// int main(int argc,  char **argv)
-int main(void)
+int main(int argc,  char **argv)
+// int main(void)
 {
-	Server server;
+    Server server;
 	// std::vector<Server *> servers;
 	// Server * server;
 	Config config;
-	ParseConfig parse;
 	
 // parse config and set attributes
-	// if(argc != 2)
-	// 	return -1;
-	// parse.parseFile(argv[1]);
-	char filename[4] = {'l', 'o', 'g'};
-	config.setPort(8080);
-	config.setLogFile(filename);
+	// char filename[4] = {'l', 'o', 'g'};
+	// config.setPort(8080);
+	// config.setLogFile(filename);
 
 	try 
 	{
+		if(argc != 2)
+		{
+			std::cout << "Incorrect argc"<<std::endl;
+			return -1;
+		}
+		config.getFile(argv[1]);
+		
 		// for (std::vector<>::iterator it = .begin(); it != .end(); it++)
 		// {
 		// 	server = new Server;
@@ -42,6 +46,7 @@ int main(void)
 		// }
 		// for (std::vector<Server *>::iterator it = servers.begin(); it != servers.end(); it++)
 		// 	&(*it)->run();
+		
 		server.init(config);
 		server.run();
 	}
