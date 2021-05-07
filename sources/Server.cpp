@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/06 17:59:57 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 13:05:13 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 Server::Server(void)
 {
-	this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
+	// this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
+	
 	return;
 }
 
@@ -56,37 +57,73 @@ void Server::init(const Config & config)
 	
 void Server::run(void)
 {
-	int i, sr, ssr, maxfd;
+	// int i;
+	int sr, ssr, maxfd;
+	std::map<int, Session *>::iterator it;
+	std::map<int, Session *>::iterator temp;
+	
 	for(;;) {
 		FD_ZERO(&readfds);
 		FD_ZERO(&writefds);
 		FD_SET(this->listenSocket, &readfds);
 		maxfd = this->listenSocket;
-		for(i = 0; i < (int)this->sessions.size(); i++) {
-			if(this->sessions[i]) {
-				FD_SET(i, &readfds);
-				if(i > maxfd)
-					maxfd = i;
-			}
+		// for(i = 0; i < (int)this->sessions.size(); i++) {
+		// 	if(this->sessions[i]) {
+		// 		FD_SET(i, &readfds);
+		// 		if(i > maxfd)
+		// 			maxfd = i;
+		// 	}
+		// }
+		for (it = this->sessions.begin(); it != this->sessions.end(); it++)
+		{
+			FD_SET(it->first, &readfds);
+			if (it->first > maxfd)
+					maxfd = it->first;
 		}
+		
 		sr = select(maxfd+1, &readfds, &writefds, NULL, NULL);
 		if (sr == -1)
 			throw std::runtime_error("Select error");
 		if (FD_ISSET(this->listenSocket, &readfds))
 			accept_client();
-		for (i = 0; i < (int)this->sessions.size(); i++) 
+		// for (i = 0; i < (int)this->sessions.size(); i++) 
+		// {
+		// 	if (this->sessions[i] && FD_ISSET(i, &readfds)) {
+		// 		ssr = this->sessions[i]->do_read();
+		// 		if (ssr == 2)
+		// 			this->sessions[i]->do_write("HTTP/1.1 200 OK\r\n\r\n<html><head>Welcome</head></html>\n", &writefds);
+		// 		else if (!ssr)
+		// 			close_session(i);
+		// 	}
+		// 	if (this->sessions[i] && FD_ISSET(i, &writefds)) {
+		// 		ssr = this->sessions[i]->send_message();
+		// 		if (!ssr)
+		// 			close_session(i);
+		// 	}
+		// }
+		for (it = this->sessions.begin(); it != this->sessions.end(); it++) 
 		{
-			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
-				ssr = this->sessions[i]->do_read();
+			if (FD_ISSET(it->first, &readfds)) {
+				ssr = it->second->do_read();
 				if (ssr == 2)
-					this->sessions[i]->do_write("HTTP/1.1 200 OK\r\n\r\n<html><head>Welcome</head></html>\n", &writefds);
+					it->second->do_write("HTTP/1.1 200 OK\r\n\r\n<html><head>Welcome</head></html>\n", &writefds);
 				else if (!ssr)
-					close_session(i);
+				{
+					temp = it;
+					++it;
+					close_session(temp);
+					--it;
+				}
 			}
-			if (this->sessions[i] && FD_ISSET(i, &writefds)) {
-				ssr = this->sessions[i]->send_message();
+			if (FD_ISSET(it->first, &writefds)) {
+				ssr = it->second->send_message();
 				if (!ssr)
-					close_session(i);
+				{
+					temp = it;
+					++it;
+					close_session(temp);
+					--it;
+				}
 			}
 		}
 	}
@@ -101,14 +138,16 @@ void Server::accept_client(void)
 	if (sd == -1)
 		throw std::runtime_error("Accept error");
 
-	if (sd >= (int)this->sessions.size()) 
-	{
-		int newlen = this->sessions.size();
-		while(sd >= newlen)
-			newlen += INIT_SESS_ARR_SIZE;
-		this->sessions.resize(newlen, NULL);
-	}
-	this->sessions[sd] = make_new_session(sd, &addr);
+	// if (sd >= (int)this->sessions.size()) 
+	// {
+	// 	int newlen = this->sessions.size();
+	// 	while(sd >= newlen)
+	// 		newlen += INIT_SESS_ARR_SIZE;
+	// 	this->sessions.resize(newlen, NULL);
+	// }
+	
+	// this->sessions[sd] = make_new_session(sd, &addr);
+	this->sessions.insert(std::make_pair(sd, make_new_session(sd, &addr)));
 }
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
@@ -123,26 +162,45 @@ Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 	return sess;
 }
 
-void Server::remove_session(int sd)
-{
-	close(sd);
-	this->sessions[sd]->fd = -1;
-	free(this->sessions[sd]);
-	this->sessions[sd] = NULL;
-}
+// void Server::remove_session(int sd)
+// {
+// 	close(sd);
+// 	this->sessions[sd]->fd = -1;
+// 	free(this->sessions[sd]);
+// 	this->sessions[sd] = NULL;
+// }
 
-void Server::close_session(int sd)
+// void Server::close_session(int sd)
+// {
+// 	if (this->sessions[sd]->state == fsm_finish)
+// 		this->sessions[sd]->commit(this->res);
+// 	close(sd);
+// 	free(this->sessions[sd]);
+// 	this->sessions[sd] = NULL;
+// }
+
+
+void Server::close_session(std::map<int, Session *>::iterator it)
 {
-	if(this->sessions[sd]->state == fsm_finish)
-		this->sessions[sd]->commit(this->res);
-	remove_session(sd);
+	if (it->second->state == fsm_finish)
+		it->second->commit(this->res);
+	close(it->first);
+	this->sessions.erase(it);
 }
 
 void Server::close_all_sessions(void)
 {
-	for (size_t i = 0; i < this->sessions.size(); i++)
+	// for (size_t i = 0; i < this->sessions.size(); i++)
+	// {
+	// 	if (this->sessions[i])
+	// 		close_session(i);
+	// }
+	std::map<int, Session *>::iterator it;
+	std::map<int, Session *>::iterator temp;
+	for (it = this->sessions.begin(); it !=  this->sessions.end(); it++)
 	{
-		if (this->sessions[i])
-			close_session(i);
+		temp = it;
+		--it;
+		close_session(temp);
 	}
 }
