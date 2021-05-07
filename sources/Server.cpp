@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 14:47:33 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 15:22:12 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ void Server::init(const configServer & config)
 		throw std::runtime_error("Could not create a log file");
 	}
 	this->res = f;
+	this->config = config;
 }
 	
 void Server::run(void)

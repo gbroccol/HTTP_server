@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 15:05:58 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 16:28:51 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,6 @@ enum fsm_states {
     fsm_start, fsm_finish, fsm_error
 };
 
-struct Flock {
-	short l_type;
-   	short l_whence;
-    off_t l_start;
-    off_t l_len;
-};
-
 class Session
 {
 public:
@@ -37,7 +30,6 @@ public:
     int buf_used;
 	std::string wr_buf;
     enum fsm_states state;
-	Flock flock;
 	
 
 public:

@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:43:31 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/06 18:16:39 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 16:28:43 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,6 @@
 
 Session::Session(void) 
 {
-	flock.l_type = F_UNLCK;
-   	flock.l_whence = SEEK_SET;
-    // flock.l_start;   /* Начальное смещение блокировки */
-    flock.l_len = 0;
 	return; 
 }
 
@@ -25,12 +21,12 @@ Session::~Session(void) { return; }
 
 int Session::send_message(void)
 {
+	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
 		this->state = fsm_error;
 		return 0;
 	}
-	fcntl(this->fd, F_SETLK, this->flock);
 	// this->state = fsm_finish;
 	// return 0;
 	return 1;

@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:09 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 14:46:39 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 15:21:45 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,13 @@
 class Server
 {
 private:
-	int listenSocket;
-	FILE *res;
-	std::vector<Session *> sessions;
+	int 					listenSocket;
+	FILE 					*res;
+	std::vector<Session *>	sessions;
 	// std::map<int, Session *> sessions;
-	fd_set readfds;
-	fd_set writefds;
+	configServer			config;
+	fd_set 					readfds;
+	fd_set 					writefds;
 
 public:
 	Server(void);
