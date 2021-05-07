@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/06 17:42:15 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 15:05:58 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ public:
 	void do_write(const char *str, fd_set * writefds);
 	int do_read(void);
 	void check_lf(void);
-	void commit(FILE *f);	
+	void commit(FILE *f);
 };
 
 #endif

@@ -324,7 +324,7 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 /*
 ** --------------------------------- GETTERS AND SETTERS ---------------------------------
 */
-	Config::configServer        *Config::getconfigServer(int index)
+	configServer        *Config::getconfigServer(int index)
 	{
 		return(servers[index]);
 	}
@@ -336,6 +336,11 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 	char * Config::getLogFile(void) const
 	{
 		return this->_root;
+	}
+
+	size_t		Config::getSize(void)
+	{
+		return this->servers.size();
 	}
 	
 	void Config::setPort(long const & p)

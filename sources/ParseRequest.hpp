@@ -1,19 +1,7 @@
 #ifndef PARSEREQUEST_HPP
 # define PARSEREQUEST_HPP
 
-# include <iostream>
-# include <string>
-# include <vector>
-
-#include <list>
-#include <map>
-#include <queue>
-#include <stack>
-#include <vector>
-#include <iostream>
-#include <iomanip>
-#include <cstdio>
-#include <string>
+# include "Webserv.hpp"
 
 #define BW "\033[0;0m"
 #define RED "\033[0;31m"

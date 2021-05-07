@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:43 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 14:06:51 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 14:16:52 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 # include <sys/socket.h> // socket, accept, listen, send, recv, bind, connect, inet_addr, setsockopt, getsockname
 
 # include <iostream>
+# include <fstream>
 # include <string>
 # include <vector>
 # include <list>

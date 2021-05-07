@@ -6,7 +6,7 @@
 #    By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/05/05 16:47:32 by pvivian           #+#    #+#              #
-#    Updated: 2021/05/07 14:08:11 by pvivian          ###   ########.fr        #
+#    Updated: 2021/05/07 14:40:21 by pvivian          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,10 +21,9 @@ MAIN = $(SRCS_DIR)main.cpp
 
 SRCS =		main.cpp \
 			ParseRequest.cpp\
-			Config.cpp
+			Config.cpp \
 			Server.cpp \
 			Session.cpp \
-			ParseRequest.cpp \
 
 SRCS_DIR = ./sources/
 

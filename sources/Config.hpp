@@ -6,24 +6,13 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:31:32 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/05 14:27:50 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/07 14:38:00 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 # define CONFIG_HPP
 
-#include <fstream>
-#include <vector>
-#include <list>
-#include <map>
-#include <queue>
-#include <stack>
-#include <vector>
-#include <iostream>
-#include <iomanip>
-#include <cstdio>
-#include <string>
 # include "Session.hpp"
 # include "Config.hpp"
 # include "ParseRequest.hpp"
@@ -38,8 +27,6 @@
 #define SERVER 1
 #define LOCATION 0
 
-class Config
-{
 	struct 						location
 	{
 		std::string 			path;
@@ -52,16 +39,42 @@ class Config
 		bool 					repeat_maxBody;
 	};
 
-	struct 						configServer
-	{
+struct 	configServer
+{
 		int 					port;
 		bool 					repeat_port;
 		std::string 			server_name;
 		bool 					repeat_server_name;
 		int 					error_page;
 		bool 					repeat_error_page;
-		std::vector<Config::location*> 	locations;
+		std::vector<location*> 	locations;
 	};
+
+
+class Config
+{
+	// struct 						location
+	// {
+	// 	std::string 			path;
+	// 	bool 					repeat_path;
+	// 	std::string 			index;
+	// 	bool 					repeat_index;
+	// 	std::string 			root;
+	// 	bool 					repeat_root;
+	// 	int 					maxBody;
+	// 	bool 					repeat_maxBody;
+	// };
+
+	// struct 						configServer
+	// {
+	// 	int 					port;
+	// 	bool 					repeat_port;
+	// 	std::string 			server_name;
+	// 	bool 					repeat_server_name;
+	// 	int 					error_page;
+	// 	bool 					repeat_error_page;
+	// 	std::vector<Config::location*> 	locations;
+	// };
 
 private:
 	long 						_port;
@@ -76,9 +89,7 @@ public:
 
 	long 				getPort(void) const;
 	configServer        *getconfigServer(int index);
-	// {
-	// 	return(servers[index]);
-	// }
+	size_t				getSize(void);
 	char 				*getLogFile(void) const;
 	void 				setPort(long const & p);
 	void 				setLogFile(char * name);
