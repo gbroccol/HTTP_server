@@ -52,7 +52,7 @@ class Config
 		bool 					repeat_maxBody;
 	};
 
-	struct 						server
+	struct 						configServer
 	{
 		int 					port;
 		bool 					repeat_port;
@@ -60,7 +60,7 @@ class Config
 		bool 					repeat_server_name;
 		int 					error_page;
 		bool 					repeat_error_page;
-		std::vector<location*> 	locations;
+		std::vector<Config::location*> 	locations;
 	};
 
 private:
@@ -68,26 +68,30 @@ private:
 	char 						*_root;
 	std::string					_server_name;
 	
-	std::vector<server*> 		servers;
+	std::vector<configServer*> 		servers;
 	
 public:
 	Config();
 	~Config();
 
 	long 				getPort(void) const;
+	configServer        *getconfigServer(int index);
+	// {
+	// 	return(servers[index]);
+	// }
 	char 				*getLogFile(void) const;
 	void 				setPort(long const & p);
 	void 				setLogFile(char * name);
 	bool				checkMainValLoc(location *locNode);
 	void				initLocNode(location *locNode);
-	void				initServNode(server *servNode);
+	void				initServNode(configServer *servNode);
 	void				getFile(std::string file);
-	void				parseStr(std::string str);
-	std::string			parseLocation(std::string str,  server *servNode);
+	std::string			parseStr(std::string str);
+	std::string			parseLocation(std::string str,  configServer *servNode);
 	bool				checkTokens(std::string &save, std::string str, int config_part);
-	bool				checkMainValServ(struct server *servNode);
-	void 				serverTokenSearch(std::string save, std::string tmp, server *servNode);
-
+	bool				checkMainValServ(struct configServer *servNode);
+	void 				serverTokenSearch(std::string save, std::string tmp, configServer *servNode);
+	void 				locTokenSearch(std::string save, std::string tmp, location *locNode);
 
 
 

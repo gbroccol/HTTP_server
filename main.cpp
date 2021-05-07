@@ -19,17 +19,12 @@
 int main(int argc,  char **argv)
 {
     Server server;
+	// std::vector<Server *> servers;
 	Config config;
 	
 
 
 // parse config and set attributes
-	if(argc != 2)
-	{
-		std::cout << "Incorrect argc"<<std::endl;
-		return -1;
-	}
-	config.getFile(argv[1]);
 	
 	char filename[4] = {'l', 'o', 'g'};
 	config.setPort(8080);
@@ -38,6 +33,12 @@ int main(int argc,  char **argv)
 // init server
 	try 
 	{
+		if(argc != 2)
+		{
+			std::cout << "Incorrect argc"<<std::endl;
+			return -1;
+		}
+		config.getFile(argv[1]);
 		server.init(config);
 	}
     catch (std::exception const & e)
