@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:43:31 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 16:28:43 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 13:27:45 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,17 @@ int Session::send_message(void)
 
 int Session::do_read(void)
 {
-	int read_res, bufp = this->buf_used;
+	int read_res;
 	ParseRequest parseRequest;
-	read_res = read(this->fd, this->buf + bufp, INBUFSIZE - bufp);
-	if(read_res <= 0) {
+	read_res = read(this->fd, this->buf, INBUFSIZE);
+	if(read_res < 0) {
 		this->state = fsm_error;
 		return 0;
+	}
+	else if (read_res == 0)
+	{
+		// передать в парсер информацию о том, что сообщение закончено
+		this->state = fsm_finish;
 	}
 
 	//parse
@@ -49,24 +54,13 @@ int Session::do_read(void)
 	}
 	catch (int const & e)
 	{
+		// сообщить основному процессу, что можно запускать обработчик запроса
 		return 2;
 	}
-		
-	this->buf_used += read_res;
-	// if(this->buf_used >= INBUFSIZE) {
-	// 	send_message("Line too long! Good bye...\n");
-	// 	this->state = fsm_error;
-	// 	return 0;
-	// }
+	
 	if(this->state == fsm_finish)
 		return 0;
 	return 1;
-}
-
-void Session::do_write(const char *str, fd_set * writefds)
-{
-	this->wr_buf = (std::string)str;
-	FD_SET(this->fd, writefds);
 }
 
 void Session::commit(FILE *f)
@@ -78,4 +72,11 @@ void Session::commit(FILE *f)
 			this->from_port);
 	fflush(f);
 	
+}
+
+void Session::handle_request(fd_set * writefds)
+{
+	// this->wr_buf = this->handler.handle(заполненная структура с запросом);
+	this->wr_buf = this->handler.handle();
+	FD_SET(this->fd, writefds);
 }
