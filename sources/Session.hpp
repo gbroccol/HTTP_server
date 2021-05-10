@@ -37,6 +37,7 @@ public:
 	~Session(void);
 	int send_message(void);
     std::string         getPresentTime();
+	std::string getLastModificationFile(std::string fileName);
 	void do_write(const char *str, fd_set * writefds);
 	int do_read(void);
 	void check_lf(void);

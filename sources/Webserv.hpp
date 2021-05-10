@@ -25,6 +25,7 @@
 # include <sys/time.h> //gettimeofday
 # include <time.h> //strptime, strftime
 # include <sys/socket.h> // socket, accept, listen, send, recv, bind, connect, inet_addr, setsockopt, getsockname
+#include <sys/stat.h> // stat
 
 # include <iostream>
 # include <fstream>

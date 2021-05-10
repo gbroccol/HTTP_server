@@ -92,3 +92,20 @@ std::string Session::getPresentTime()
     resultTime = resultTime + " GMT";
     return (resultTime);
 }
+
+std::string Session::getLastModificationFile(std::string fileName)
+{
+	struct stat buff;
+	std::ifstream file(fileName);
+		if (!file.is_open())
+			std::cout << "FileNotOpenException"<<std::endl; /*Здесь должен быть Эксепшн*/
+	stat(fileName.c_str(), &buff);
+	tm *ltm = std::localtime(&buff.st_mtime); 
+	char mbstr[100];
+	std::strftime(mbstr, 100, "%a, %d %b %Y %I:%M:%S", ltm);
+	std::string lastModifTime (mbstr);
+	lastModifTime += " GMT";
+	std::cout << lastModifTime<<std::endl;
+	file.close();
+	return (lastModifTime);
+}
