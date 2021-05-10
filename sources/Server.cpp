@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 17:15:11 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 18:22:55 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 Server::Server(void)
 {
 	this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
-	
 	return;
 }
 
@@ -84,11 +83,10 @@ void Server::run(void)
 		for (i = 0; i < (int)this->sessions.size(); i++) 
 		{
 			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
-				// ssr = this->sessions[i]->do_read();
-				// if (ssr == 2)
+				ssr = this->sessions[i]->do_read();
+				if (ssr == 2)
 					this->sessions[i]->handle_request(&writefds);
-					// this->sessions[i]->do_write("HTTP/1.1 200 OK\r\n\r\n<html><head>Welcome</head></html>\n", &writefds);
-				// else if (!ssr)
+				else if (!ssr)
 					close_session(i);
 			}
 			if (this->sessions[i] && FD_ISSET(i, &writefds)) {

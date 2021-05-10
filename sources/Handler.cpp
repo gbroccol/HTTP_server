@@ -6,16 +6,14 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/10 12:51:05 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 17:07:55 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 18:22:42 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Handler.hpp"
-#include "Webserv.hpp"
 
 Handler::Handler(void)
 {
-	this->response.append("HTTP/1.1");
 	return;
 }
 Handler::~Handler(void)
@@ -26,60 +24,50 @@ Handler::~Handler(void)
 // std::string const & Handler::handle(data request)
 std::string const & Handler::handle(void)
 {
-	this->response.append("HTTP/1.1 ");
-
 	// for debug:
 	request.method.append("GET");
 	request.path.append("/index.html");
-	//нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
+	//
 
-	// нужно вызвать функцию, которая соответствует методу запроса
-	if (request.method == "HEAD" || request.method == "GET")
+	this->response.append("HTTP/1.1 ");
+	if (request.headers.count("Host") > 1)
+		error_message(400);
+	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
+	else if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
 		;
 	else if (request.method == "PUT")
 		;
-	else
-		error_message(405);
-	return this->response;
-	
-}
 
-std::string const & lltostr(long long number)
-{
-	std::string res;
-	
-	if (number >= 10)
-	{
-		while (number > 0)
-		{
-			res.insert(res.begin(), (number % 10 + '0'));
-			number = number / 10;
-		}
-	}
-	else
-		res.insert(res.begin(), (number + '0'));
-	return res;
+	this->response.append("\r\n");
+	return this->response;
 }
 
 void Handler::handle_head(void)
 {
 	//нужно найти файл в системе, а затем попытаться открыть его
+	// если файл не найден - ошибка 404
 	
 	int fd;
 	struct stat file_stat;
 
 	if ( (fd = open(request.path.c_str(), O_RDONLY)) == -1)
-		// error_message(404) ?
-		;
+	{
+		close(fd);
+		error_message(500);
+		return;
+	}
 	else
 	{
 		fstat(fd, &file_stat);
 		this->response.append("200 OK\r\n");
 		this->response.append("Server: Webserv/1.1\r\n");
 		
-		//вставляем дату
+		this->response.append("Date: ");
+		this->response.append(getPresentTime());
+		this->response.append("\r\n");
+		
 		//определяем language ??
 		//отправляем location
 		//определяем тип файла ??
@@ -89,24 +77,47 @@ void Handler::handle_head(void)
 		this->response.append("\r\n");
 
 		this->response.append("Last-Modified: ");
-		//переводим дату в нужный формат и добавляем к строке ответа
+		this->response.append(getLastModificationTime(file_stat.st_mtime));
 		this->response.append("\r\n");
 
 		//Transfer-Encoding ?
-		
-		this->response.append("\r\n");
 
 		if (request.method == "GET")
-			handle_get(fd);
+			append_body(fd);
 	}
 	close(fd);
 }
 
-void Handler::handle_get(int fd)
+void Handler::append_body(int fd)
 {
-	std::ostringstream os();
 	//добавляем тело к ответу
+	if(fd)
+		;
+	// std::ostringstream os();
 	// os << fd;
+}
+
+std::string Handler::getPresentTime(void)
+{
+    char buffer[80];
+    time_t seconds = time(NULL);
+    std::string format = "%a, %d %b %Y %I:%M:%S";
+    
+    tm* timeinfo = localtime(&seconds);
+    strftime(buffer, 80, format.c_str(), timeinfo);
+    std::string resultTime = std::string(buffer);
+    resultTime = resultTime + " GMT";
+    return (resultTime);
+}
+
+std::string Handler::getLastModificationTime(time_t const & time)
+{
+	tm *ltm = std::localtime(&time); 
+	char mbstr[100];
+	std::strftime(mbstr, 100, "%a, %d %b %Y %I:%M:%S", ltm);
+	std::string lastModifTime(mbstr);
+	lastModifTime += " GMT";
+	return (lastModifTime);
 }
 
 void Handler::error_message(int const & status_code)
@@ -125,34 +136,76 @@ void Handler::error_message(int const & status_code)
 
 void Handler::error_message_100(int const & status_code)
 {
-	if (status_code)
+	switch(status_code)
+	{
+		
+	}
 	return;
 }
 
 void Handler::error_message_200(int const & status_code)
 {
-	if (status_code)
+	switch(status_code)
+	{
+		
+	}
 	return;
 }
 
 void Handler::error_message_300(int const & status_code)
 {
-	if (status_code)
+	switch(status_code)
+	{
+		
+	}
 	return;
 }
 
 void Handler::error_message_400(int const & status_code)
 {
-	if (status_code == 405)
+	switch(status_code)
 	{
-		this->response.append("405 Method Not Allowed\r\n");
-		this->response.append("Allow: GET, HEAD, POST, PUT\r\n\r\n"); // нужно подтянуть методы из конфига по локейшену
+		case 400:
+			this->response.append("400 Bad Request\r\n");
+			break;
+		case 404:
+			this->response.append("404 Not found\r\n");
+			break;
+		case 405:
+			this->response.append("405 Method Not Allowed\r\n");
+			this->response.append("Allow: GET, HEAD, POST, PUT\r\n"); // нужно подтянуть методы из конфига по локейшену
+			break;
 	}
 	return;
 }
 
 void Handler::error_message_500(int const & status_code)
 {
-	if (status_code)
+	switch(status_code)
+	{
+		case 500:
+			this->response.append("500 Internal Server Error\r\n");
+			break;
+	}
 	return;
+}
+
+
+// Additional functions
+
+std::string Handler::lltostr(long long number)
+{
+	std::string res;
+	
+	if (number >= 10)
+	{
+		while (number > 0)
+		{
+			res.insert(res.begin(), (number % 10 + '0'));
+			number = number / 10;
+		}
+	}
+	else
+		res.insert(res.begin(), (number + '0'));
+	return res;
 }

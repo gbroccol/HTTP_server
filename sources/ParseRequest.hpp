@@ -24,7 +24,7 @@ class ParseRequest
 		std::string								path;
 		std::string								version;
 
-		std::map <std::string, std::string>		headers;
+		std::multimap <std::string, std::string>		headers;
 
 		std::string								body;
 	};

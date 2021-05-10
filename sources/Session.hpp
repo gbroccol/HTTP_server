@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 17:22:02 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 17:27:25 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,6 @@ public:
 	Session(void);
 	~Session(void);
 	int send_message(void);
-    std::string         getPresentTime();
-	std::string getLastModificationFile(std::string fileName);
 	int do_read(void);
 	void check_lf(void);
 	void commit(FILE *f);

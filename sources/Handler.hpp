@@ -23,7 +23,7 @@ struct data
 		std::string								path;
 		std::string								version;
 
-		std::map <std::string, std::string>		headers;
+		std::multimap <std::string, std::string>		headers;
 
 		std::string								body;
 	};
@@ -42,7 +42,10 @@ public:
 	// std::string const & handle(заполненная структура с запросом);
 	std::string const & handle(void);
 	void handle_head(void);
-	void handle_get(int fd);
+	void append_body(int fd);
+
+	std::string getPresentTime(void);
+	std::string getLastModificationTime(time_t const & time);
 	
 
 	//можно вынести в отдельный класс
@@ -52,8 +55,9 @@ public:
 	void error_message_300(int const & status_code);
 	void error_message_400(int const & status_code);
 	void error_message_500(int const & status_code);
+
+	std::string lltostr(long long number);
 	
->>>>>>> Katya1
 };
 
 #endif
