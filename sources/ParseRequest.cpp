@@ -171,7 +171,14 @@ ParseRequest::~ParseRequest()
 	{
 		if (checkEndBody(body))
 		{
+<<<<<<< HEAD:sources/ParseRequest.cpp
+			//handler
 			// std::cout << "finish1" << std::endl;
+			// throw 0;
+			// getchar();
+=======
+			// std::cout << "finish1" << std::endl;
+>>>>>>> Katya1:sources/ParseRequest.cpp
 
 			clearData();
 			_parsPart = PRE_PART;

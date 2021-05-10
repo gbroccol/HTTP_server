@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:43 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 15:13:14 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 17:22:25 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 # include <sys/time.h> //gettimeofday
 # include <time.h> //strptime, strftime
 # include <sys/socket.h> // socket, accept, listen, send, recv, bind, connect, inet_addr, setsockopt, getsockname
+#include <sys/stat.h> // stat
 
 # include <iostream>
 # include <fstream>

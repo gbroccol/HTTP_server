@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 13:27:33 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 17:15:11 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ void Server::run(void)
 					maxfd = i;
 			}
 		}
-		
+
 		sr = select(maxfd+1, &readfds, &writefds, NULL, NULL);
 		if (sr == -1)
 			throw std::runtime_error("Select error");

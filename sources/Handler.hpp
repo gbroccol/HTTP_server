@@ -6,6 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/06 16:47:36 by pvivian           #+#    #+#             */
+
 /*   Updated: 2021/05/10 15:41:58 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
@@ -30,6 +31,7 @@ struct data
 class Handler
 {
 private:
+
 	std::string response;
 	data 		request; // for debug
 
@@ -51,6 +53,7 @@ public:
 	void error_message_400(int const & status_code);
 	void error_message_500(int const & status_code);
 	
+>>>>>>> Katya1
 };
 
 #endif

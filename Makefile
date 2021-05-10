@@ -6,7 +6,7 @@
 #    By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/05/05 16:47:32 by pvivian           #+#    #+#              #
-#    Updated: 2021/05/10 13:46:34 by pvivian          ###   ########.fr        #
+#    Updated: 2021/05/10 17:22:57 by pvivian          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,6 +34,7 @@ OBJ = $(addprefix $(OBJS_DIR), $(OBJS))
 DEP = $(OBJ:.o=.d)
 
 LOGFILE = *_log
+
 
 all: $(NAME)
 
