@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:09 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 15:21:45 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 17:15:37 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ private:
 	int 					listenSocket;
 	FILE 					*res;
 	std::vector<Session *>	sessions;
-	// std::map<int, Session *> sessions;
 	configServer			config;
 	fd_set 					readfds;
 	fd_set 					writefds;
@@ -37,7 +36,6 @@ public:
 	Session * make_new_session(int fd, struct sockaddr_in *from);
 	void remove_session(int sd);
 	void close_session(int sd);
-	// void close_session(std::map<int, Session *>::iterator it);
 	void close_all_sessions(void);
 };
 
