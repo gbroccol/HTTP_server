@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/10 12:51:05 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 14:19:30 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/11 14:30:02 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ int Handler::isRequestCorrect(configServer const & config)
 	// else if (есть ли такой локейшн. Если -1, то ошибка 404)
 	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
 	
-	if (config.error_page != 0)
+	if (config.repeat_error_page != 0)
 		;
 	
 	if (status_code != 0)

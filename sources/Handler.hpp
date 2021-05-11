@@ -34,7 +34,7 @@ private:
 
 	std::string response;
 	data 		request; // for debug
-	int index_location;
+	// int index_location;
 
 public:
 	Handler(void);

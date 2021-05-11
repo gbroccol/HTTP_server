@@ -129,23 +129,25 @@ std::string				Config::parseStr(std::string str)
 				throw Config::IncorrectConfigException();
 		}
 	}
-	// std::cout <<servers.size()<<std::endl;
-	// for(unsigned int i = 0; i < servers.size(); i++)
-	// {
-	// 	std::cout <<"configServer data["<< i<< "]: "<<std::endl;
-	// 	std::cout <<"                       error_page ["<< i<< "]: "<<servers[i]->error_page<<" flag: "<<servers[i]->repeat_error_page<<std::endl;
-	// 	std::cout <<"                       port       ["<< i<< "]: "<<servers[i]->port<<" flag: "<<servers[i]->repeat_port<<std::endl;
-	// 	std::cout <<"                       server_name["<< i<< "]: "<<servers[i]->server_name<<" flag: "<<servers[i]->repeat_server_name<<std::endl;
-	// 	std::cout <<servers[i]->locations.size()<<std::endl;
-	// 	for(unsigned int j = 0; j < servers[i]->locations.size(); j++)
-	// 	{
-	// 		std::cout <<std::setw(20) <<"location data["<< j<< "]: "<<std::endl;
-	// 		std::cout <<std::setw(40) <<"index ["<< j<< "]: "<<servers[i]->locations[j]->index<< " flag: "<<servers[i]->locations[j]->repeat_index<<std::endl;
-	// 		std::cout <<std::setw(40) <<"maxBody["<< j<< "]: "<<servers[i]->locations[j]->maxBody<<" flag: "<<servers[i]->locations[j]->repeat_maxBody<<std::endl;
-	// 		std::cout <<std::setw(40) <<"path["<< j<< "]: "<<servers[i]->locations[j]->path<<" flag: "<<servers[i]->locations[j]->repeat_path<<std::endl;
-	// 		std::cout <<std::setw(40) <<"root ["<< j<< "]: "<<servers[i]->locations[j]->root<<" flag: "<<servers[i]->locations[j]->repeat_root<<std::endl;
-	// 	}
-	// }
+	std::cout <<servers.size()<<std::endl;
+	for(unsigned int i = 0; i < servers.size(); i++)
+	{
+		std::cout <<"configServer data["<< i<< "]: "<<std::endl;
+		std::cout <<"                       error_page ["<< i<< "]: "<<servers[i]->error_page<<" flag: "<<servers[i]->repeat_error_page<<std::endl;
+		std::cout <<"                       port       ["<< i<< "]: "<<servers[i]->port<<" flag: "<<servers[i]->repeat_port<<std::endl;
+		std::cout <<"                       server_name["<< i<< "]: "<<servers[i]->server_name<<" flag: "<<servers[i]->repeat_server_name<<std::endl;
+		std::cout <<servers[i]->locations.size()<<std::endl;
+		for(unsigned int j = 0; j < servers[i]->locations.size(); j++)
+		{
+			std::cout <<std::setw(20) <<"location data["<< j<< "]: "<<std::endl;
+			std::cout <<std::setw(40) <<"index ["<< j<< "]: "<<servers[i]->locations[j]->index<< " flag: "<<servers[i]->locations[j]->repeat_index<<std::endl;
+			std::cout <<std::setw(40) <<"maxBody["<< j<< "]: "<<servers[i]->locations[j]->maxBody<<" flag: "<<servers[i]->locations[j]->repeat_maxBody<<std::endl;
+			std::cout <<std::setw(40) <<"path["<< j<< "]: "<<servers[i]->locations[j]->path<<" flag: "<<servers[i]->locations[j]->repeat_path<<std::endl;
+			std::cout <<std::setw(40) <<"root ["<< j<< "]: "<<servers[i]->locations[j]->root<<" flag: "<<servers[i]->locations[j]->repeat_root<<std::endl;
+			for(unsigned int h = 0; h < servers[i]->locations[j]->method.size(); h++)
+				std::cout <<std::setw(40) <<"method ["<< h<< "]: "<<servers[i]->locations[j]->method[h]<<" flag: "<<servers[i]->locations[j]->repeat_method<<std::endl;
+		}
+	}
 	return (str);
 }
 
@@ -176,7 +178,7 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 				tmp.push_back(str[pos++]);
 				continue ;
 			}
-			if(save.empty())
+			if(save.empty() || (save == "method" && locNode->repeat_method == true))
 				throw Config::IncorrectConfigException();
 			str.erase(0, pos);
 			pos = 0;
@@ -186,6 +188,14 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 		{
 			locTokenSearch(save, tmp, locNode);
 			str.erase(0, pos + 1);
+			tmp.clear();
+			pos = 0;
+		}
+		else if(checkTokens(save, tmp, METHOD) == true)
+		{
+			locTokenSearch(save, tmp, locNode);
+			locNode->repeat_method = true;
+			str.erase(0, pos);
 			tmp.clear();
 			pos = 0;
 		}
@@ -231,6 +241,12 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
 		locNode->index.assign(tmp);
 		locNode->repeat_index = true;
 	}
+	else if(save == "method")
+	{
+		if(tmp.empty() || checkTokens(save, tmp, METHOD) == false)
+			throw Config::IncorrectConfigException();
+		locNode->method.push_back(tmp);
+	}
 }
 
 void Config::serverTokenSearch(std::string save, std::string tmp, configServer *servNode)
@@ -247,6 +263,13 @@ void Config::serverTokenSearch(std::string save, std::string tmp, configServer *
 		servNode->server_name.assign(tmp);
 		servNode->repeat_server_name = true;
 	}
+	else if(save == "error_page")
+	{
+		if(tmp.empty() || tmp[0] != '/' || servNode->repeat_error_page == true)
+			throw Config::IncorrectConfigException();
+		servNode->error_page.assign(tmp);
+		servNode->repeat_error_page = true;
+	}
 }
 
 void					Config::initLocNode(location *locNode)
@@ -254,6 +277,8 @@ void					Config::initLocNode(location *locNode)
 	locNode->index = "";
 	locNode->maxBody = 0;
 	locNode->path = "";
+	locNode->method.clear();
+	locNode->repeat_method = false;
 	locNode->repeat_index = false;
 	locNode->repeat_maxBody = false;
 	locNode->repeat_path = false;
@@ -263,7 +288,7 @@ void					Config::initLocNode(location *locNode)
 
 void					Config::initServNode(configServer *servNode)
 {
-	servNode->error_page = -1;
+	servNode->error_page = "";
 	servNode->port = -1;
 	servNode->server_name = "";
 	servNode->repeat_error_page = false;
@@ -274,7 +299,7 @@ void					Config::initServNode(configServer *servNode)
 bool				Config::checkMainValLoc(struct location *locNode)
 {
 	if(locNode->repeat_path == true && locNode->repeat_index == true &&
-	   locNode->repeat_root == true)
+	   locNode->repeat_root == true && locNode->repeat_method == true)
 	   return (true);
 	else
 		return (false);
@@ -282,7 +307,7 @@ bool				Config::checkMainValLoc(struct location *locNode)
 
 bool				Config::checkMainValServ(struct configServer *servNode)
 {
-	if(/*servNode->repeat_error_page == true && */servNode->repeat_server_name == true &&
+	if(servNode->repeat_error_page == true && servNode->repeat_server_name == true &&
 	   servNode->repeat_port == true)
 	   return (true);
 	else
@@ -292,9 +317,11 @@ bool				Config::checkMainValServ(struct configServer *servNode)
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
 	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-	std::string location_tokens[] = {"index", "root", "MaxBody"};
+	std::string location_tokens[] = {"index", "root", "MaxBody", "method"};
+	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
 
-	if(config_part == SERVER)
+
+	if (config_part == SERVER)
 	{
 		for(unsigned int i = 0; i < 4; i++)
 		{
@@ -306,9 +333,16 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 		}
 		return (false);
 	}
+	else if(config_part == METHOD)
+	{
+		for(unsigned int i = 0; i < 4; i++)
+			if(method_tokens[i] == str)
+				return (true);
+		return (false);
+	}
 	else
 	{
-		for(unsigned int i = 0; i < 3; i++)
+		for(unsigned int i = 0; i < 4; i++)
 		{
 			if(location_tokens[i] == str)
 			{
