@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:27:49 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 14:43:55 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/10 17:13:03 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,18 +17,11 @@
 # include "ParseRequest.hpp"
 
 int main(int argc,  char **argv)
-// int main(void)
 {
-    // Server server;
 	std::vector<Server *> servers;
 	Server * server;
 	Config config;
 	configServer *confServer;
-	
-// parse config and set attributes
-	// char filename[4] = {'l', 'o', 'g'};
-	// config.setPort(8080);
-	// config.setLogFile(filename);
 
 	try 
 	{
@@ -48,9 +41,6 @@ int main(int argc,  char **argv)
 		}
 		for (size_t i = 0; i < servers.size(); i++)
 			servers[i]->run();
-		
-		// server.init(config);
-		// server.run();
 	}
     catch (std::exception const & e)
 	{
