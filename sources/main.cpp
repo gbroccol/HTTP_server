@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:27:49 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 17:13:03 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/11 18:47:25 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,12 @@ int main(int argc,  char **argv)
 	Server * server;
 	Config config;
 	configServer *confServer;
+	// char *configFile;
 
 	try 
 	{
+		// если аргументов нет (argc == 1), configFile = default path
+		// В ином случае configFile = argv[1]
 		if(argc != 2)
 		{
 			std::cout << "Incorrect argc"<<std::endl;

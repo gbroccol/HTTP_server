@@ -34,7 +34,8 @@ private:
 
 	std::string response;
 	data 		request; // for debug
-	// int index_location;
+	int 		index_location;
+	std::string	path;
 
 public:
 	Handler(void);
@@ -42,9 +43,10 @@ public:
 
 	// std::string const & handle(заполненная структура с запросом);
 	std::string const & handle(configServer const & config);
-	int isRequestCorrect(configServer const & config);
+	int isRequestCorrect(void);
+	void makePath(configServer const & config);
 	void handle_head(void);
-	void append_body(int fd);
+	void append_body(void);
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);

@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/10 12:51:05 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 14:30:02 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/11 18:33:59 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,22 +32,22 @@ std::string const & Handler::handle(configServer const & config)
 
 	this->response.append("HTTP/1.1 ");
 	
-	if (!isRequestCorrect(config))
+	if (!isRequestCorrect())
 		return this->response;
 	
+	makePath(config);
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
 		;
 	else if (request.method == "PUT")
 		;
-
 	this->response.append("\r\n");
 	return this->response;
 }
 
 
-int Handler::isRequestCorrect(configServer const & config)
+int Handler::isRequestCorrect(void)
 {
 	std::string methods = "GET, HEAD, PUT, POST";
 	int status_code = 0;
@@ -61,9 +61,6 @@ int Handler::isRequestCorrect(configServer const & config)
 	// else if (есть ли такой локейшн. Если -1, то ошибка 404)
 	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
 	
-	if (config.repeat_error_page != 0)
-		;
-	
 	if (status_code != 0)
 	{
 		error_message(status_code);
@@ -73,64 +70,81 @@ int Handler::isRequestCorrect(configServer const & config)
 	return 0;
 }
 
-void Handler::handle_head(void)
+void Handler::makePath(configServer const & config)
 {
-	//нужно найти файл в системе, а затем попытаться открыть его
-	// если файл не найден - ошибка 404
+	//for debug
+	this->index_location = 0;
+	//
+
+	DIR	*dir;
 	
-	int fd;
-	struct stat file_stat;
-	std::string path;
-
-	if ( (fd = open(request.path.c_str(), O_RDONLY)) == -1)
-	{
-		close(fd);
-		error_message(500);
-		return;
-	}
-	else
-	{
-		fstat(fd, &file_stat);
-		this->response.append("200 OK\r\n");
-		this->response.append("Server: Webserv/1.1\r\n");
-		
-		this->response.append("Date: ");
-		this->response.append(getPresentTime());
-		this->response.append("\r\n");
-		
-		this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
-		
-		//отправляем location
-		this->response.append("Content-Location: ");
-		this->response.append(path);
-		this->response.append("\r\n");
-		
-		
-		//определяем тип файла ??
-		
-		this->response.append("Content-Length: ");
-		this->response.append(lltostr(file_stat.st_size));
-		this->response.append("\r\n");
-
-		this->response.append("Last-Modified: ");
-		this->response.append(getLastModificationTime(file_stat.st_mtime));
-		this->response.append("\r\n");
-
-		//Transfer-Encoding ?
-
-		if (request.method == "GET")
-			append_body(fd);
-	}
-	close(fd);
+	this->path = ".";
+	this->path.append(config.locations[index_location]->root);
+	this->path.append(request.path);
+	
+	dir = opendir(path.c_str());
+	if (dir)
+		this->path.append(config.locations[index_location]->index);
+	closedir(dir);
 }
 
-void Handler::append_body(int fd)
+void Handler::handle_head(void)
 {
-	//добавляем тело к ответу
-	if(fd)
-		;
-	// std::ostringstream os();
-	// os << fd;
+	int fd;
+	struct stat file_stat;
+	
+	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
+	{
+		if (errno == ENOENT || errno == EFAULT)
+			error_message(404);
+		else
+			error_message(500);
+		return;
+	}
+	
+	fstat(fd, &file_stat);
+	this->response.append("200 OK\r\n");
+	this->response.append("Server: Webserv/1.1\r\n");
+		
+	this->response.append("Date: ");
+	this->response.append(getPresentTime());
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
+		
+	this->response.append("Content-Location: ");
+	this->response.append(this->path);
+	this->response.append("\r\n");
+		
+	//определяем тип файла ??
+		
+	this->response.append("Content-Length: ");
+	this->response.append(lltostr(file_stat.st_size));
+	this->response.append("\r\n");
+
+	this->response.append("Last-Modified: ");
+	this->response.append(getLastModificationTime(file_stat.st_mtime));
+	this->response.append("\r\n");
+
+	//Transfer-Encoding ?
+	
+	close(fd);
+	
+	if (request.method == "GET")
+		append_body();
+}
+
+void Handler::append_body(void)
+{
+	//возможно нужно будет заменить на функции из других библиотек
+	
+	std::ifstream ifs(this->path.c_str());
+	std::stringstream ss;
+	ss << ifs.rdbuf();
+	
+	this->response.append(ss.str());
+	this->response.append("\r\n");
+	ifs.close();
 }
 
 std::string Handler::getPresentTime(void)
