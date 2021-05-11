@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 17:27:25 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/11 13:41:31 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ public:
 	int do_read(void);
 	void check_lf(void);
 	void commit(FILE *f);
-	void handle_request(fd_set * writefds);
+	void handle_request(fd_set * writefds, configServer const & config);
 };
 
 #endif

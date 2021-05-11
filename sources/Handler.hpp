@@ -15,7 +15,7 @@
 # define HANDLER_HPP
 
 # include "Webserv.hpp"
-
+# include "Config.hpp"
 
 struct data
 	{
@@ -34,13 +34,15 @@ private:
 
 	std::string response;
 	data 		request; // for debug
+	int index_location;
 
 public:
 	Handler(void);
 	~Handler(void);
 
 	// std::string const & handle(заполненная структура с запросом);
-	std::string const & handle(void);
+	std::string const & handle(configServer const & config);
+	int isRequestCorrect(configServer const & config);
 	void handle_head(void);
 	void append_body(int fd);
 

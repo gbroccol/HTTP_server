@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 18:22:55 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/11 13:28:13 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void Server::run(void)
 			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
 				ssr = this->sessions[i]->do_read();
 				if (ssr == 2)
-					this->sessions[i]->handle_request(&writefds);
+					this->sessions[i]->handle_request(&writefds, this->config);
 				else if (!ssr)
 					close_session(i);
 			}

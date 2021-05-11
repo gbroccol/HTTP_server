@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/10 12:51:05 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/10 18:22:42 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/11 14:19:30 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,18 +22,20 @@ Handler::~Handler(void)
 }
 
 // std::string const & Handler::handle(data request)
-std::string const & Handler::handle(void)
+std::string const & Handler::handle(configServer const & config)
 {
 	// for debug:
 	request.method.append("GET");
 	request.path.append("/index.html");
+	request.version.append("HTTP/1.1");
 	//
 
 	this->response.append("HTTP/1.1 ");
-	if (request.headers.count("Host") > 1)
-		error_message(400);
-	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
-	else if (request.method == "HEAD" || request.method == "GET")
+	
+	if (!isRequestCorrect(config))
+		return this->response;
+	
+	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
 		;
@@ -44,6 +46,33 @@ std::string const & Handler::handle(void)
 	return this->response;
 }
 
+
+int Handler::isRequestCorrect(configServer const & config)
+{
+	std::string methods = "GET, HEAD, PUT, POST";
+	int status_code = 0;
+
+	if (request.headers.count("Host") > 1) // добавить проверку на неполный запрос
+		status_code = 400;
+	else if (request.version != "HTTP/1.1")
+		status_code = 505;
+	else if (methods.find(request.method) == std::string::npos)
+		status_code = 501;
+	// else if (есть ли такой локейшн. Если -1, то ошибка 404)
+	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
+	
+	if (config.error_page != 0)
+		;
+	
+	if (status_code != 0)
+	{
+		error_message(status_code);
+		this->response.append("\r\n");
+		return 1;
+	}
+	return 0;
+}
+
 void Handler::handle_head(void)
 {
 	//нужно найти файл в системе, а затем попытаться открыть его
@@ -51,6 +80,7 @@ void Handler::handle_head(void)
 	
 	int fd;
 	struct stat file_stat;
+	std::string path;
 
 	if ( (fd = open(request.path.c_str(), O_RDONLY)) == -1)
 	{
@@ -68,8 +98,14 @@ void Handler::handle_head(void)
 		this->response.append(getPresentTime());
 		this->response.append("\r\n");
 		
-		//определяем language ??
+		this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
+		
 		//отправляем location
+		this->response.append("Content-Location: ");
+		this->response.append(path);
+		this->response.append("\r\n");
+		
+		
 		//определяем тип файла ??
 		
 		this->response.append("Content-Length: ");
@@ -185,6 +221,13 @@ void Handler::error_message_500(int const & status_code)
 	{
 		case 500:
 			this->response.append("500 Internal Server Error\r\n");
+			break;
+		case 501:
+			this->response.append("501 Not Implemented\r\n");
+			this->response.append("Allow: GET, HEAD, POST, PUT\r\n"); // нужно подтянуть методы из конфига по локейшену
+			break;
+		case 505:
+			this->response.append("505 HTTP Version Not Supported\r\n");
 			break;
 	}
 	return;

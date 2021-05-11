@@ -46,6 +46,7 @@ int Session::do_read(void)
 	{
 		// передать в парсер информацию о том, что сообщение закончено
 		// this->state = fsm_finish;
+		return 0;
 	}
 
 	//parse
@@ -59,6 +60,8 @@ int Session::do_read(void)
 		return 2;
 	}
 	
+	bzero(this->buf, INBUFSIZE);
+
 	if(this->state == fsm_finish)
 		return 0;
 	return 1;
@@ -75,9 +78,9 @@ void Session::commit(FILE *f)
 	
 }
 
-void Session::handle_request(fd_set * writefds)
+void Session::handle_request(fd_set * writefds, configServer const & config)
 {
 	// this->wr_buf = this->handler.handle(заполненная структура с запросом);
-	this->wr_buf = this->handler.handle();
+	this->wr_buf = this->handler.handle(config);
 	FD_SET(this->fd, writefds);
 }

@@ -6,16 +6,17 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:31:32 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/07 14:38:00 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/11 13:40:55 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 # define CONFIG_HPP
 
-# include "Session.hpp"
-# include "Config.hpp"
-# include "ParseRequest.hpp"
+// # include "Session.hpp"
+// # include "ParseRequest.hpp"
+
+#include "Webserv.hpp"
 
 #define BW "\033[0;0m"
 #define RED "\033[0;31m"
