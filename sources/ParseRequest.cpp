@@ -171,10 +171,8 @@ ParseRequest::~ParseRequest()
 	{
 		if (checkEndBody(body))
 		{
-			// handler
-			std::cout << "finish 1" << std::endl;
-			getchar();
-
+			// std::cout << "finish1" << std::endl;
+			
 			clearData();
 			_parsPart = PRE_PART;
 			parseStartingLine(body.c_str());
