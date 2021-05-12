@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/10 12:51:05 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/12 15:47:36 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/12 18:24:23 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ std::string const & Handler::handle(configServer const & config)
 	else if (request.method == "POST")
 		;
 	else if (request.method == "PUT")
-		;
+		handle_put();
 	this->response.append("\r\n");
 	return this->response;
 }
@@ -83,7 +83,7 @@ void Handler::makePath(void)
 	this->path.append(request.path);
 	
 	dir = opendir(path.c_str());
-	if (dir)
+	if (dir && (request.method == "GET" || request.method == "HEAD"))
 		this->path.append(config.locations[index_location]->index);
 	closedir(dir);
 }
@@ -147,6 +147,52 @@ void Handler::append_body(void)
 	ifs.close();
 }
 
+void Handler::handle_put(void)
+{
+	std::string status_code;
+	int fd;
+	status_code = "204 No Content\r\n";
+	
+	fd = open(this->path.c_str(), O_RDWR);
+	if (fd < 0)
+		status_code = "201 Created\r\n";
+	close(fd);
+	
+	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+	if (!ofs.good())
+	{
+		error_message(500);
+		return;
+	}
+	ofs << request.body;
+	ofs.close();
+	
+	this->response.append(status_code);
+	this->response.append("Server: Webserv/1.1\r\n");
+		
+	this->response.append("Date: ");
+	this->response.append(getPresentTime());
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
+		
+	this->response.append("Content-Location: ");
+	this->response.append(this->path);
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Type: ");
+	// this->response.append(this->path); //нужно подтянуть из хедера запроса, если он есть
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Length: ");
+	// this->response.append(lltostr(file_stat.st_size)); //нужно подтянуть из хедера запроса, если он есть
+	this->response.append("\r\n");
+
+	this->response.append("Location: ");
+	this->response.append(request.path);
+	this->response.append("\r\n");
+}
+
 std::string Handler::getPresentTime(void)
 {
     char buffer[80];
@@ -172,50 +218,6 @@ std::string Handler::getLastModificationTime(time_t const & time)
 
 void Handler::error_message(int const & status_code)
 {
-	if (status_code >= 100 && status_code < 200)
-		error_message_100(status_code);
-	else if (status_code >= 200 && status_code < 300)
-		error_message_200(status_code);
-	else if (status_code >= 300 && status_code < 400)
-		error_message_300(status_code);
-	else if (status_code >= 400 && status_code < 500)
-		error_message_400(status_code);
-	else if (status_code >= 500 && status_code < 600)
-		error_message_500(status_code);
-}
-
-void Handler::error_message_100(int const & status_code)
-{
-	switch(status_code)
-	{
-		
-	}
-	return;
-}
-
-void Handler::error_message_200(int const & status_code)
-{
-	switch(status_code)
-	{
-		
-	}
-	return;
-}
-
-void Handler::error_message_300(int const & status_code)
-{
-	switch(status_code)
-	{
-		
-	}
-	return;
-}
-
-void Handler::error_message_400(int const & status_code)
-{
-	location * loc = config.locations[index_location];
-	size_t size = loc->method.size();
-	
 	switch(status_code)
 	{
 		case 400:
@@ -226,39 +228,14 @@ void Handler::error_message_400(int const & status_code)
 			break;
 		case 405:
 			this->response.append("405 Method Not Allowed\r\n");
-			this->response.append("Allow: ");
-			for (size_t i = 0; i < size; i++)
-			{
-				this->response.append(loc->method[i].c_str());
-				if (i != size - 1)
-					this->response.append(", ");
-			}
-			this->response.append("\r\n");
+			allow_header();
 			break;
-	}
-	return;
-}
-
-void Handler::error_message_500(int const & status_code)
-{
-	location * loc = config.locations[index_location];
-	size_t size = loc->method.size();
-	
-	switch(status_code)
-	{
 		case 500:
 			this->response.append("500 Internal Server Error\r\n");
 			break;
 		case 501:
-			this->response.append("501 Not Implemented\r\n");;
-			this->response.append("Allow: ");
-			for (size_t i = 0; i < size; i++)
-			{
-				this->response.append(loc->method[i].c_str());
-				if (i != size - 1)
-					this->response.append(", ");
-			}
-			this->response.append("\r\n");
+			this->response.append("501 Not Implemented\r\n");
+			allow_header();
 			break;
 		case 505:
 			this->response.append("505 HTTP Version Not Supported\r\n");
@@ -267,6 +244,20 @@ void Handler::error_message_500(int const & status_code)
 	return;
 }
 
+void Handler::allow_header(void)
+{
+	location * loc = config.locations[index_location];
+	size_t size = loc->method.size();
+	
+	this->response.append("Allow: ");
+	for (size_t i = 0; i < size; i++)
+	{
+		this->response.append(loc->method[i].c_str());
+		if (i != size - 1)
+			this->response.append(", ");
+	}
+	this->response.append("\r\n");
+}
 
 // Additional functions
 

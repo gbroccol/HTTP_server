@@ -48,18 +48,13 @@ public:
 	void makePath(void);
 	void handle_head(void);
 	void append_body(void);
+	void handle_put(void);
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);
 	
-
-	//можно вынести в отдельный класс
 	void error_message(int const & status_code);
-	void error_message_100(int const & status_code);
-	void error_message_200(int const & status_code);
-	void error_message_300(int const & status_code);
-	void error_message_400(int const & status_code);
-	void error_message_500(int const & status_code);
+	void allow_header(void);
 
 	std::string lltostr(long long number);
 	
