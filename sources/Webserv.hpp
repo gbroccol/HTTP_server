@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:43 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 18:18:45 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/12 13:20:22 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # include <fcntl.h>  //open, fcntl
 # include <signal.h> // signal, kill
 # include <netinet/in.h> //htons, htonl, ntohs, ntohl
+# include <arpa/inet.h> // inet_addr
 # include <sys/types.h> //opendir, readdir, closedir
 # include <cstring>  // strerror
 # include <cerrno> // errno

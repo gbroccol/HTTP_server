@@ -52,7 +52,7 @@ int Session::do_read(void)
 	//parse
 	
 	try {
-	parseRequest.addToBuffer((std::string)this->buf);
+		parseRequest.addToBuffer((std::string)this->buf);
 	}
 	catch (int const & e)
 	{

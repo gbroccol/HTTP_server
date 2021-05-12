@@ -32,10 +32,11 @@ class Handler
 {
 private:
 
-	std::string response;
-	data 		request; // for debug
-	int 		index_location;
-	std::string	path;
+	std::string 	response;
+	data 			request; // for debug
+	int 			index_location;
+	std::string		path;
+	configServer	config;
 
 public:
 	Handler(void);
@@ -44,7 +45,7 @@ public:
 	// std::string const & handle(заполненная структура с запросом);
 	std::string const & handle(configServer const & config);
 	int isRequestCorrect(void);
-	void makePath(configServer const & config);
+	void makePath(void);
 	void handle_head(void);
 	void append_body(void);
 
