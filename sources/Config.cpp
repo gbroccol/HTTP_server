@@ -64,7 +64,7 @@ void				Config::getFile(std::string file)
 	std::string file_in_str;
 	std::string tmp;
 ;
-	if(file.length() != 0 && file == "example.conf")
+	if(file.length() != 0)
 	{
 		std::ifstream fconfig(file);
 		if (!fconfig.is_open())

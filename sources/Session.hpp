@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 13:41:31 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/12 15:22:31 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ public:
 	std::string wr_buf;
     enum fsm_states state;
 
+	// ParseRequest parseRequest;
 	Handler handler;
 	
 
@@ -39,7 +40,6 @@ public:
 	~Session(void);
 	int send_message(void);
 	int do_read(void);
-	void check_lf(void);
 	void commit(FILE *f);
 	void handle_request(fd_set * writefds, configServer const & config);
 };

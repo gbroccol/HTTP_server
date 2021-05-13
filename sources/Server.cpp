@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 13:28:13 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/12 13:44:44 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,9 @@ void Server::init(const configServer & config)
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_addr.s_addr = inet_addr(config.server_name.c_str());
+	if (addr.sin_addr.s_addr == (unsigned int)-1)
+		throw std::runtime_error("Invalid server address");
 	addr.sin_port = htons(config.port);
 	if(bind(sock, (struct sockaddr*) &addr, sizeof(addr)) == -1)
 		throw std::runtime_error("Could not bind socket");
