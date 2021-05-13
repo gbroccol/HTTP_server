@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+         #
+#    By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/05/05 16:47:32 by pvivian           #+#    #+#              #
-#    Updated: 2021/05/13 15:34:32 by gbroccol         ###   ########.fr        #
+#    Updated: 2021/05/13 15:52:39 by gbroccol         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,11 +21,11 @@ FLAGS =		-Wall -Werror -Wextra -g -std=c++98 -MMD  -I ./sources
 MAIN = $(SRCS_DIR)main.cpp
 
 SRCS =		main.cpp \
-			ParseRequest.cpp\
 			Config.cpp \
 			Server.cpp \
 			Handler.cpp \
 			Session.cpp \
+			ParseRequest.cpp\
 
 SRCS_DIR = ./sources/
 

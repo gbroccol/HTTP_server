@@ -15,6 +15,7 @@
 
 Session::Session(void) 
 {
+	parseRequest = new ParseRequest;
 	return; 
 }
 
