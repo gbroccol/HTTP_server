@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/10 12:51:05 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/12 18:24:23 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/13 13:15:51 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,13 +78,18 @@ void Handler::makePath(void)
 
 	DIR	*dir;
 	
+	
 	this->path = ".";
 	this->path.append(config.locations[index_location]->root);
 	this->path.append(request.path);
+	this->location_path.append(request.path);
 	
 	dir = opendir(path.c_str());
 	if (dir && (request.method == "GET" || request.method == "HEAD"))
+	{
 		this->path.append(config.locations[index_location]->index);
+		this->location_path.append(config.locations[index_location]->index);
+	}
 	closedir(dir);
 }
 
@@ -113,7 +118,7 @@ void Handler::handle_head(void)
 	this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
 		
 	this->response.append("Content-Location: ");
-	this->response.append(this->path);
+	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
 	// как определяем тип файла ??
@@ -177,7 +182,7 @@ void Handler::handle_put(void)
 	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
 		
 	this->response.append("Content-Location: ");
-	this->response.append(this->path);
+	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Type: ");
@@ -189,7 +194,7 @@ void Handler::handle_put(void)
 	this->response.append("\r\n");
 
 	this->response.append("Location: ");
-	this->response.append(request.path);
+	this->response.append(this->location_path);
 	this->response.append("\r\n");
 }
 

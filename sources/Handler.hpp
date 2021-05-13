@@ -36,6 +36,7 @@ private:
 	data 			request; // for debug
 	int 			index_location;
 	std::string		path;
+	std::string 	location_path;
 	configServer	config;
 
 public:
