@@ -8,38 +8,38 @@
 		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="/Users/gbroccol/Desktop/do/cmake-build-debug"/>
+				<Option working_dir="/Users/pvivian/Desktop/web4/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="/Users/gbroccol/Desktop/do/cmake-build-debug"/>
+				<Option working_dir="/Users/pvivian/Desktop/web4/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
-				<Option working_dir="/Users/gbroccol/Desktop/do/cmake-build-debug"/>
+				<Option working_dir="/Users/pvivian/Desktop/web4/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="clion_test">
-				<Option output="/Users/gbroccol/Desktop/do/cmake-build-debug/clion_test" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/Users/gbroccol/Desktop/do/cmake-build-debug"/>
+				<Option output="/Users/pvivian/Desktop/web4/cmake-build-debug/clion_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/pvivian/Desktop/web4/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -52,15 +52,15 @@
 					<Add directory="/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clion_test"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clion_test"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="clion_test/fast">
-				<Option output="/Users/gbroccol/Desktop/do/cmake-build-debug/clion_test" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/Users/gbroccol/Desktop/do/cmake-build-debug"/>
+				<Option output="/Users/pvivian/Desktop/web4/cmake-build-debug/clion_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/pvivian/Desktop/web4/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -73,47 +73,47 @@
 					<Add directory="/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clion_test/fast"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/gbroccol/Desktop/do/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clion_test/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/pvivian/Desktop/web4/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Config.cpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Config.cpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Config.hpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Config.hpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Handler.cpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Handler.cpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Handler.hpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Handler.hpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/ParseRequest.cpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/ParseRequest.cpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/ParseRequest.hpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/ParseRequest.hpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Server.cpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Server.cpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Server.hpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Server.hpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Session.cpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Session.cpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/Session.hpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/Session.hpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/sources/main.cpp">
+		<Unit filename="/Users/pvivian/Desktop/web4/sources/main.cpp">
 			<Option target="clion_test"/>
 		</Unit>
-		<Unit filename="/Users/gbroccol/Desktop/do/CMakeLists.txt">
+		<Unit filename="/Users/pvivian/Desktop/web4/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
 	</Project>

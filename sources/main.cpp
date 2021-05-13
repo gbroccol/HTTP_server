@@ -16,7 +16,7 @@ int main(int argc,  char **argv)
 	{
 		if ( argc == 2)
 			configFile = argv[1];
-		else
+		else if (argc > 2)
 		{
 			std::cout << "Incorrect argc"<<std::endl;
 			return -1;

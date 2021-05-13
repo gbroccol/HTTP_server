@@ -12,12 +12,14 @@ Handler::~Handler(void)
 std::string const & Handler::handle(configServer const & config, data const & req)
 {
 
+    this->response.clear();
 	this->response.append("HTTP/1.1 ");
 	this->config = config;
 	this->request = req;
+
 	if (!isRequestCorrect())
 		return this->response;
-	
+
 	makePath();
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
@@ -25,7 +27,8 @@ std::string const & Handler::handle(configServer const & config, data const & re
 		;
 	else if (request.method == "PUT")
 		handle_put();
-	this->response.append("\r\n");
+	// this->response.append("\r\n");
+	std::cout << this->response << std::endl;
 	return this->response;
 }
 
@@ -49,9 +52,9 @@ int Handler::isRequestCorrect(void)
 	{
 		error_message(status_code);
 		this->response.append("\r\n");
-		return 1;
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 void Handler::makePath(void)
@@ -68,8 +71,8 @@ void Handler::makePath(void)
 	{
 		this->path.append(config.locations[index_location]->index);
 		this->location_path.append(config.locations[index_location]->index);
+        closedir(dir);
 	}
-	closedir(dir);
 }
 
 void Handler::handle_head(void)
@@ -101,6 +104,9 @@ void Handler::handle_head(void)
 	this->response.append("\r\n");
 		
 	// как определяем тип файла ??
+	this->response.append("Content-Type: ");
+	this->response.append("text/html");
+	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
 	this->response.append(lltostr(file_stat.st_size));
@@ -111,6 +117,8 @@ void Handler::handle_head(void)
 	this->response.append("\r\n");
 
 	//Transfer-Encoding ?
+
+	this->response.append("\r\n");
 	
 	close(fd);
 	
@@ -127,7 +135,7 @@ void Handler::append_body(void)
 	ss << ifs.rdbuf();
 	
 	this->response.append(ss.str());
-	this->response.append("\r\n");
+	// this->response.append("\r\n");
 	ifs.close();
 }
 
@@ -324,7 +332,6 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 		if(locations[i]->path == path)
 		{
 			theBestLocation = i;
-			std::cout << theBestLocation<<std::endl;
 			return (theBestLocation);
 		}
 		else
@@ -351,6 +358,5 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 			}
 		}
 	}
-	std::cout << theBestLocation<<std::endl;
 	return(theBestLocation);
 }

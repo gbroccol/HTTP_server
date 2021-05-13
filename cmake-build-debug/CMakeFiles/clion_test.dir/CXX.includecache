@@ -6,37 +6,21 @@
 
 #IncludeRegexTransform: 
 
-/Users/gbroccol/Desktop/do/sources/Config.hpp
+/Users/pvivian/Desktop/web4/sources/Config.hpp
 Webserv.hpp
-/Users/gbroccol/Desktop/do/sources/Webserv.hpp
+/Users/pvivian/Desktop/web4/sources/Webserv.hpp
 
-/Users/gbroccol/Desktop/do/sources/Handler.hpp
-Webserv.hpp
-/Users/gbroccol/Desktop/do/sources/Webserv.hpp
-Config.hpp
-/Users/gbroccol/Desktop/do/sources/Config.hpp
-
-/Users/gbroccol/Desktop/do/sources/ParseRequest.hpp
-Webserv.hpp
-/Users/gbroccol/Desktop/do/sources/Webserv.hpp
-
-/Users/gbroccol/Desktop/do/sources/Server.hpp
-Webserv.hpp
-/Users/gbroccol/Desktop/do/sources/Webserv.hpp
-Session.hpp
-/Users/gbroccol/Desktop/do/sources/Session.hpp
-Config.hpp
-/Users/gbroccol/Desktop/do/sources/Config.hpp
-
-/Users/gbroccol/Desktop/do/sources/Session.hpp
-Webserv.hpp
-/Users/gbroccol/Desktop/do/sources/Webserv.hpp
-ParseRequest.hpp
-/Users/gbroccol/Desktop/do/sources/ParseRequest.hpp
+/Users/pvivian/Desktop/web4/sources/Handler.cpp
 Handler.hpp
-/Users/gbroccol/Desktop/do/sources/Handler.hpp
+/Users/pvivian/Desktop/web4/sources/Handler.hpp
 
-/Users/gbroccol/Desktop/do/sources/Webserv.hpp
+/Users/pvivian/Desktop/web4/sources/Handler.hpp
+Webserv.hpp
+/Users/pvivian/Desktop/web4/sources/Webserv.hpp
+Config.hpp
+/Users/pvivian/Desktop/web4/sources/Config.hpp
+
+/Users/pvivian/Desktop/web4/sources/Webserv.hpp
 cstdlib
 -
 unistd.h
@@ -91,12 +75,4 @@ exception
 -
 ctime
 -
-
-/Users/gbroccol/Desktop/do/sources/main.cpp
-Webserv.hpp
-/Users/gbroccol/Desktop/do/sources/Webserv.hpp
-Server.hpp
-/Users/gbroccol/Desktop/do/sources/Server.hpp
-Config.hpp
-/Users/gbroccol/Desktop/do/sources/Config.hpp
 

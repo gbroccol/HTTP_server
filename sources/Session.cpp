@@ -29,6 +29,7 @@ int Session::send_message(void)
 		this->state = fsm_error;
 		return 0;
 	}
+	wr_buf.clear();
 	// this->state = fsm_finish;
 	// return 0;
 	return 1;
