@@ -17,48 +17,33 @@
 # include "Webserv.hpp"
 # include "Config.hpp"
 
-struct data
-	{
-		std::string								method;
-		std::string								path;
-		std::string								version;
-
-		std::multimap <std::string, std::string>		headers;
-
-		std::string								body;
-	};
-
 class Handler
 {
 private:
 
-	std::string response;
-	data 		request; // for debug
-	int 		index_location;
-	std::string	path;
+	std::string 	response;
+	data 			request;
+	int 			index_location;
+	std::string		path;
+	std::string 	location_path;
+	configServer	config;
 
 public:
 	Handler(void);
 	~Handler(void);
 
-	// std::string const & handle(заполненная структура с запросом);
-	std::string const & handle(configServer const & config);
+	std::string const & handle(configServer const & config, data const & request);
 	int isRequestCorrect(void);
-	void makePath(configServer const & config);
+	void makePath(void);
 	void handle_head(void);
 	void append_body(void);
+	void handle_put(void);
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);
 	
-
-	//можно вынести в отдельный класс
 	void error_message(int const & status_code);
-	void error_message_100(int const & status_code);
-	void error_message_200(int const & status_code);
-	void error_message_300(int const & status_code);
-	void error_message_400(int const & status_code);
-	void error_message_500(int const & status_code);
+	void allow_header(void);
 
 	std::string lltostr(long long number);
 
@@ -68,8 +53,6 @@ public:
 	int putVal(std::string &locTmp, std::string &reqTmp,
 					std::vector<location *> locations,size_t i, size_t j, int theBestLocation);
 	int isFiles(std::string path, std::string locPath);
-
-{
 };
 
 #endif

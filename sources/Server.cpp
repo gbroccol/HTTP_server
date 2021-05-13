@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 13:28:13 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/13 15:41:45 by gbroccol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,9 @@ void Server::init(const configServer & config)
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_addr.s_addr = inet_addr(config.server_name.c_str());
+	if (addr.sin_addr.s_addr == (unsigned int)-1)
+		throw std::runtime_error("Invalid server address");
 	addr.sin_port = htons(config.port);
 	if(bind(sock, (struct sockaddr*) &addr, sizeof(addr)) == -1)
 		throw std::runtime_error("Could not bind socket");
@@ -84,8 +86,11 @@ void Server::run(void)
 		{
 			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
 				ssr = this->sessions[i]->do_read();
-				if (ssr == 2)
-					this->sessions[i]->handle_request(&writefds, this->config);
+				if (ssr == 1 || this->sessions[i]->request_left) {
+                    this->sessions[i]->request_left = this->sessions[i]->parseRequest->addToBuffer(
+                            (std::string) this->sessions[i]->buf);
+                    this->sessions[i]->handle_request(&writefds, this->config);
+                }
 				else if (!ssr)
 					close_session(i);
 			}
@@ -120,7 +125,7 @@ void Server::accept_client(void)
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 {
-	Session *sess = (Session *)malloc(sizeof(Session));
+	Session *sess = new Session;
 	sess->fd = fd;
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);

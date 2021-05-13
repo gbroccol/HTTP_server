@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Session.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 13:41:31 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/13 15:55:10 by gbroccol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,9 @@
 # include "ParseRequest.hpp"
 # include "Handler.hpp"
 
-enum fsm_states {
-    fsm_start, fsm_finish, fsm_error
+
+enum states {
+    fsm_start, fsm_finish, fsm_error, fsm_request
 };
 
 class Session
@@ -29,9 +30,12 @@ public:
     unsigned short from_port;
     char buf[INBUFSIZE];
 	std::string wr_buf;
-    enum fsm_states state;
+    enum states state;
 
+//private:
+	ParseRequest * parseRequest;
 	Handler handler;
+	bool request_left;
 	
 
 public:
@@ -39,7 +43,6 @@ public:
 	~Session(void);
 	int send_message(void);
 	int do_read(void);
-	void check_lf(void);
 	void commit(FILE *f);
 	void handle_request(fd_set * writefds, configServer const & config);
 };

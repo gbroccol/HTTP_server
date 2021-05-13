@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Webserv.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/04 18:28:43 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 18:18:45 by pvivian          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef WEBSERV_HPP
 # define WEBSERV_HPP
@@ -20,6 +9,7 @@
 # include <fcntl.h>  //open, fcntl
 # include <signal.h> // signal, kill
 # include <netinet/in.h> //htons, htonl, ntohs, ntohl
+# include <arpa/inet.h> // inet_addr
 # include <sys/types.h> //opendir, readdir, closedir
 # include <cstring>  // strerror
 # include <cerrno> // errno
@@ -45,13 +35,21 @@
 # define LISTEN_QLEN 32
 # define INIT_SESS_ARR_SIZE 32
 
-// # include "Server.hpp"
-// # include "Session.hpp"
-// # include "Config.hpp"
-// # include "ParseRequest.hpp"
-// # include "ParseConfig.hpp"
+# define REQUEST_PARSE 0
+# define REQUEST_READY 1
 
 
+struct data
+{
+    std::string							    	method;
+    std::string							    	path;
+    std::string							    	version;
 
+    std::multimap <std::string, std::string>    headers;
+
+    std::string							    	body;
+
+    size_t                                      status;
+};
 
 #endif

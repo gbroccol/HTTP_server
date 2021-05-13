@@ -18,18 +18,6 @@
 class ParseRequest
 {
 
-	struct data
-	{
-		std::string								method;
-		std::string								path;
-		std::string								version;
-
-		std::multimap <std::string, std::string>		headers;
-
-		std::string								body;
-	};
-	
-
 	public:
 
 		ParseRequest();
@@ -38,32 +26,31 @@ class ParseRequest
 
 		ParseRequest &			operator=( ParseRequest const & rhs );
 
-		void					addToBuffer(std::string str); // change to void *
-
-
+		bool					addToBuffer(std::string str); // change to void *
 
 		void					parseHTTPRequest();
-		void					parseStartingLine(std::string startLine);
-		void					parseHeaders(std::string header);
-		void					parseMessageBody(std::string body);
-		size_t					checkEndBody(std::string body);
+		void					parseStartingLine(std::string startLine);       // part 1
+		void					parseHeaders(std::string header);               // part 2
+//		void					parseBody(std::string body);                    // part 3
+
+        void					checkIfBody();
+
 		void					clearData();
 
 
 
 
-		std::string				getBuff();
-		
+//		std::string				getBuff();
+
+        data                    getData() const;
+
+
 
 	private:
 
 		std::string				_buff;
-		struct data				_data;
-		
-		size_t					_parsPart;
-
-
-
+        size_t					_parsPart;
+		struct data				_data; // tmp_data
 };
 
 // std::ostream &			operator<<( std::ostream & o, ParseRequest const & i );

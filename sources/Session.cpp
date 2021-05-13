@@ -15,6 +15,7 @@
 
 Session::Session(void) 
 {
+	parseRequest = new ParseRequest;
 	return; 
 }
 
@@ -36,8 +37,8 @@ int Session::send_message(void)
 int Session::do_read(void)
 {
 	int read_res;
-	ParseRequest parseRequest;
-	read_res = read(this->fd, this->buf, INBUFSIZE);
+    bzero(this->buf, INBUFSIZE);
+    read_res = read(this->fd, this->buf, INBUFSIZE);
 	if(read_res < 0) {
 		this->state = fsm_error;
 		return 0;
@@ -51,19 +52,19 @@ int Session::do_read(void)
 
 	//parse
 	
-	try {
-	parseRequest.addToBuffer((std::string)this->buf);
-	}
-	catch (int const & e)
-	{
-		// сообщить основному процессу, что можно запускать обработчик запроса
-		return 2;
-	}
+//	try {
+//		parseRequest->addToBuffer((std::string)this->buf);
+//	}
+//	catch (int const & e)
+//	{
+//		// сообщить основному процессу, что можно запускать обработчик запроса
+//		return 2;
+//	}
 	
-	bzero(this->buf, INBUFSIZE);
+//	bzero(this->buf, INBUFSIZE);
 
-	if(this->state == fsm_finish)
-		return 0;
+//	if(this->state == fsm_finish)
+//		return 0;
 	return 1;
 }
 
@@ -80,7 +81,8 @@ void Session::commit(FILE *f)
 
 void Session::handle_request(fd_set * writefds, configServer const & config)
 {
-	// this->wr_buf = this->handler.handle(заполненная структура с запросом);
-	this->wr_buf = this->handler.handle(config);
-	FD_SET(this->fd, writefds);
+	if (parseRequest->getData().status == REQUEST_READY) {
+        this->wr_buf = this->handler.handle(config, parseRequest->getData());
+        FD_SET(this->fd, writefds);
+    }
 }
