@@ -42,7 +42,7 @@ int Handler::isRequestCorrect(void)
 	// else if (есть ли такой локейшн. Если -1, то ошибка 404)
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
-	else if(isLocation(confServer->locations, request.path);)
+//	else if(isLocation(confServer->locations, request.path))
 	//else if (есть ли такой локейшн. Если -1, то ошибка 404)
 	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
 	

@@ -20,9 +20,13 @@ Config.hpp
 Webserv.hpp
 /Users/gbroccol/Desktop/do/sources/Webserv.hpp
 
-/Users/gbroccol/Desktop/do/sources/Session.cpp
+/Users/gbroccol/Desktop/do/sources/Server.hpp
+Webserv.hpp
+/Users/gbroccol/Desktop/do/sources/Webserv.hpp
 Session.hpp
 /Users/gbroccol/Desktop/do/sources/Session.hpp
+Config.hpp
+/Users/gbroccol/Desktop/do/sources/Config.hpp
 
 /Users/gbroccol/Desktop/do/sources/Session.hpp
 Webserv.hpp
@@ -87,4 +91,12 @@ exception
 -
 ctime
 -
+
+/Users/gbroccol/Desktop/do/sources/main.cpp
+Webserv.hpp
+/Users/gbroccol/Desktop/do/sources/Webserv.hpp
+Server.hpp
+/Users/gbroccol/Desktop/do/sources/Server.hpp
+Config.hpp
+/Users/gbroccol/Desktop/do/sources/Config.hpp
 

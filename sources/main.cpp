@@ -26,7 +26,7 @@ int main(int argc,  char **argv)
 		for (size_t i = 0; i < config.getSize(); i++)
 		{
 			confServer = config.getconfigServer((int)i);
-			isLocation(confServer->locations, "/i.html");
+//			isLocation(confServer->locations, "/i.html");
 			server = new Server;
 			server->init(*confServer);
 			servers.push_back(server);
