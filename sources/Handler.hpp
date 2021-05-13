@@ -61,7 +61,15 @@ public:
 	void error_message_500(int const & status_code);
 
 	std::string lltostr(long long number);
-	
+
+	int isLocation(std::vector<location *> locations, std::string path);
+	void searchPath(std::string &locTmp, std::string &reqTmp, std::vector<location *> locations,size_t i,
+					size_t &j, int &theBestLocation, std::string path);
+	int putVal(std::string &locTmp, std::string &reqTmp,
+					std::vector<location *> locations,size_t i, size_t j, int theBestLocation);
+	int isFiles(std::string path, std::string locPath);
+
+{
 };
 
 #endif

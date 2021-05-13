@@ -85,6 +85,7 @@ public:
 
 
 
+
 	class 						FileNotOpenException: public std::exception
 	{
 		const char    *what() const throw();
