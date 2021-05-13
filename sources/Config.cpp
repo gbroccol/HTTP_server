@@ -151,6 +151,58 @@ std::string				Config::parseStr(std::string str)
 	return (str);
 }
 
+bool checkLockPath(std::string path)
+{
+	std::string tmp = "";
+	int index = path.find('*');
+	if(index > 0)
+	{
+		tmp = path.substr(index, path.length() - 1);
+		if(!tmp.empty() && tmp.length() > 1 &&  tmp[0] == '*' &&  tmp[1] != '.')
+			return(false);
+	}
+	return (true);
+}
+
+bool checkErrorPage(std::string path)
+{
+
+	std::ifstream fconfig(path);
+	std::string tmp = "";
+	int index = path.find('.');
+	if(index > 0)
+	{
+		tmp = path.substr(index, path.length() - 1);
+		if(tmp.length() == 1 || !fconfig.is_open())
+			return(false);
+	}
+	else if(index < 0)
+		return(false);
+	return (true);
+}
+
+bool checkIndex(std::string root, std::string indexPath)
+{
+
+	std::string tmp = "";
+	if(root[root.length() - 1] == '/')
+		indexPath = root + indexPath;
+	else
+		indexPath = root + '/' + indexPath;
+	std::ifstream fconfig(indexPath);
+
+	int index = indexPath.find('.');
+	if(index > 0)
+	{
+		tmp = indexPath.substr(index,indexPath.length() - 1);
+		if(tmp.length() == 1 || !fconfig.is_open())
+			return(false);
+	}
+	else if(index < 0)
+		return(false);
+	return (true);
+}
+
 std::string				Config::parseLocation(std::string str,  configServer *servNode)
 {
 	struct location *locNode = new location;
@@ -163,7 +215,7 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 	{
 		if(str[pos] == '{')
 		{
-			if(tmp.empty() && tmp[0] != '/')
+			if(tmp.empty() || tmp[0] != '/' || checkLockPath(tmp) == false)
 				throw Config::IncorrectConfigException();
 			locNode->path.assign(tmp);
 			locNode->repeat_path = true;
@@ -229,14 +281,14 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
 	}
 	else if(save == "root")
 	{
-		if(tmp.empty() && tmp[0] != '/' && locNode->repeat_root == true)
+		if(tmp.empty() || tmp[0] != '/' || locNode->repeat_root == true)
 			throw Config::IncorrectConfigException();
 		locNode->root.assign(tmp);
 		locNode->repeat_root = true;
 	}
 	else if(save == "index")
 	{
-		if(tmp.empty() && locNode->repeat_index == true)
+		if(tmp.empty() || locNode->repeat_index == true || checkIndex(locNode->root,tmp) == false)
 			throw Config::IncorrectConfigException();
 		locNode->index.assign(tmp);
 		locNode->repeat_index = true;
@@ -265,7 +317,7 @@ void Config::serverTokenSearch(std::string save, std::string tmp, configServer *
 	}
 	else if(save == "error_page")
 	{
-		if(tmp.empty() || tmp[0] != '/' || servNode->repeat_error_page == true)
+		if(tmp.empty() || tmp[0] != '/' || servNode->repeat_error_page == true || checkErrorPage(tmp) == false)
 			throw Config::IncorrectConfigException();
 		servNode->error_page.assign(tmp);
 		servNode->repeat_error_page = true;

@@ -22,7 +22,7 @@ class Handler
 private:
 
 	std::string 	response;
-	data 			request; // for debug
+	data 			request;
 	int 			index_location;
 	std::string		path;
 	std::string 	location_path;
@@ -32,7 +32,6 @@ public:
 	Handler(void);
 	~Handler(void);
 
-	// std::string const & handle(заполненная структура с запросом);
 	std::string const & handle(configServer const & config, data const & request);
 	int isRequestCorrect(void);
 	void makePath(void);
@@ -47,7 +46,13 @@ public:
 	void allow_header(void);
 
 	std::string lltostr(long long number);
-	
+
+	int isLocation(std::vector<location *> locations, std::string path);
+	void searchPath(std::string &locTmp, std::string &reqTmp, std::vector<location *> locations,size_t i,
+					size_t &j, int &theBestLocation, std::string path);
+	int putVal(std::string &locTmp, std::string &reqTmp,
+					std::vector<location *> locations,size_t i, size_t j, int theBestLocation);
+	int isFiles(std::string path, std::string locPath);
 };
 
 #endif

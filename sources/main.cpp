@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/04 18:27:49 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/13 15:50:38 by gbroccol         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 #include "Webserv.hpp"
 # include "Server.hpp"
@@ -37,6 +26,7 @@ int main(int argc,  char **argv)
 		for (size_t i = 0; i < config.getSize(); i++)
 		{
 			confServer = config.getconfigServer((int)i);
+			isLocation(confServer->locations, "/i.html");
 			server = new Server;
 			server->init(*confServer);
 			servers.push_back(server);
