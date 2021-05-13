@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:43 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/12 13:20:22 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/13 15:39:44 by gbroccol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,13 +46,28 @@
 # define LISTEN_QLEN 32
 # define INIT_SESS_ARR_SIZE 32
 
+// parse user's request
+# define REQUEST_PARSE 0
+# define REQUEST_READY 1
+# define REQUEST_EXECUTED 2
+
 // # include "Server.hpp"
 // # include "Session.hpp"
 // # include "Config.hpp"
 // # include "ParseRequest.hpp"
 // # include "ParseConfig.hpp"
 
+struct data
+{
+    std::string							    	method;
+    std::string							    	path;
+    std::string							    	version;
 
+    std::multimap <std::string, std::string>    headers;
 
+    std::string							    	body;
+
+    size_t                                      status;
+};
 
 #endif

@@ -3,18 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:27:49 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/12 13:34:45 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/13 15:50:38 by gbroccol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Webserv.hpp"
 # include "Server.hpp"
-# include "Session.hpp"
 # include "Config.hpp"
-# include "ParseRequest.hpp"
+
 
 int main(int argc,  char **argv)
 {

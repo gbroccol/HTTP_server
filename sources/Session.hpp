@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Session.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/12 15:22:31 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/13 15:55:10 by gbroccol         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "Webserv.hpp"
 # include "ParseRequest.hpp"
 # include "Handler.hpp"
+
 
 enum fsm_states {
     fsm_start, fsm_finish, fsm_error
@@ -31,7 +32,8 @@ public:
 	std::string wr_buf;
     enum fsm_states state;
 
-	// ParseRequest parseRequest;
+private:
+	ParseRequest * parseRequest;
 	Handler handler;
 	
 

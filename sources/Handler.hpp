@@ -17,17 +17,6 @@
 # include "Webserv.hpp"
 # include "Config.hpp"
 
-struct data
-	{
-		std::string								method;
-		std::string								path;
-		std::string								version;
-
-		std::multimap <std::string, std::string>		headers;
-
-		std::string								body;
-	};
-
 class Handler
 {
 private:
