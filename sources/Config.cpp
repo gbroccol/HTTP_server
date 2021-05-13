@@ -166,11 +166,10 @@ bool checkLockPath(std::string path)
 
 bool checkErrorPage(std::string path)
 {
-
-	// std::ifstream fconfig(path);
-	std::ifstream fconfig("./config/example.conf");
+	path = '.' + path;
+	std::ifstream fconfig(path);
 	std::string tmp = "";
-	int index = path.find('.');
+	int index = path.find('.', 1);
 	if(index > 0)
 	{
 		tmp = path.substr(index, path.length() - 1);
@@ -179,6 +178,7 @@ bool checkErrorPage(std::string path)
 	}
 	else if(index < 0)
 		return(false);
+	fconfig.close();
 	return (true);
 }
 
@@ -193,8 +193,7 @@ bool checkIndex(std::string root, std::string indexPath)
 
 	std::ifstream fconfig(indexPath);
 
-	int index = 1;
-	// int index = indexPath.find('.');
+	int index = indexPath.find('.', 1);
 	if(index > 0)
 	{
 		tmp = indexPath.substr(index,indexPath.length() - 1);
@@ -203,6 +202,7 @@ bool checkIndex(std::string root, std::string indexPath)
 	}
 	else if(index < 0)
 		return(false);
+	fconfig.close();
 	return (true);
 }
 
