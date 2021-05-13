@@ -86,8 +86,11 @@ void Server::run(void)
 		{
 			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
 				ssr = this->sessions[i]->do_read();
-				if (ssr == 2)
-					this->sessions[i]->handle_request(&writefds, this->config);
+				if (ssr == 1 || this->sessions[i]->request_left) {
+                    this->sessions[i]->request_left = this->sessions[i]->parseRequest->addToBuffer(
+                            (std::string) this->sessions[i]->buf);
+                    this->sessions[i]->handle_request(&writefds, this->config);
+                }
 				else if (!ssr)
 					close_session(i);
 			}

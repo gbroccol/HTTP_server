@@ -46,16 +46,9 @@
 # define LISTEN_QLEN 32
 # define INIT_SESS_ARR_SIZE 32
 
-// parse user's request
 # define REQUEST_PARSE 0
 # define REQUEST_READY 1
-# define REQUEST_EXECUTED 2
 
-// # include "Server.hpp"
-// # include "Session.hpp"
-// # include "Config.hpp"
-// # include "ParseRequest.hpp"
-// # include "ParseConfig.hpp"
 
 struct data
 {

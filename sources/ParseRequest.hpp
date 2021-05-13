@@ -26,7 +26,7 @@ class ParseRequest
 
 		ParseRequest &			operator=( ParseRequest const & rhs );
 
-		void					addToBuffer(std::string str); // change to void *
+		bool					addToBuffer(std::string str); // change to void *
 
 		void					parseHTTPRequest();
 		void					parseStartingLine(std::string startLine);       // part 1
@@ -40,8 +40,11 @@ class ParseRequest
 
 
 
-		std::string				getBuff();
-		
+//		std::string				getBuff();
+
+        data                    getData() const;
+
+
 
 	private:
 

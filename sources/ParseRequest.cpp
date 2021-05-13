@@ -46,14 +46,20 @@ ParseRequest::~ParseRequest()
 ** --------------------------------- METHODS ----------------------------------
 */
 
-	void					ParseRequest::addToBuffer(std::string str)
+	bool					ParseRequest::addToBuffer(std::string str)
 	{
+	    if (_data.status == REQUEST_READY)
+            clearData();
 
 		std::cout << GREEN << "--- BUFFER ---" << std::endl << str << BW << std::endl << std::endl;
 		_buff += str;
 
 		if (_buff.find("\r\n", 0) != std::string::npos)
-			this->parseHTTPRequest();
+            this->parseHTTPRequest();
+
+		if (_buff.length() != 0)
+            return true;
+        return false;
 	}
 
 	void					ParseRequest::checkIfBody()
@@ -89,6 +95,7 @@ ParseRequest::~ParseRequest()
                 checkIfBody();
                 if (_data.status == REQUEST_READY)
                 {
+                    return;
                     // launch
                     clearData();
                     std::cout << "NO BODY" << std::endl; // добавить дату в лист и продолжить считывание
@@ -195,7 +202,8 @@ ParseRequest::~ParseRequest()
 ** --------------------------------- GET ----------------------------------
 */
 
-	std::string					ParseRequest::getBuff() { return _buff; }
+//	std::string					ParseRequest::getBuff() { return _buff; }
+    data                        ParseRequest::getData() const { return _data; }
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------

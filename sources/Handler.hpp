@@ -33,7 +33,7 @@ public:
 	~Handler(void);
 
 	// std::string const & handle(заполненная структура с запросом);
-	std::string const & handle(configServer const & config);
+	std::string const & handle(configServer const & config, data const & request);
 	int isRequestCorrect(void);
 	void makePath(void);
 	void handle_head(void);

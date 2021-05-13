@@ -22,16 +22,17 @@ Handler::~Handler(void)
 }
 
 // std::string const & Handler::handle(data request)
-std::string const & Handler::handle(configServer const & config)
+std::string const & Handler::handle(configServer const & config, data const & req)
 {
-	// for debug:
-	request.method.append("GET");
-	request.path.append("/index.html");
-	request.version.append("HTTP/1.1");
-	//
+//	// for debug:
+//	request.method.append("GET");
+//	request.path.append("/index.html");
+//	request.version.append("HTTP/1.1");
+//	//
 
 	this->response.append("HTTP/1.1 ");
 	this->config = config;
+	this->request = req;
 	if (!isRequestCorrect())
 		return this->response;
 	

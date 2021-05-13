@@ -18,8 +18,8 @@
 # include "Handler.hpp"
 
 
-enum fsm_states {
-    fsm_start, fsm_finish, fsm_error
+enum states {
+    fsm_start, fsm_finish, fsm_error, fsm_request
 };
 
 class Session
@@ -30,11 +30,12 @@ public:
     unsigned short from_port;
     char buf[INBUFSIZE];
 	std::string wr_buf;
-    enum fsm_states state;
+    enum states state;
 
-private:
+//private:
 	ParseRequest * parseRequest;
 	Handler handler;
+	bool request_left;
 	
 
 public:
