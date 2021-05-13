@@ -129,25 +129,25 @@ std::string				Config::parseStr(std::string str)
 				throw Config::IncorrectConfigException();
 		}
 	}
-	std::cout <<servers.size()<<std::endl;
-	for(unsigned int i = 0; i < servers.size(); i++)
-	{
-		std::cout <<"configServer data["<< i<< "]: "<<std::endl;
-		std::cout <<"                       error_page ["<< i<< "]: "<<servers[i]->error_page<<" flag: "<<servers[i]->repeat_error_page<<std::endl;
-		std::cout <<"                       port       ["<< i<< "]: "<<servers[i]->port<<" flag: "<<servers[i]->repeat_port<<std::endl;
-		std::cout <<"                       server_name["<< i<< "]: "<<servers[i]->server_name<<" flag: "<<servers[i]->repeat_server_name<<std::endl;
-		std::cout <<servers[i]->locations.size()<<std::endl;
-		for(unsigned int j = 0; j < servers[i]->locations.size(); j++)
-		{
-			std::cout <<std::setw(20) <<"location data["<< j<< "]: "<<std::endl;
-			std::cout <<std::setw(40) <<"index ["<< j<< "]: "<<servers[i]->locations[j]->index<< " flag: "<<servers[i]->locations[j]->repeat_index<<std::endl;
-			std::cout <<std::setw(40) <<"maxBody["<< j<< "]: "<<servers[i]->locations[j]->maxBody<<" flag: "<<servers[i]->locations[j]->repeat_maxBody<<std::endl;
-			std::cout <<std::setw(40) <<"path["<< j<< "]: "<<servers[i]->locations[j]->path<<" flag: "<<servers[i]->locations[j]->repeat_path<<std::endl;
-			std::cout <<std::setw(40) <<"root ["<< j<< "]: "<<servers[i]->locations[j]->root<<" flag: "<<servers[i]->locations[j]->repeat_root<<std::endl;
-			for(unsigned int h = 0; h < servers[i]->locations[j]->method.size(); h++)
-				std::cout <<std::setw(40) <<"method ["<< h<< "]: "<<servers[i]->locations[j]->method[h]<<" flag: "<<servers[i]->locations[j]->repeat_method<<std::endl;
-		}
-	}
+	// std::cout <<servers.size()<<std::endl;
+	// for(unsigned int i = 0; i < servers.size(); i++)
+	// {
+	// 	std::cout <<"configServer data["<< i<< "]: "<<std::endl;
+	// 	std::cout <<"                       error_page ["<< i<< "]: "<<servers[i]->error_page<<" flag: "<<servers[i]->repeat_error_page<<std::endl;
+	// 	std::cout <<"                       port       ["<< i<< "]: "<<servers[i]->port<<" flag: "<<servers[i]->repeat_port<<std::endl;
+	// 	std::cout <<"                       server_name["<< i<< "]: "<<servers[i]->server_name<<" flag: "<<servers[i]->repeat_server_name<<std::endl;
+	// 	std::cout <<servers[i]->locations.size()<<std::endl;
+	// 	for(unsigned int j = 0; j < servers[i]->locations.size(); j++)
+	// 	{
+	// 		std::cout <<std::setw(20) <<"location data["<< j<< "]: "<<std::endl;
+	// 		std::cout <<std::setw(40) <<"index ["<< j<< "]: "<<servers[i]->locations[j]->index<< " flag: "<<servers[i]->locations[j]->repeat_index<<std::endl;
+	// 		std::cout <<std::setw(40) <<"maxBody["<< j<< "]: "<<servers[i]->locations[j]->maxBody<<" flag: "<<servers[i]->locations[j]->repeat_maxBody<<std::endl;
+	// 		std::cout <<std::setw(40) <<"path["<< j<< "]: "<<servers[i]->locations[j]->path<<" flag: "<<servers[i]->locations[j]->repeat_path<<std::endl;
+	// 		std::cout <<std::setw(40) <<"root ["<< j<< "]: "<<servers[i]->locations[j]->root<<" flag: "<<servers[i]->locations[j]->repeat_root<<std::endl;
+	// 		for(unsigned int h = 0; h < servers[i]->locations[j]->method.size(); h++)
+	// 			std::cout <<std::setw(40) <<"method ["<< h<< "]: "<<servers[i]->locations[j]->method[h]<<" flag: "<<servers[i]->locations[j]->repeat_method<<std::endl;
+	// 	}
+	// }
 	return (str);
 }
 
@@ -167,7 +167,8 @@ bool checkLockPath(std::string path)
 bool checkErrorPage(std::string path)
 {
 
-	std::ifstream fconfig(path);
+	// std::ifstream fconfig(path);
+	std::ifstream fconfig("./config/example.conf");
 	std::string tmp = "";
 	int index = path.find('.');
 	if(index > 0)
@@ -186,12 +187,14 @@ bool checkIndex(std::string root, std::string indexPath)
 
 	std::string tmp = "";
 	if(root[root.length() - 1] == '/')
-		indexPath = root + indexPath;
+		indexPath = '.' + root + indexPath;
 	else
-		indexPath = root + '/' + indexPath;
+		indexPath =  '.' + root + '/' + indexPath;
+
 	std::ifstream fconfig(indexPath);
 
-	int index = indexPath.find('.');
+	int index = 1;
+	// int index = indexPath.find('.');
 	if(index > 0)
 	{
 		tmp = indexPath.substr(index,indexPath.length() - 1);

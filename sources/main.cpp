@@ -10,23 +10,23 @@ int main(int argc,  char **argv)
 	Server * server;
 	Config config;
 	configServer *confServer;
-	// char *configFile;
+	std::string configFile = "./config/default.conf";
 
 	try 
 	{
-		// если аргументов нет (argc == 1), configFile = default path
-		// В ином случае configFile = argv[1]
-		if(argc != 2)
+		if ( argc == 2)
+			configFile = argv[1];
+		else
 		{
 			std::cout << "Incorrect argc"<<std::endl;
 			return -1;
 		}
-		config.getFile(argv[1]);
+
+		config.getFile(configFile);
 		
 		for (size_t i = 0; i < config.getSize(); i++)
 		{
 			confServer = config.getconfigServer((int)i);
-//			isLocation(confServer->locations, "/i.html");
 			server = new Server;
 			server->init(*confServer);
 			servers.push_back(server);

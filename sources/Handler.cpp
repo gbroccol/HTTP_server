@@ -39,11 +39,10 @@ int Handler::isRequestCorrect(void)
 		status_code = 400;
 	else if (request.version != "HTTP/1.1")
 		status_code = 505;
-	// else if (есть ли такой локейшн. Если -1, то ошибка 404)
+	else if ((index_location = isLocation(config.locations, request.path)) < 0)
+		status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
-//	else if(isLocation(confServer->locations, request.path))
-	//else if (есть ли такой локейшн. Если -1, то ошибка 404)
 	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
 	
 	if (status_code != 0)
@@ -57,10 +56,6 @@ int Handler::isRequestCorrect(void)
 
 void Handler::makePath(void)
 {
-	//for debug
-	this->index_location = 0;
-	//
-
 	DIR	*dir;
 	
 	this->path = ".";
