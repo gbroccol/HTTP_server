@@ -12,7 +12,7 @@ Handler::~Handler(void)
 std::string const & Handler::handle(configServer const & config, data const & req)
 {
 
-    this->response.clear();
+    this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
 	this->config = config;
 	this->request = req;
@@ -57,7 +57,7 @@ int Handler::isRequestCorrect(void)
 	return 1;
 }
 
-void Handler::makePath(void)
+void Handler::makePath(void)                            // ДОБАВИТЬ ПРОВЕРКУ ПО ДРУГИМ МЕТОДАМ
 {
 	DIR	*dir;
 	
@@ -67,12 +67,40 @@ void Handler::makePath(void)
 	this->location_path.append(request.path);
 	
 	dir = opendir(path.c_str());
-	if (dir && (request.method == "GET" || request.method == "HEAD"))
-	{
-		this->path.append(config.locations[index_location]->index);
-		this->location_path.append(config.locations[index_location]->index);
+
+    if (dir)
+    {
+//        if (request.method == "GET")
+//        {
+//            // / must answer to GET request ONLY
+//
+//            if (this->location_path != "/" && this->location_path != "/directory/")
+//                ; // error
+//        }
+//        else if (request.method == "PUT") // /put_test/* must answer to PUT request and save files to a directory of your choice
+//        {
+//            if (this->location_path != "/put_test/*")
+//                ; // error
+//        }
+//        else if (request.method == "POST")
+//        {
+//            // any file with .bla as extension must answer to POST request by calling the cgi_test executable
+//            // /post_body must answer anything to POST request with a maxBody of 100
+//            if (this->location_path != ".bla" && this->location_path != "/post_body")
+//                ; // error
+//
+//        }
+        this->path.append(config.locations[index_location]->index);                     // путь до странички
+        this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
         closedir(dir);
-	}
+    }
+
+//	if (dir && (request.method == "GET" || request.method == "HEAD"))
+//	{
+//		this->path.append(config.locations[index_location]->index);                     // путь до странички
+//		this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
+//        closedir(dir);
+//	}
 }
 
 void Handler::handle_head(void)

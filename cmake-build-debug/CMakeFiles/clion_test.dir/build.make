@@ -62,10 +62,10 @@ RM = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/pvivian/Desktop/web4
+CMAKE_SOURCE_DIR = /Users/gbroccol/Desktop/www1
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/pvivian/Desktop/web4/cmake-build-debug
+CMAKE_BINARY_DIR = /Users/gbroccol/Desktop/www1/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/clion_test.dir/depend.make
@@ -78,81 +78,81 @@ include CMakeFiles/clion_test.dir/flags.make
 
 CMakeFiles/clion_test.dir/sources/main.cpp.o: CMakeFiles/clion_test.dir/flags.make
 CMakeFiles/clion_test.dir/sources/main.cpp.o: ../sources/main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/clion_test.dir/sources/main.cpp.o"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/main.cpp.o -c /Users/pvivian/Desktop/web4/sources/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/clion_test.dir/sources/main.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/main.cpp.o -c /Users/gbroccol/Desktop/www1/sources/main.cpp
 
 CMakeFiles/clion_test.dir/sources/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clion_test.dir/sources/main.cpp.i"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/pvivian/Desktop/web4/sources/main.cpp > CMakeFiles/clion_test.dir/sources/main.cpp.i
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gbroccol/Desktop/www1/sources/main.cpp > CMakeFiles/clion_test.dir/sources/main.cpp.i
 
 CMakeFiles/clion_test.dir/sources/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clion_test.dir/sources/main.cpp.s"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/pvivian/Desktop/web4/sources/main.cpp -o CMakeFiles/clion_test.dir/sources/main.cpp.s
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gbroccol/Desktop/www1/sources/main.cpp -o CMakeFiles/clion_test.dir/sources/main.cpp.s
 
 CMakeFiles/clion_test.dir/sources/Config.cpp.o: CMakeFiles/clion_test.dir/flags.make
 CMakeFiles/clion_test.dir/sources/Config.cpp.o: ../sources/Config.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/clion_test.dir/sources/Config.cpp.o"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Config.cpp.o -c /Users/pvivian/Desktop/web4/sources/Config.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/clion_test.dir/sources/Config.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Config.cpp.o -c /Users/gbroccol/Desktop/www1/sources/Config.cpp
 
 CMakeFiles/clion_test.dir/sources/Config.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clion_test.dir/sources/Config.cpp.i"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/pvivian/Desktop/web4/sources/Config.cpp > CMakeFiles/clion_test.dir/sources/Config.cpp.i
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gbroccol/Desktop/www1/sources/Config.cpp > CMakeFiles/clion_test.dir/sources/Config.cpp.i
 
 CMakeFiles/clion_test.dir/sources/Config.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clion_test.dir/sources/Config.cpp.s"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/pvivian/Desktop/web4/sources/Config.cpp -o CMakeFiles/clion_test.dir/sources/Config.cpp.s
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gbroccol/Desktop/www1/sources/Config.cpp -o CMakeFiles/clion_test.dir/sources/Config.cpp.s
 
 CMakeFiles/clion_test.dir/sources/Handler.cpp.o: CMakeFiles/clion_test.dir/flags.make
 CMakeFiles/clion_test.dir/sources/Handler.cpp.o: ../sources/Handler.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/clion_test.dir/sources/Handler.cpp.o"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Handler.cpp.o -c /Users/pvivian/Desktop/web4/sources/Handler.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/clion_test.dir/sources/Handler.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Handler.cpp.o -c /Users/gbroccol/Desktop/www1/sources/Handler.cpp
 
 CMakeFiles/clion_test.dir/sources/Handler.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clion_test.dir/sources/Handler.cpp.i"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/pvivian/Desktop/web4/sources/Handler.cpp > CMakeFiles/clion_test.dir/sources/Handler.cpp.i
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gbroccol/Desktop/www1/sources/Handler.cpp > CMakeFiles/clion_test.dir/sources/Handler.cpp.i
 
 CMakeFiles/clion_test.dir/sources/Handler.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clion_test.dir/sources/Handler.cpp.s"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/pvivian/Desktop/web4/sources/Handler.cpp -o CMakeFiles/clion_test.dir/sources/Handler.cpp.s
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gbroccol/Desktop/www1/sources/Handler.cpp -o CMakeFiles/clion_test.dir/sources/Handler.cpp.s
 
 CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o: CMakeFiles/clion_test.dir/flags.make
 CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o: ../sources/ParseRequest.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o -c /Users/pvivian/Desktop/web4/sources/ParseRequest.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o -c /Users/gbroccol/Desktop/www1/sources/ParseRequest.cpp
 
 CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.i"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/pvivian/Desktop/web4/sources/ParseRequest.cpp > CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.i
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gbroccol/Desktop/www1/sources/ParseRequest.cpp > CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.i
 
 CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.s"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/pvivian/Desktop/web4/sources/ParseRequest.cpp -o CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.s
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gbroccol/Desktop/www1/sources/ParseRequest.cpp -o CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.s
 
 CMakeFiles/clion_test.dir/sources/Server.cpp.o: CMakeFiles/clion_test.dir/flags.make
 CMakeFiles/clion_test.dir/sources/Server.cpp.o: ../sources/Server.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/clion_test.dir/sources/Server.cpp.o"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Server.cpp.o -c /Users/pvivian/Desktop/web4/sources/Server.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/clion_test.dir/sources/Server.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Server.cpp.o -c /Users/gbroccol/Desktop/www1/sources/Server.cpp
 
 CMakeFiles/clion_test.dir/sources/Server.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clion_test.dir/sources/Server.cpp.i"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/pvivian/Desktop/web4/sources/Server.cpp > CMakeFiles/clion_test.dir/sources/Server.cpp.i
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gbroccol/Desktop/www1/sources/Server.cpp > CMakeFiles/clion_test.dir/sources/Server.cpp.i
 
 CMakeFiles/clion_test.dir/sources/Server.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clion_test.dir/sources/Server.cpp.s"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/pvivian/Desktop/web4/sources/Server.cpp -o CMakeFiles/clion_test.dir/sources/Server.cpp.s
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gbroccol/Desktop/www1/sources/Server.cpp -o CMakeFiles/clion_test.dir/sources/Server.cpp.s
 
 CMakeFiles/clion_test.dir/sources/Session.cpp.o: CMakeFiles/clion_test.dir/flags.make
 CMakeFiles/clion_test.dir/sources/Session.cpp.o: ../sources/Session.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/clion_test.dir/sources/Session.cpp.o"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Session.cpp.o -c /Users/pvivian/Desktop/web4/sources/Session.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/clion_test.dir/sources/Session.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/clion_test.dir/sources/Session.cpp.o -c /Users/gbroccol/Desktop/www1/sources/Session.cpp
 
 CMakeFiles/clion_test.dir/sources/Session.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/clion_test.dir/sources/Session.cpp.i"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/pvivian/Desktop/web4/sources/Session.cpp > CMakeFiles/clion_test.dir/sources/Session.cpp.i
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gbroccol/Desktop/www1/sources/Session.cpp > CMakeFiles/clion_test.dir/sources/Session.cpp.i
 
 CMakeFiles/clion_test.dir/sources/Session.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/clion_test.dir/sources/Session.cpp.s"
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/pvivian/Desktop/web4/sources/Session.cpp -o CMakeFiles/clion_test.dir/sources/Session.cpp.s
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gbroccol/Desktop/www1/sources/Session.cpp -o CMakeFiles/clion_test.dir/sources/Session.cpp.s
 
 # Object files for target clion_test
 clion_test_OBJECTS = \
@@ -174,7 +174,7 @@ clion_test: CMakeFiles/clion_test.dir/sources/Server.cpp.o
 clion_test: CMakeFiles/clion_test.dir/sources/Session.cpp.o
 clion_test: CMakeFiles/clion_test.dir/build.make
 clion_test: CMakeFiles/clion_test.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable clion_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable clion_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/clion_test.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -187,6 +187,6 @@ CMakeFiles/clion_test.dir/clean:
 .PHONY : CMakeFiles/clion_test.dir/clean
 
 CMakeFiles/clion_test.dir/depend:
-	cd /Users/pvivian/Desktop/web4/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/pvivian/Desktop/web4 /Users/pvivian/Desktop/web4 /Users/pvivian/Desktop/web4/cmake-build-debug /Users/pvivian/Desktop/web4/cmake-build-debug /Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles/clion_test.dir/DependInfo.cmake --color=$(COLOR)
+	cd /Users/gbroccol/Desktop/www1/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/gbroccol/Desktop/www1 /Users/gbroccol/Desktop/www1 /Users/gbroccol/Desktop/www1/cmake-build-debug /Users/gbroccol/Desktop/www1/cmake-build-debug /Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles/clion_test.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/clion_test.dir/depend
 

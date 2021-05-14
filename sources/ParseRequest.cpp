@@ -6,6 +6,7 @@
 
 ParseRequest::ParseRequest()
 {
+    _data.nmb = 0;
 	clearData();
 }
 
@@ -51,15 +52,17 @@ ParseRequest::~ParseRequest()
 	    if (_data.status == REQUEST_READY)
             clearData();
 
-		std::cout << GREEN << "--- BUFFER ---" << std::endl << str << BW << std::endl << std::endl;
-		_buff += str;
+        _buff += str;
+//        << "--- BUFFER --- << std::endl "
+		std::cout << GREEN << _buff << BW << std::endl << std::endl;
+
 
 		if (_buff.find("\r\n", 0) != std::string::npos)
             this->parseHTTPRequest();
 
 		if (_buff.length() != 0)
-            return true;
-        return false;
+            return true; // запустить парсинг снова
+        return false; // буфер пустой
 	}
 
 	void					ParseRequest::checkIfBody()
@@ -67,19 +70,12 @@ ParseRequest::~ParseRequest()
         std::multimap <std::string, std::string>::iterator itCL = _data.headers.find("Content-Length");
         std::multimap <std::string, std::string>::iterator itTE = _data.headers.find("Transfer-Encoding");
 
-        if (itCL != _data.headers.end()) {
-            std::cout << "I find Content-Length -> there is body part" << std::endl;
+        if (itCL != _data.headers.end())// I find Content-Length -> there is body part
             _parsPart = BODY_PART;
-        }
-        else if (itTE != _data.headers.end()) {
-            std::cout << "I find Transfer-Encoding -> there is body part" << std::endl;
+        else if (itTE != _data.headers.end()) // I find Transfer-Encoding -> there is body part
             _parsPart = BODY_PART;
-        }
         else
-        {
-//            std::cout << "NO BODY" << std::endl; // delete
             _data.status = REQUEST_READY;
-        }
     }
 
 	void					ParseRequest::parseHTTPRequest()
@@ -89,17 +85,15 @@ ParseRequest::~ParseRequest()
 		
 		while ((pos = _buff.find("\r\n", 0)) != std::string::npos)
 		{
-		    if (pos == 0) // && _parsPart == HEADERS_PART) // закончились заголовки
+		    if (_parsPart == BODY_PART && _buff.find("\r\n\r\n", 0) != std::string::npos)
+                _data.status = REQUEST_READY;
+
+		    if (_parsPart != BODY_PART && pos == 0) // && _parsPart == HEADERS_PART) // закончились заголовки
 			{
 		        _buff = _buff.erase(0, 2);
                 checkIfBody();
                 if (_data.status == REQUEST_READY)
-                {
                     return;
-                    // launch
-                    clearData();
-                    std::cout << "NO BODY" << std::endl; // добавить дату в лист и продолжить считывание
-                }
 				continue ;
 			}
 		
@@ -111,13 +105,15 @@ ParseRequest::~ParseRequest()
 				parseStartingLine(tmp.c_str());
 			else if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
 				parseHeaders(tmp);
-//			else if (_parsPart == BODY_PART)
-//				parseBody(tmp);
+			else if (_parsPart == BODY_PART)
+				parseBody(tmp);
 		}
 	}
 
 	void					ParseRequest::parseStartingLine(std::string head)
 	{
+        std::cout << YELLOW << "REQUEST #" << _data.nmb++ << std::endl << BW;
+
         _parsPart = START_LINE_PART;
 
 		std::cout << RED << "Starting Line " << BW;
@@ -169,22 +165,17 @@ ParseRequest::~ParseRequest()
 		std::cout << BLUE << key << ": " << value << BW << std::endl;
 	}
 
-//	void					ParseRequest::parseBody(std::string body)
-//	{
-//		if (checkEndBody(body))
-//		{
-//			clearData();
-//			_parsPart = PRE_PART;
-//			parseStartingLine(body.c_str());
-//			parseHTTPRequest();
-//			return;
-//		}
-//		_data.body += body;
+	void					ParseRequest::parseBody(std::string body)
+	{
+		_data.body += body;
 //		_data.body += "\r\n";
-//
-//		std::cout  << std::endl << RED << "Body " << BW;
-//		std::cout << BLUE << _data.body << BW << std::endl;
-//	}
+
+		std::cout  << std::endl << RED << "Body " << BW;
+		std::cout << BLUE << _data.body << BW << std::endl;
+
+		if (_data.status == REQUEST_READY)
+            _buff.erase(0, 2);
+	}
 
 	void					ParseRequest::clearData()
 	{

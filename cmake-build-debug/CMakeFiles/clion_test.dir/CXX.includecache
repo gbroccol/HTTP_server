@@ -6,21 +6,21 @@
 
 #IncludeRegexTransform: 
 
-/Users/pvivian/Desktop/web4/sources/Config.hpp
+/Users/gbroccol/Desktop/www1/sources/Config.hpp
 Webserv.hpp
-/Users/pvivian/Desktop/web4/sources/Webserv.hpp
+/Users/gbroccol/Desktop/www1/sources/Webserv.hpp
 
-/Users/pvivian/Desktop/web4/sources/Handler.cpp
+/Users/gbroccol/Desktop/www1/sources/Handler.cpp
 Handler.hpp
-/Users/pvivian/Desktop/web4/sources/Handler.hpp
+/Users/gbroccol/Desktop/www1/sources/Handler.hpp
 
-/Users/pvivian/Desktop/web4/sources/Handler.hpp
+/Users/gbroccol/Desktop/www1/sources/Handler.hpp
 Webserv.hpp
-/Users/pvivian/Desktop/web4/sources/Webserv.hpp
+/Users/gbroccol/Desktop/www1/sources/Webserv.hpp
 Config.hpp
-/Users/pvivian/Desktop/web4/sources/Config.hpp
+/Users/gbroccol/Desktop/www1/sources/Config.hpp
 
-/Users/pvivian/Desktop/web4/sources/Webserv.hpp
+/Users/gbroccol/Desktop/www1/sources/Webserv.hpp
 cstdlib
 -
 unistd.h
