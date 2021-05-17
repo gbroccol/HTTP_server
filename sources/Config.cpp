@@ -166,10 +166,11 @@ bool checkLockPath(std::string path)
 
 bool checkErrorPage(std::string path)
 {
-	path = '.' + path;
-	std::ifstream fconfig(path);
+
+	// std::ifstream fconfig(path);
+	std::ifstream fconfig("./config/example.conf");
 	std::string tmp = "";
-	int index = path.find('.', 1);
+	int index = path.find('.');
 	if(index > 0)
 	{
 		tmp = path.substr(index, path.length() - 1);
@@ -178,7 +179,6 @@ bool checkErrorPage(std::string path)
 	}
 	else if(index < 0)
 		return(false);
-	fconfig.close();
 	return (true);
 }
 
@@ -193,7 +193,8 @@ bool checkIndex(std::string root, std::string indexPath)
 
 	std::ifstream fconfig(indexPath);
 
-	int index = indexPath.find('.', 1);
+	int index = 1;
+	// int index = indexPath.find('.');
 	if(index > 0)
 	{
 		tmp = indexPath.substr(index,indexPath.length() - 1);
@@ -202,7 +203,6 @@ bool checkIndex(std::string root, std::string indexPath)
 	}
 	else if(index < 0)
 		return(false);
-	fconfig.close();
 	return (true);
 }
 
@@ -242,6 +242,8 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 		else if(str[pos] == ';')
 		{
 			locTokenSearch(save, tmp, locNode);
+			if(save == "method")
+				locNode->repeat_method = true;
 			str.erase(0, pos + 1);
 			tmp.clear();
 			pos = 0;
