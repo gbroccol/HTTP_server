@@ -71,10 +71,10 @@ ParseRequest::~ParseRequest()
             std::cout << "I find Content-Length -> there is body part" << std::endl;
             _parsPart = BODY_PART;
         }
-        else if (itTE != _data.headers.end()) {
-            std::cout << "I find Transfer-Encoding -> there is body part" << std::endl;
-            _parsPart = BODY_PART;
-        }
+//        else if (itTE != _data.headers.end()) {
+//            std::cout << "I find Transfer-Encoding -> there is body part" << std::endl;
+//            _parsPart = BODY_PART;
+//        }
         else
         {
 //            std::cout << "NO BODY" << std::endl; // delete

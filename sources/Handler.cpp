@@ -18,7 +18,10 @@ std::string const & Handler::handle(configServer const & config, data const & re
 	this->request = req;
 
 	if (!isRequestCorrect())
+    {
+        std::cout << this->response << std::endl; //for debug
 		return this->response;
+    }
 
 	makePath();
 	if (request.method == "HEAD" || request.method == "GET")
@@ -28,7 +31,7 @@ std::string const & Handler::handle(configServer const & config, data const & re
 	else if (request.method == "PUT")
 		handle_put();
 	// this->response.append("\r\n");
-	std::cout << this->response << std::endl;
+	std::cout << this->response << std::endl; //for debug
 	return this->response;
 }
 
@@ -46,8 +49,9 @@ int Handler::isRequestCorrect(void)
 		status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
-	// else if нужно проверить, что локейшн отвечает на метод. Если нет -  ошибка 405
-	
+	else if (!doesLocationAnswersMethod())
+        status_code = 405;
+
 	if (status_code != 0)
 	{
 		error_message(status_code);
@@ -56,6 +60,17 @@ int Handler::isRequestCorrect(void)
 	}
 	return 1;
 }
+
+int Handler::doesLocationAnswersMethod(void)
+{
+    std::vector<std::string> methods = config.locations[index_location]->method;
+    for (size_t i = 0; i < methods.size(); i++) {
+        if (methods[i] == request.method)
+            return 1;
+    }
+    return 0;
+}
+
 
 void Handler::makePath(void)
 {
@@ -115,8 +130,6 @@ void Handler::handle_head(void)
 	this->response.append("Last-Modified: ");
 	this->response.append(getLastModificationTime(file_stat.st_mtime));
 	this->response.append("\r\n");
-
-	//Transfer-Encoding ?
 
 	this->response.append("\r\n");
 	
@@ -233,6 +246,8 @@ void Handler::error_message(int const & status_code)
 			this->response.append("505 HTTP Version Not Supported\r\n");
 			break;
 	}
+    this->response.append("Content-Length: 32\r\n\r\n"); // подтянуть из файла с ошибкой
+	this->response.append("<html><head>Error</head></html>\r\n"); // подтянуть из файла с ошибкой
 	return;
 }
 

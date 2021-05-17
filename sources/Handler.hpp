@@ -34,6 +34,7 @@ public:
 
 	std::string const & handle(configServer const & config, data const & request);
 	int isRequestCorrect(void);
+    int doesLocationAnswersMethod(void);
 	void makePath(void);
 	void handle_head(void);
 	void append_body(void);

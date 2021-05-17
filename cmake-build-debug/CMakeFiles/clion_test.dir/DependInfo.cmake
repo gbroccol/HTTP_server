@@ -4,12 +4,12 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/pvivian/Desktop/web4/sources/Config.cpp" "/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Config.cpp.o"
-  "/Users/pvivian/Desktop/web4/sources/Handler.cpp" "/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Handler.cpp.o"
-  "/Users/pvivian/Desktop/web4/sources/ParseRequest.cpp" "/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o"
-  "/Users/pvivian/Desktop/web4/sources/Server.cpp" "/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Server.cpp.o"
-  "/Users/pvivian/Desktop/web4/sources/Session.cpp" "/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Session.cpp.o"
-  "/Users/pvivian/Desktop/web4/sources/main.cpp" "/Users/pvivian/Desktop/web4/cmake-build-debug/CMakeFiles/clion_test.dir/sources/main.cpp.o"
+  "/Users/pvivian/Desktop/web5/sources/Config.cpp" "/Users/pvivian/Desktop/web5/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Config.cpp.o"
+  "/Users/pvivian/Desktop/web5/sources/Handler.cpp" "/Users/pvivian/Desktop/web5/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Handler.cpp.o"
+  "/Users/pvivian/Desktop/web5/sources/ParseRequest.cpp" "/Users/pvivian/Desktop/web5/cmake-build-debug/CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o"
+  "/Users/pvivian/Desktop/web5/sources/Server.cpp" "/Users/pvivian/Desktop/web5/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Server.cpp.o"
+  "/Users/pvivian/Desktop/web5/sources/Session.cpp" "/Users/pvivian/Desktop/web5/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Session.cpp.o"
+  "/Users/pvivian/Desktop/web5/sources/main.cpp" "/Users/pvivian/Desktop/web5/cmake-build-debug/CMakeFiles/clion_test.dir/sources/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "AppleClang")
 
