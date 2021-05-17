@@ -36,6 +36,7 @@ public:
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
+    std::string subpath(void);
 	void handle_head(void);
 	void append_body(void);
 	void handle_put(void);

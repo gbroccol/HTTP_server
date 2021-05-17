@@ -83,6 +83,7 @@ void Session::commit(FILE *f)
 void Session::handle_request(fd_set * writefds, configServer const & config)
 {
 	if (parseRequest->getData().status == REQUEST_READY) {
+	    //парсинг хедеров
         this->wr_buf = this->handler.handle(config, parseRequest->getData());
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }

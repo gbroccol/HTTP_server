@@ -30,7 +30,7 @@ std::string const & Handler::handle(configServer const & config, data const & re
 		;
 	else if (request.method == "PUT")
 		handle_put();
-	// this->response.append("\r\n");
+
 	std::cout << this->response << std::endl; //for debug
 	return this->response;
 }
@@ -55,12 +55,10 @@ int Handler::isRequestCorrect(void)
 	if (status_code != 0)
 	{
 		error_message(status_code);
-		this->response.append("\r\n");
 		return 0;
 	}
 	return 1;
 }
-
 
 int Handler::doesLocationAnswersMethod(void)
 {
@@ -78,24 +76,29 @@ void Handler::makePath(void)
 	
 	this->path = ".";
 	this->path.append(config.locations[index_location]->root);
-	this->path.append(request.path);
+	this->path.append(subpath());
 	this->location_path.append(request.path);
-	
+
+    std::cout << "ROOT " << config.locations[index_location]->root << std::endl;
+	std::cout << "PATH " << this->path << std::endl;
+
 	dir = opendir(path.c_str());
 
     if (dir)
     {
+        this->path.append("/");
         this->path.append(config.locations[index_location]->index);                     // путь до странички
-        this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
+        this->location_path.append(config.locations[index_location]->index);           // путь до странички БЕЗ ДИРРЕКТОРИИ
         closedir(dir);
     }
-//
-//	if (dir && (request.method == "GET" || request.method == "HEAD"))
-//	{
-//		this->path.append(config.locations[index_location]->index);                     // путь до странички
-//		this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
-//        closedir(dir);
-//	}
+}
+
+std::string Handler::subpath(void)
+{
+    size_t i = 0;
+    while (i < config.locations[index_location]->path.size() && i < request.path.size() && config.locations[index_location]->path[i] == request.path[i])
+        i++;
+    return (request.path.substr(i));
 }
 
 void Handler::handle_head(void)
@@ -156,7 +159,6 @@ void Handler::append_body(void)
 	ss << ifs.rdbuf();
 	
 	this->response.append(ss.str());
-	// this->response.append("\r\n");
 	ifs.close();
 }
 
@@ -254,8 +256,7 @@ void Handler::error_message(int const & status_code)
 			this->response.append("505 HTTP Version Not Supported\r\n");
 			break;
 	}
-    this->response.append("Content-Length: 32\r\n\r\n"); // подтянуть из файла с ошибкой
-	this->response.append("<html><head>Error</head></html>\r\n"); // подтянуть из файла с ошибкой
+    this->response.append("Content-Length: 0\r\n\r\n");
 	return;
 }
 
