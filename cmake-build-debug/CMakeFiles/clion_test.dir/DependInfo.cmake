@@ -4,12 +4,12 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/gbroccol/Desktop/do/sources/Config.cpp" "/Users/gbroccol/Desktop/do/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Config.cpp.o"
-  "/Users/gbroccol/Desktop/do/sources/Handler.cpp" "/Users/gbroccol/Desktop/do/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Handler.cpp.o"
-  "/Users/gbroccol/Desktop/do/sources/ParseRequest.cpp" "/Users/gbroccol/Desktop/do/cmake-build-debug/CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o"
-  "/Users/gbroccol/Desktop/do/sources/Server.cpp" "/Users/gbroccol/Desktop/do/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Server.cpp.o"
-  "/Users/gbroccol/Desktop/do/sources/Session.cpp" "/Users/gbroccol/Desktop/do/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Session.cpp.o"
-  "/Users/gbroccol/Desktop/do/sources/main.cpp" "/Users/gbroccol/Desktop/do/cmake-build-debug/CMakeFiles/clion_test.dir/sources/main.cpp.o"
+  "/Users/gbroccol/Desktop/www1/sources/Config.cpp" "/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Config.cpp.o"
+  "/Users/gbroccol/Desktop/www1/sources/Handler.cpp" "/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Handler.cpp.o"
+  "/Users/gbroccol/Desktop/www1/sources/ParseRequest.cpp" "/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles/clion_test.dir/sources/ParseRequest.cpp.o"
+  "/Users/gbroccol/Desktop/www1/sources/Server.cpp" "/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Server.cpp.o"
+  "/Users/gbroccol/Desktop/www1/sources/Session.cpp" "/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles/clion_test.dir/sources/Session.cpp.o"
+  "/Users/gbroccol/Desktop/www1/sources/main.cpp" "/Users/gbroccol/Desktop/www1/cmake-build-debug/CMakeFiles/clion_test.dir/sources/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "AppleClang")
 
