@@ -65,8 +65,8 @@ void Server::run(void)
 	std::map<int, Session *>::iterator temp;
 	
 	for(;;) {
-		FD_ZERO(&readfds);
-		FD_ZERO(&writefds);
+		FD_ZERO(&readfds);                  // зачистить сет для чтения
+		FD_ZERO(&writefds);                 // зачистить сет для записи
 		FD_SET(this->listenSocket, &readfds);
 		maxfd = this->listenSocket;
 		for(i = 0; i < (int)this->sessions.size(); i++) {

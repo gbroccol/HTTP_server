@@ -12,7 +12,7 @@ Handler::~Handler(void)
 std::string const & Handler::handle(configServer const & config, data const & req)
 {
 
-    this->response.clear();
+    this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
 	this->config = config;
 	this->request = req;
@@ -61,6 +61,7 @@ int Handler::isRequestCorrect(void)
 	return 1;
 }
 
+
 int Handler::doesLocationAnswersMethod(void)
 {
     std::vector<std::string> methods = config.locations[index_location]->method;
@@ -70,7 +71,6 @@ int Handler::doesLocationAnswersMethod(void)
     }
     return 0;
 }
-
 
 void Handler::makePath(void)
 {
@@ -82,12 +82,20 @@ void Handler::makePath(void)
 	this->location_path.append(request.path);
 	
 	dir = opendir(path.c_str());
-	if (dir && (request.method == "GET" || request.method == "HEAD"))
-	{
-		this->path.append(config.locations[index_location]->index);
-		this->location_path.append(config.locations[index_location]->index);
+
+    if (dir)
+    {
+        this->path.append(config.locations[index_location]->index);                     // путь до странички
+        this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
         closedir(dir);
-	}
+    }
+//
+//	if (dir && (request.method == "GET" || request.method == "HEAD"))
+//	{
+//		this->path.append(config.locations[index_location]->index);                     // путь до странички
+//		this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
+//        closedir(dir);
+//	}
 }
 
 void Handler::handle_head(void)

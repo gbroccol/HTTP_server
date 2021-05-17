@@ -242,6 +242,8 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 		else if(str[pos] == ';')
 		{
 			locTokenSearch(save, tmp, locNode);
+			if(save == "method")
+				locNode->repeat_method = true;
 			str.erase(0, pos + 1);
 			tmp.clear();
 			pos = 0;

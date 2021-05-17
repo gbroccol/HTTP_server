@@ -50,6 +50,7 @@ struct data
     std::string							    	body;
 
     size_t                                      status;
+    int                                            nmb;
 };
 
 #endif
