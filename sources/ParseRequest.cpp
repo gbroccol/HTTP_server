@@ -53,12 +53,16 @@ ParseRequest::~ParseRequest()
             clearData();
 
         _buff += str;
-//        << "--- BUFFER --- << std::endl "
-		std::cout << GREEN << _buff << BW << std::endl << std::endl;
+//		std::cout << GREEN << _buff << BW << std::endl << std::endl;
 
 
 		if (_buff.find("\r\n", 0) != std::string::npos)
             this->parseHTTPRequest();
+
+		if (_data.status == REQUEST_READY)
+        {
+		    std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
+        }
 
 		if (_buff.length() != 0)
             return true; // запустить парсинг снова
@@ -85,17 +89,19 @@ ParseRequest::~ParseRequest()
 		
 		while ((pos = _buff.find("\r\n", 0)) != std::string::npos)
 		{
-		    if (_parsPart == BODY_PART && _buff.find("\r\n\r\n", 0) != std::string::npos)
-                _data.status = REQUEST_READY;
-
 		    if (_parsPart != BODY_PART && pos == 0) // && _parsPart == HEADERS_PART) // закончились заголовки
 			{
 		        _buff = _buff.erase(0, 2);
                 checkIfBody();
                 if (_data.status == REQUEST_READY)
                     return;
+                if (_buff.find("\r\n\r\n", 0) == std::string::npos)
+                    return;
 				continue ;
 			}
+
+            if (_parsPart == BODY_PART && _buff.find("\r\n\r\n", 0) == std::string::npos) // не обрабатывать body пока не найдем символы "\r\n\r\n"
+                return;
 		
 			tmp.clear();
 			tmp.insert(0, _buff, 0, pos);
@@ -167,14 +173,15 @@ ParseRequest::~ParseRequest()
 
 	void					ParseRequest::parseBody(std::string body)
 	{
+        _data.status = REQUEST_READY;
+
 		_data.body += body;
-//		_data.body += "\r\n";
+		_data.body += "\r\n";
 
 		std::cout  << std::endl << RED << "Body " << BW;
 		std::cout << BLUE << _data.body << BW << std::endl;
 
-		if (_data.status == REQUEST_READY)
-            _buff.erase(0, 2);
+		_buff.erase(0, 2);
 	}
 
 	void					ParseRequest::clearData()

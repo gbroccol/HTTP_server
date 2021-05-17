@@ -70,31 +70,11 @@ void Handler::makePath(void)                            // ДОБАВИТЬ ПР
 
     if (dir)
     {
-//        if (request.method == "GET")
-//        {
-//            // / must answer to GET request ONLY
-//
-//            if (this->location_path != "/" && this->location_path != "/directory/")
-//                ; // error
-//        }
-//        else if (request.method == "PUT") // /put_test/* must answer to PUT request and save files to a directory of your choice
-//        {
-//            if (this->location_path != "/put_test/*")
-//                ; // error
-//        }
-//        else if (request.method == "POST")
-//        {
-//            // any file with .bla as extension must answer to POST request by calling the cgi_test executable
-//            // /post_body must answer anything to POST request with a maxBody of 100
-//            if (this->location_path != ".bla" && this->location_path != "/post_body")
-//                ; // error
-//
-//        }
         this->path.append(config.locations[index_location]->index);                     // путь до странички
         this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
         closedir(dir);
     }
-
+//
 //	if (dir && (request.method == "GET" || request.method == "HEAD"))
 //	{
 //		this->path.append(config.locations[index_location]->index);                     // путь до странички
