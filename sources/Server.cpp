@@ -90,7 +90,7 @@ void Server::run(void)
 				if (ssr == 1 || this->sessions[i]->request_left) {
                     this->sessions[i]->request_left = this->sessions[i]->parseRequest->addToBuffer(
                             (std::string) this->sessions[i]->buf);
-                    this->sessions[i]->handle_request(&writefds, this->config);
+                    this->sessions[i]->handle_request(&writefds);
                 }
 				else if (!ssr)
 					close_session(i);
@@ -126,7 +126,7 @@ void Server::accept_client(void)
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 {
-	Session *sess = new Session;
+	Session *sess = new Session(this->config);
 	sess->fd = fd;
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);

@@ -1,7 +1,10 @@
 #include "Handler.hpp"
 
-Handler::Handler(void)
+Handler::Handler(void){ return; } // private
+
+Handler::Handler(configServer const & config)
 {
+    this->config = config;
 	return;
 }
 Handler::~Handler(void)
@@ -9,12 +12,12 @@ Handler::~Handler(void)
 	return;
 }
 
-std::string const & Handler::handle(configServer const & config, data const & req, char **env) // убрать конфиг и переменные окружения в отдельниый инит
+std::string const & Handler::handle(data const & req, char **env) // убрать конфиг и переменные окружения в отдельниый инит
 {
 
     this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
-	this->config = config;
+
 	this->request = req;
 	this->env = env;
 
@@ -205,6 +208,10 @@ void Handler::handle_post(void)
 {
     // дополняем список переменных окружения (глобальная переменная g_env)
     char ** env = create_env();
+
+    if (!(env = create_env()))
+        return ; // error
+
     char *args[2] = {(char*)"./cgi_tester", NULL};
     std::string body;
     if (launch_cgi(args, env, &body) == 1)
@@ -217,7 +224,8 @@ void Handler::handle_post(void)
     //добавляем к нему тело
 }
 
-char ** Handler::create_env(void)
+
+char **         Handler::create_env(void)
 {
     char **result;
     int len = 0;
@@ -226,25 +234,27 @@ char ** Handler::create_env(void)
     while (this->env[len] != NULL)
         len++;
 
-    result = (char **)malloc((sizeof(char *) * len) + headersNmb + 1);
+    if (!(result = (char **)malloc(sizeof(char *) * (len + headersNmb + 1))))
+        return NULL;
 
-    for (int i = 0; i < len; i++)
+    bzero(result, len + headersNmb + 1);
+
+    for (int i = 0; i < len && this->env[i]; i++)
     {
-        result[i] = this->;
+        if (!(result[i] = ft_strdup(this->env[i])))
+        {
+            ft_free_array(env);
+            return (NULL);
+        }
     }
 
 //    for (int i = len; i < (len + headersNmb); i++)
 //    {
 //
 //    }
-
-//    for param in os.environ.keys():
-//    print("<b>%20s</b>: %s<br>" % (param, os.environ[param]))
-
-
-
     return result;
 }
+
 
 int Handler::launch_cgi(char **args, char **env, std::string * body)
 {
@@ -488,4 +498,52 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 		}
 	}
 	return(theBestLocation);
+}
+
+/*
+ * ------------------------------ libft ------------------------------
+ */
+
+int             Handler::ft_strlen(const char *str)
+{
+    int i;
+
+    i = 0;
+    while (str[i] != '\0')
+        i++;
+    return (i);
+}
+
+void		    Handler::ft_free_array(char **to_free)
+{
+    char	**tmp;
+
+    tmp = to_free;
+    while (*tmp != NULL)
+    {
+        free(*tmp);
+        tmp++;
+    }
+    free(to_free);
+    to_free = NULL;
+}
+
+char *          Handler::ft_strdup(const char *s)
+{
+    char	*res;
+    int		i;
+    int		len;
+
+    len = ft_strlen((char *)s);
+    if ((res = (char *)malloc(len + 1)) == NULL)
+        return (NULL);
+    i = 0;
+    while (len)
+    {
+        res[i] = s[i];
+        i++;
+        len--;
+    }
+    res[i] = '\0';
+    return (res);
 }

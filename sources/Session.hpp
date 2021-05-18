@@ -34,18 +34,24 @@ public:
     char **env;
 
 //private:
-	ParseRequest * parseRequest;
-	Handler handler;
-	bool request_left;
+	ParseRequest *  parseRequest;
+	Handler *       handler;
+	bool            request_left;
 	
 
 public:
-	Session(void);
-	~Session(void);
+
+   Session(configServer config);
+    ~Session(void);
 	int send_message(void);
 	int do_read(void);
 	void commit(FILE *f);
-	void handle_request(fd_set * writefds, configServer const & config);
+	void handle_request(fd_set * writefds);
+
+
+private:
+
+	Session(void);
 };
 
 #endif
