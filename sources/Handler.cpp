@@ -33,6 +33,9 @@ std::string const & Handler::handle(configServer const & config, data const & re
 		handle_put();
 
 	std::cout << this->response << std::endl; //for debug
+
+	this->path.clear();
+	this->location_path.clear();
 	return this->response;
 }
 
@@ -46,8 +49,8 @@ int Handler::isRequestCorrect(void)
 		status_code = 400;
 	else if (request.version != "HTTP/1.1")
 		status_code = 505;
-	// else if ((index_location = isLocation(config.locations, request.path)) < 0)
-	// 	status_code = 404;
+	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
+	 	status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
 	else if (!doesLocationAnswersMethod())
@@ -77,11 +80,9 @@ void Handler::makePath(void)
 	
 	this->path = ".";
 	this->path.append(config.locations[index_location]->root);
+    this->path.append("/");
 	this->path.append(subpath());
 	this->location_path.append(request.path);
-
-    std::cout << "ROOT " << config.locations[index_location]->root << std::endl;
-	std::cout << "PATH " << this->path << std::endl;
 
 	dir = opendir(path.c_str());
 
@@ -189,16 +190,17 @@ void Handler::handle_put(void)
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Type: ");
-	// this->response.append(this->path); //нужно подтянуть из хедера запроса, если он есть
+	 this->response.append("text/plain"); //нужно подтянуть из хедера запроса, если он есть
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
-	// this->response.append(lltostr(file_stat.st_size)); //нужно подтянуть из хедера запроса, если он есть
+	this->response.append(lltostr(request.body.size())); //нужно подтянуть из хедера запроса, если он есть
 	this->response.append("\r\n");
 
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
+    this->response.append("\r\n");
 }
 
 void Handler::handle_post(void)
@@ -460,7 +462,6 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 		if(locations[i]->path == path)
 		{
 			theBestLocation = i;
-			std::cout << theBestLocation<<std::endl;
 			return (theBestLocation);
 		}
 		else
@@ -495,6 +496,5 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 			}
 		}
 	}
-	std::cout << theBestLocation<<std::endl;
 	return(theBestLocation);
 }
