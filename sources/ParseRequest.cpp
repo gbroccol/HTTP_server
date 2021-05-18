@@ -177,11 +177,12 @@ ParseRequest::~ParseRequest()
 	{
         _data.status = REQUEST_READY;
 
-		_data.body += body;
+        _data.body.clear();
+		_data.body.append(body);
 		_data.body += "\r\n";
 
-		std::cout  << std::endl << RED << "Body " << BW;
-		std::cout << BLUE << _data.body << BW << std::endl;
+//		std::cout  << std::endl << RED << "Body " << BW;
+//		std::cout << BLUE << _data.body << BW << std::endl;
 
 		_buff.erase(0, 2);
 	}

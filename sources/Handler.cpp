@@ -36,6 +36,9 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
 		handle_put();
 
 	std::cout << this->response << std::endl; //for debug
+
+	this->path.clear();
+	this->location_path.clear();
 	return this->response;
 }
 
@@ -49,8 +52,8 @@ int Handler::isRequestCorrect(void)
 		status_code = 400;
 	else if (request.version != "HTTP/1.1")
 		status_code = 505;
-	else if ((index_location = isLocation(config.locations, request.path)) < 0)
-		status_code = 404;
+	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
+	 	status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
 	else if (!doesLocationAnswersMethod())
@@ -80,11 +83,9 @@ void Handler::makePath(void)
 	
 	this->path = ".";
 	this->path.append(config.locations[index_location]->root);
+    this->path.append("/");
 	this->path.append(subpath());
 	this->location_path.append(request.path);
-
-    std::cout << "ROOT " << config.locations[index_location]->root << std::endl;
-	std::cout << "PATH " << this->path << std::endl;
 
 	dir = opendir(path.c_str());
 
@@ -192,16 +193,17 @@ void Handler::handle_put(void)
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Type: ");
-	// this->response.append(this->path); //нужно подтянуть из хедера запроса, если он есть
+	 this->response.append("text/plain"); //нужно подтянуть из хедера запроса, если он есть
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
-	// this->response.append(lltostr(file_stat.st_size)); //нужно подтянуть из хедера запроса, если он есть
+	this->response.append(lltostr(request.body.size())); //нужно подтянуть из хедера запроса, если он есть
 	this->response.append("\r\n");
 
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
+    this->response.append("\r\n");
 }
 
 void Handler::handle_post(void)
@@ -433,37 +435,60 @@ int Handler::isFiles(std::string path, std::string locPath)
 	return (-1);
 }
 
-int Handler::putVal(std::string &locTmp, std::string &reqTmp, std::vector<location *> locations,size_t i, size_t j, int theBestLocation)
+int Handler::putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations)
 {
-	locTmp.clear();
-	reqTmp.clear();
-	if((theBestLocation == -1 && j == locations[i]->path.length() - 1) || (theBestLocation >= 0 && locations[i]->path.length() > locations[theBestLocation]->path.length()))
+	if((theBestLocation == -1 && j == locPath.length() - 1) || (theBestLocation >= 0 &&
+		locations[i]->path.length() > locations[theBestLocation]->path.length()))
 		return(i);
 	return (theBestLocation);
 }
-
-void Handler::searchPath(std::string &locTmp, std::string &reqTmp, std::vector<location *> locations,size_t i, size_t &j, int &theBestLocation, std::string path)
+int Handler::searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations, std::string &reqPath, int flag, std::string &locPath)
 {
-	if(locTmp == reqTmp &&  j == path.length() - 1 )
-		theBestLocation = putVal(locTmp, reqTmp, locations, i, j, theBestLocation);
-	else if(locTmp == reqTmp && reqTmp[j + 1] == '/')
-		theBestLocation = putVal(locTmp, reqTmp, locations, i, j, theBestLocation);
-	else if(j == 0 && j == locations[i]->path.length() - 1)
-		theBestLocation = putVal(locTmp, reqTmp, locations, i, j, theBestLocation);
-	else if(locTmp != reqTmp && locations[i]->path[j] == '/')
-		if(j + 1 == locations[i]->path.length() && j == path.length())
-			theBestLocation = putVal(locTmp, reqTmp, locations, i, j, theBestLocation);
-	if(j == 0 && j != locations[i]->path.length() - 1)
+	flag = 0;
+	reqPath.length();
+	locPath.length();
+	if(locTmp == reqTmp )
+	{
+		if(reqPath[j + 1] == '/' || j == reqPath.length() - 1 || locPath == "/")
+		{
+			theBestLocation = putVal(locTmp, j, i, theBestLocation, locations);
+			return(1);
+		}
+	}
+	return(0);
+}
+
+int Handler::searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath)
+{
+	if(locTmp == reqTmp)
+	{
+		if(locPath[j + 1] == '/' || j == locPath.length() - 1 || reqPath == "/")
+		{
+			theBestLocation = putVal(locTmp, j, i, theBestLocation, locations);
+			return(1);
+		}
+	}
+	return(0);
+}
+
+void Handler::searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i, int &theBestLocation, std::string &reqPath, std::vector<location *> locations)
+{
+	if(locTmp == reqTmp &&  (j == locPath.length() - 1 || j == reqPath.length() - 1))
+		theBestLocation = putVal(locTmp, j, i, theBestLocation, locations);
+	if(locTmp == reqTmp)
 	{
 		locTmp.clear();
 		reqTmp.clear();
-		j = 0;
+		reqPath.erase(0, j + 1);
+		locPath.erase(0, j + 1);
+		j = -1;
 	}
 }
 
 int Handler::isLocation(std::vector<location *> locations, std::string path)
 {
 	int theBestLocation = -1;
+
 	int tmp = -1;
 	int flag = 1;
 	for(size_t i = 0; i < locations.size(); i++)
@@ -475,16 +500,18 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 		}
 		else
 		{
+			std::string locPath = locations[i]->path;
+			std::string reqPath = path;
 			std::string locTmp = "";
 			std::string reqTmp = "";
-			for(size_t j = 0; j < locations[i]->path.length(); j++)
+			int res = 1;
+			for(size_t j = 0; j < locPath.length(); j++)
 			{
-				locTmp.push_back(locations[i]->path[j]);
-				reqTmp.push_back(path[j]);
-
-				if(locations[i]->path[j] == '*' && flag > 0)		
+					locTmp.push_back(locPath[j]);
+					reqTmp.push_back(reqPath[j]);
+				if(locPath[j] == '*' && flag > 0)		
 				{
-					flag = isFiles(path.substr(j, path.length() - 1), locations[i]->path.substr(j, path.length() - 1));
+					flag = isFiles(reqPath, locPath);
 					if((theBestLocation == -1 && flag != -1) || flag > tmp)
 					{
 						tmp = flag;
@@ -492,8 +519,14 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 					}
 					break ;
 				}
-				if(locations[i]->path[j] == '/' || j == locations[i]->path.length() - 1 )
-					searchPath(locTmp, reqTmp, locations, i, j, theBestLocation, path);
+				if(locPath[j] == '/')
+					searchPath(locTmp, reqTmp,locPath,j,i,theBestLocation,reqPath,locations);
+				else if(j == locPath.length() - 1)
+					res  = searchlocPath(locTmp, reqTmp, j, i, theBestLocation, locations, reqPath, flag, locPath);
+				else if(j == reqPath.length() - 1)
+					res  = searchreqPath(locTmp, reqTmp, j, i, theBestLocation, locations, reqPath, locPath);
+				if(res == 0)
+					break ;
 			}
 		}
 	}
