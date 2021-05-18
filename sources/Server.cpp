@@ -24,7 +24,7 @@ Server::~Server(void)
 	return;
 }
 
-void Server::init(const configServer & config)
+void Server::init(const configServer & config, char **env)
 {
 	int sock, opt;
 	struct sockaddr_in addr;
@@ -55,6 +55,7 @@ void Server::init(const configServer & config)
 	}
 	this->res = f;
 	this->config = config;
+	this->env = env;
 }
 	
 void Server::run(void)
@@ -130,6 +131,7 @@ Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);
 	sess->state = fsm_start;
+	sess->env = this->env;
 
 	return sess;
 }

@@ -9,13 +9,14 @@ Handler::~Handler(void)
 	return;
 }
 
-std::string const & Handler::handle(configServer const & config, data const & req)
+std::string const & Handler::handle(configServer const & config, data const & req, char **env) // убрать конфиг и переменные окружения в отдельниый инит
 {
 
     this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
 	this->config = config;
 	this->request = req;
+	this->env = env;
 
 	if (!isRequestCorrect())
     {
@@ -27,10 +28,10 @@ std::string const & Handler::handle(configServer const & config, data const & re
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
-		;
+		handle_post();
 	else if (request.method == "PUT")
 		handle_put();
-	// this->response.append("\r\n");
+
 	std::cout << this->response << std::endl; //for debug
 	return this->response;
 }
@@ -55,12 +56,10 @@ int Handler::isRequestCorrect(void)
 	if (status_code != 0)
 	{
 		error_message(status_code);
-		this->response.append("\r\n");
 		return 0;
 	}
 	return 1;
 }
-
 
 int Handler::doesLocationAnswersMethod(void)
 {
@@ -78,24 +77,21 @@ void Handler::makePath(void)
 	
 	this->path = ".";
 	this->path.append(config.locations[index_location]->root);
-	this->path.append(request.path);
+	this->path.append(subpath());
 	this->location_path.append(request.path);
-	
+
+    std::cout << "ROOT " << config.locations[index_location]->root << std::endl;
+	std::cout << "PATH " << this->path << std::endl;
+
 	dir = opendir(path.c_str());
 
     if (dir)
     {
+        this->path.append("/");
         this->path.append(config.locations[index_location]->index);                     // путь до странички
-        this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
+        this->location_path.append(config.locations[index_location]->index);           // путь до странички БЕЗ ДИРРЕКТОРИИ
         closedir(dir);
     }
-//
-//	if (dir && (request.method == "GET" || request.method == "HEAD"))
-//	{
-//		this->path.append(config.locations[index_location]->index);                     // путь до странички
-//		this->location_path.append(config.locations[index_location]->index);            // путь до странички БЕЗ ДИРРЕКТОРИИ
-//        closedir(dir);
-//	}
 }
 
 void Handler::handle_head(void)
@@ -156,7 +152,6 @@ void Handler::append_body(void)
 	ss << ifs.rdbuf();
 	
 	this->response.append(ss.str());
-	// this->response.append("\r\n");
 	ifs.close();
 }
 
@@ -204,6 +199,85 @@ void Handler::handle_put(void)
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
+}
+
+void Handler::handle_post(void)
+{
+    // дополняем список переменных окружения (глобальная переменная g_env)
+    char ** env = create_env();
+    char *args[2] = {(char*)"./cgi_tester", NULL};
+    std::string body;
+    if (launch_cgi(args, env, &body) == 1)
+    {
+//        free whole env
+        return;
+    }
+
+    //формируем ответ
+    //добавляем к нему тело
+}
+
+char ** Handler::create_env(void)
+{
+    return this->env;
+}
+
+int Handler::launch_cgi(char **args, char **env, std::string * body)
+{
+    int status = 0;
+    int fd[2];
+    pid_t pid;
+    int stat;
+
+
+    if (pipe(fd) != 0)
+    {
+        error_message(500);
+        status = 1;
+        return status;
+    }
+    pid = fork();
+    if (pid == 0) // дочерний процесс
+    {
+        dup2(fd[1], 1);
+        close(fd[0]);
+        if (execve(args[0], args, env) == -1)
+        {
+            error_message(500);
+            status = 1;
+        }
+    }
+    else if (pid < 0)
+    {
+        error_message(500);
+        close(fd[0]);
+        close(fd[1]);
+        status = 1;
+    }
+    else
+    {
+        dup2(fd[0], 0);
+        close(fd[1]);
+        waitpid(pid, &stat, WUNTRACED);
+        while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
+            waitpid(pid, &stat, WUNTRACED);
+        //читаем и записываем в строку
+        char buffer[INBUFSIZE];
+        int res = 0;
+        while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
+        {
+            body->append(buffer);
+            bzero(buffer, INBUFSIZE);
+        }
+        if (res < 0)
+        {
+            error_message(500);
+            status = 1;
+        }
+
+        close(fd[0]);
+    }
+    return status;
 }
 
 std::string Handler::getPresentTime(void)
@@ -254,8 +328,7 @@ void Handler::error_message(int const & status_code)
 			this->response.append("505 HTTP Version Not Supported\r\n");
 			break;
 	}
-    this->response.append("Content-Length: 32\r\n\r\n"); // подтянуть из файла с ошибкой
-	this->response.append("<html><head>Error</head></html>\r\n"); // подтянуть из файла с ошибкой
+    this->response.append("Content-Length: 0\r\n\r\n");
 	return;
 }
 
@@ -291,6 +364,15 @@ std::string Handler::lltostr(long long number)
 	else
 		res.insert(res.begin(), (number + '0'));
 	return res;
+}
+
+std::string Handler::subpath(void)
+{
+    size_t i = 0;
+    std::string loc_path = config.locations[index_location]->path;
+    while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
+        i++;
+    return (request.path.substr(i));
 }
 
 int Handler::isFiles(std::string path, std::string locPath)

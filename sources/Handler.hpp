@@ -27,18 +27,24 @@ private:
 	std::string		path;
 	std::string 	location_path;
 	configServer	config;
+	char            **env;
+
 
 public:
 	Handler(void);
 	~Handler(void);
 
-	std::string const & handle(configServer const & config, data const & request);
+	std::string const & handle(configServer const & config, data const & request, char **env);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
+    std::string subpath(void);
 	void handle_head(void);
 	void append_body(void);
 	void handle_put(void);
+	void handle_post(void);
+	char ** create_env(void);
+	int launch_cgi(char **args, char ** env, std::string * body);
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);
