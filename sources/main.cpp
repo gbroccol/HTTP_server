@@ -3,7 +3,6 @@
 # include "Server.hpp"
 # include "Config.hpp"
 
-
 int main(int argc,  char **argv)
 {
 	std::vector<Server *> servers;
@@ -24,7 +23,7 @@ int main(int argc,  char **argv)
 
 		config.getFile(configFile);
 		
-		for (size_t i = 0; i < config.getSize(); i++)
+		for (size_t  i = 0; i < config.getSize(); i++)
 		{
 			confServer = config.getconfigServer((int)i);
 			server = new Server;

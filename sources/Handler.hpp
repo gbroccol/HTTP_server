@@ -48,12 +48,15 @@ public:
 
 	std::string lltostr(long long number);
 
-	int isLocation(std::vector<location *> locations, std::string path);
-	void searchPath(std::string &locTmp, std::string &reqTmp, std::vector<location *> locations,size_t i,
-					size_t &j, int &theBestLocation, std::string path);
-	int putVal(std::string &locTmp, std::string &reqTmp,
-					std::vector<location *> locations,size_t i, size_t j, int theBestLocation);
-	int isFiles(std::string path, std::string locPath);
+int isFiles(std::string path, std::string locPath);
+int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
+int searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations,
+						std::string &reqPath, int flag, std::string &locPath);
+int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
+						int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath);
+void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
+						int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
+int isLocation(std::vector<location *> locations, std::string path);
 };
 
 #endif
