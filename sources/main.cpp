@@ -23,7 +23,7 @@ int main(int argc,  char **argv, char **env)
 
 		config.getFile(configFile);
 		
-		for (size_t i = 0; i < config.getSize(); i++)
+		for (size_t  i = 0; i < config.getSize(); i++)
 		{
 			confServer = config.getconfigServer((int)i);
 			server = new Server;
