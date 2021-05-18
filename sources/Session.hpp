@@ -31,6 +31,7 @@ public:
     char buf[INBUFSIZE];
 	std::string wr_buf;
     enum states state;
+    char **env;
 
 //private:
 	ParseRequest * parseRequest;

@@ -3,8 +3,7 @@
 # include "Server.hpp"
 # include "Config.hpp"
 
-
-int main(int argc,  char **argv)
+int main(int argc,  char **argv, char **env)
 {
 	std::vector<Server *> servers;
 	Server * server;
@@ -28,7 +27,7 @@ int main(int argc,  char **argv)
 		{
 			confServer = config.getconfigServer((int)i);
 			server = new Server;
-			server->init(*confServer);
+			server->init(*confServer, env);
 			servers.push_back(server);
 		}
 		for (size_t i = 0; i < servers.size(); i++)

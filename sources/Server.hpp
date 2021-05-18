@@ -20,6 +20,7 @@
 class Server
 {
 private:
+    char                    **env;
 	int 					listenSocket;
 	FILE 					*res;
 	std::vector<Session *>	sessions;
@@ -30,7 +31,7 @@ private:
 public:
 	Server(void);
 	~Server(void);
-	void init(const configServer & config);
+	void init(const configServer & config, char **env);
 	void run(void);
 	void accept_client(void);
 	Session * make_new_session(int fd, struct sockaddr_in *from);
