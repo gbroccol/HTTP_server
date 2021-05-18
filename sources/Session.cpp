@@ -13,9 +13,12 @@
 
 #include "Session.hpp" 
 
-Session::Session(void) 
+Session::Session(void) { return; } // private
+
+Session::Session(configServer config)
 {
-	parseRequest = new ParseRequest;
+	this->parseRequest = new ParseRequest;
+    this->handler      = new Handler(config);
 	return; 
 }
 
@@ -80,11 +83,11 @@ void Session::commit(FILE *f)
 	
 }
 
-void Session::handle_request(fd_set * writefds, configServer const & config)
+void Session::handle_request(fd_set * writefds)
 {
 	if (parseRequest->getData().status == REQUEST_READY) {
 	    //парсинг хедеров
-        this->wr_buf = this->handler.handle(config, parseRequest->getData(), this->env);
+        this->wr_buf = this->handler->handle(parseRequest->getData(), this->env);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
 }

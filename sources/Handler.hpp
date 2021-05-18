@@ -21,6 +21,7 @@ class Handler
 {
 private:
 
+    Handler(void);
 	std::string 	response;
 	data 			request;
 	int 			index_location;
@@ -31,10 +32,12 @@ private:
 
 
 public:
-	Handler(void);
+
+
+    Handler(configServer const & config);
 	~Handler(void);
 
-	std::string const & handle(configServer const & config, data const & request, char **env);
+	std::string const & handle(data const & request, char **env);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
@@ -42,8 +45,11 @@ public:
 	void handle_head(void);
 	void append_body(void);
 	void handle_put(void);
+
 	void handle_post(void);
 	char ** create_env(void);
+
+
 	int launch_cgi(char **args, char ** env, std::string * body);
 
 	std::string getPresentTime(void);
@@ -63,6 +69,11 @@ int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
 void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
 						int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
 int isLocation(std::vector<location *> locations, std::string path);
+  
+  	/* libft */
+    int             ft_strlen(const char *str);
+    void		    ft_free_array(char **to_free);
+    char *          ft_strdup(const char *s);
 };
 
 #endif
