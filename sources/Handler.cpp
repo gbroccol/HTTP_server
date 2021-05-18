@@ -219,7 +219,31 @@ void Handler::handle_post(void)
 
 char ** Handler::create_env(void)
 {
-    return this->env;
+    char **result;
+    int len = 0;
+    int headersNmb = 0;
+
+    while (this->env[len] != NULL)
+        len++;
+
+    result = (char **)malloc((sizeof(char *) * len) + headersNmb + 1);
+
+    for (int i = 0; i < len; i++)
+    {
+        result[i] = this->;
+    }
+
+//    for (int i = len; i < (len + headersNmb); i++)
+//    {
+//
+//    }
+
+//    for param in os.environ.keys():
+//    print("<b>%20s</b>: %s<br>" % (param, os.environ[param]))
+
+
+
+    return result;
 }
 
 int Handler::launch_cgi(char **args, char **env, std::string * body)
