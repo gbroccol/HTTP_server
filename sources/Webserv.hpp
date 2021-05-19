@@ -48,10 +48,16 @@ struct data
     std::multimap <std::string, std::string>    headers;
 
     std::string							    	body;
-    long long                                   bodyLen;
+    std::string                                 bodyLen;
 
     size_t                                      status;
     int                                         nmb;
+
+
+    /*
+     * headers
+    */
+    bool                                        transferEncoding;
 };
 
 
