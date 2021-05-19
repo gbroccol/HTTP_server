@@ -49,6 +49,9 @@ ParseRequest::~ParseRequest()
 
 	bool					ParseRequest::addToBuffer(std::string str)
 	{
+        if (_data.nmb == 14)
+            std::cout << BW;
+
 	    if (_data.status == REQUEST_READY)
             clearData();
 
@@ -102,19 +105,25 @@ ParseRequest::~ParseRequest()
 				continue ;
 			}
 
-            if (_parsPart == BODY_PART && _buff.find("\r\n\r\n", 0) == std::string::npos) // не обрабатывать body пока не найдем символы "\r\n\r\n"
-                return;
-		
+            if (_parsPart == BODY_PART)
+            {
+                if (_buff.find("0\r\n\r\n", 0) == std::string::npos) // не обрабатывать body пока не найдем символы "0\r\n\r\n" - написать поиск с конца
+                    return;
+                tmp.clear();
+                tmp.insert(0, _buff, 0, pos);
+                _buff.erase(0, pos + 2);
+
+                parseBody(tmp);
+            }
+
 			tmp.clear();
 			tmp.insert(0, _buff, 0, pos);
 			_buff.erase(0, pos + 2);
 
 			if (_parsPart == PRE_PART)
-				parseStartingLine(tmp.c_str());
+                parseStartingLine(tmp.c_str());
 			else if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
 				parseHeaders(tmp);
-			else if (_parsPart == BODY_PART)
-				parseBody(tmp);
 		}
 	}
 
@@ -173,18 +182,38 @@ ParseRequest::~ParseRequest()
 		std::cout << BLUE << key << ": " << value << BW << std::endl;
 	}
 
-	void					ParseRequest::parseBody(std::string body)
+	void					ParseRequest::parseBody(std::string size)
 	{
+	    _data.status = REQUEST_READY;
+	    if (_data.bodyLen == -1) // count bodyLen
+        {
+	        if (size.length() == 1 && size == "0")
+            {
+                _data.bodyLen = 0;
+
+                std::cout  << std::endl << RED << "Body " << BW;
+                std::cout << BLUE << _data.body << BW << std::endl;
+
+                _buff.erase(0, 2);
+
+                return;
+            }
+            _data.bodyLen = 1000; // hex to decimal make func
+        }
         _data.status = REQUEST_READY;
 
-        _data.body.clear();
-		_data.body.append(body);
-		_data.body += "\r\n";
+	    int pos = _buff.find("0\r\n\r\n", 0);
+        _data.body.insert(0, _buff, 0, pos);
 
-//		std::cout  << std::endl << RED << "Body " << BW;
-//		std::cout << BLUE << _data.body << BW << std::endl;
 
-		_buff.erase(0, 2);
+//        _data.body.clear();
+//		_data.body.append(body);
+//		_data.body += "\r\n";
+
+		std::cout  << std::endl << RED << "Body " << BW;
+		std::cout << BLUE << _data.body << BW << std::endl;
+
+		_buff.erase(0, pos + 5);
 	}
 
 	void					ParseRequest::clearData()
@@ -196,6 +225,7 @@ ParseRequest::~ParseRequest()
 		_data.version.clear();
 		_data.headers.clear();
 		_data.body.clear();
+		_data.bodyLen = -1;
 		_data.status = REQUEST_PARSE;
 	}
 

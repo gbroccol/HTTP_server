@@ -224,6 +224,7 @@ void Handler::handle_post(void)
 
     //формируем ответ
     //добавляем к нему тело
+    // записываем тело в файл указанный в запросе
 }
 
 
@@ -281,6 +282,7 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
         {
             error_message(500);
             status = 1;
+            exit(status);
         }
     }
     else if (pid < 0)
@@ -297,6 +299,7 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
         waitpid(pid, &stat, WUNTRACED);
         while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
             waitpid(pid, &stat, WUNTRACED);
+        status = WEXITSTATUS(stat);
         //читаем и записываем в строку
         char buffer[INBUFSIZE];
         int res = 0;

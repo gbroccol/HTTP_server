@@ -48,9 +48,10 @@ struct data
     std::multimap <std::string, std::string>    headers;
 
     std::string							    	body;
+    long long                                   bodyLen;
 
     size_t                                      status;
-    int                                            nmb;
+    int                                         nmb;
 };
 
 
