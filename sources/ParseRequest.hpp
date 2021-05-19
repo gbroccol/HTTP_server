@@ -31,7 +31,8 @@ class ParseRequest
 		void					parseHTTPRequest();
 		void					parseStartingLine(std::string startLine);       // part 1
 		void					parseHeaders(std::string header);               // part 2
-		void					parseBody(std::string body);                    // part 3
+		void					parseBodyTE();                                  // part 3 transferEncoding BODY
+
 
         void					checkIfBody();
 

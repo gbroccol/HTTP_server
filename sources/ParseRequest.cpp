@@ -81,39 +81,40 @@ ParseRequest::~ParseRequest()
             _parsPart = BODY_PART;
         }
         else if (itTE != _data.headers.end()) {
+            _data.transferEncoding = true;
             _parsPart = BODY_PART;
         }
         else
             _data.status = REQUEST_READY;
     }
 
-	void					ParseRequest::parseHTTPRequest()
+	void					ParseRequest::parseHTTPRequest() // <CRLF><CRLF> == "\r\n\r\n"
 	{
 		size_t pos;
 		std::string tmp;
 		
 		while ((pos = _buff.find("\r\n", 0)) != std::string::npos)
 		{
-		    if (_parsPart != BODY_PART && pos == 0) // && _parsPart == HEADERS_PART) // закончились заголовки
+		    if (pos == 0 && _parsPart != BODY_PART) // && _parsPart == HEADERS_PART) // закончились заголовки
 			{
-		        _buff = _buff.erase(0, 2);
+		        _buff.erase(0, 2);
                 checkIfBody();
                 if (_data.status == REQUEST_READY)
-                    return;
-                if (_buff.find("\r\n\r\n", 0) == std::string::npos)
                     return;
 				continue ;
 			}
 
             if (_parsPart == BODY_PART)
             {
-                if (_buff.find("0\r\n\r\n", 0) == std::string::npos) // не обрабатывать body пока не найдем символы "0\r\n\r\n" - написать поиск с конца
-                    return;
                 tmp.clear();
-                tmp.insert(0, _buff, 0, pos);
-                _buff.erase(0, pos + 2);
-
-                parseBody(tmp);
+                tmp.insert(0, _buff, pos + 2, _buff.size());
+                if (tmp.find("\r\n", 0) != std::string::npos)
+                {
+                    if (_data.transferEncoding)
+                        parseBodyTE();
+                    continue ;
+                } else
+                    return;
             }
 
 			tmp.clear();
@@ -182,38 +183,36 @@ ParseRequest::~ParseRequest()
 		std::cout << BLUE << key << ": " << value << BW << std::endl;
 	}
 
-	void					ParseRequest::parseBody(std::string size)
+	void					ParseRequest::parseBodyTE()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
 	{
-	    _data.status = REQUEST_READY;
-	    if (_data.bodyLen == -1) // count bodyLen
-        {
-	        if (size.length() == 1 && size == "0")
-            {
-                _data.bodyLen = 0;
+	    int pos = 0;
 
-                std::cout  << std::endl << RED << "Body " << BW;
-                std::cout << BLUE << _data.body << BW << std::endl;
+	    /*
+	     * <длина блока в HEX>
+	     */
+        pos = _buff.find("\r\n", 0); // проверить на ошибку
+        _data.bodyLen.insert(0, _buff, 0, pos);
+        _buff.erase(0, pos);
 
-                _buff.erase(0, 2);
+        /*
+	     * <CRLF>
+	     */
+        _buff.erase(0, 2);
 
-                return;
-            }
-            _data.bodyLen = 1000; // hex to decimal make func
-        }
-        _data.status = REQUEST_READY;
+        /*
+	     * <содержание блока>
+	     */
+        pos = _buff.find("\r\n", 0); // проверить на ошибку
+        _data.body.append(_buff, 0, pos);
+        _buff.erase(0, pos);
 
-	    int pos = _buff.find("0\r\n\r\n", 0);
-        _data.body.insert(0, _buff, 0, pos);
+        /*
+	     * <CRLF>
+	     */
+        _buff.erase(0, 2);
 
-
-//        _data.body.clear();
-//		_data.body.append(body);
-//		_data.body += "\r\n";
-
-		std::cout  << std::endl << RED << "Body " << BW;
-		std::cout << BLUE << _data.body << BW << std::endl;
-
-		_buff.erase(0, pos + 5);
+        if (pos == 0)
+            _data.status = REQUEST_READY;
 	}
 
 	void					ParseRequest::clearData()
@@ -225,8 +224,13 @@ ParseRequest::~ParseRequest()
 		_data.version.clear();
 		_data.headers.clear();
 		_data.body.clear();
-		_data.bodyLen = -1;
+//		_data.bodyLen = -1;
 		_data.status = REQUEST_PARSE;
+
+		/*
+		 * headers
+		 */
+        _data.transferEncoding = false;
 	}
 
 /*
