@@ -209,30 +209,49 @@ void Handler::handle_put(void)
 void Handler::handle_post(void)
 {
     // дополняем список переменных окружения (глобальная переменная g_env)
-    char ** env = create_env();
+    char ** envPost = create_env();
 
-    if (!(env = create_env()))
-        return ; // error
+//    if (!(envPost))
+//        return ; // error
 
     char *args[2] = {(char*)"./cgi_tester", NULL};
     std::string body;
-    if (launch_cgi(args, env, &body) == 1)
+    if (launch_cgi(args, envPost, &body) == 1)
     {
-//        free whole env
+        ft_free_array(envPost);
         return;
     }
+    std::cout << RED << "cgi done" << BW << std::endl;
 
+    std::cout << GREEN << body<< BW << std::endl;
+
+
+//    ft_free_array(envPost);
     //формируем ответ
     //добавляем к нему тело
     // записываем тело в файл указанный в запросе
 }
 
+char **         Handler::add_headers(int len, int headersNmb, char **result)
+{
+//    std::vector
+
+    for (int i = len; i < (len + headersNmb); i++)
+    {
+        if (!(result[i] = ft_strdup("REQUEST_METHOD=POST")))
+        {
+            ft_free_array(result);
+            return (NULL);
+        }
+        std::cout << result[i] << std::endl;
+    }
+}
 
 char **         Handler::create_env(void)
 {
     char **result;
     int len = 0;
-    int headersNmb = 0;
+    int headersNmb = 1;
 
     while (this->env[len] != NULL)
         len++;
@@ -246,15 +265,12 @@ char **         Handler::create_env(void)
     {
         if (!(result[i] = ft_strdup(this->env[i])))
         {
-            ft_free_array(env);
+            ft_free_array(result);
             return (NULL);
         }
+        std::cout << result[i] << std::endl;
     }
-
-//    for (int i = len; i < (len + headersNmb); i++)
-//    {
-//
-//    }
+    add_headers(len, headersNmb, result);
     return result;
 }
 
@@ -313,7 +329,6 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
             error_message(500);
             status = 1;
         }
-
         close(fd[0]);
     }
     return status;
@@ -555,13 +570,13 @@ void		    Handler::ft_free_array(char **to_free)
     char	**tmp;
 
     tmp = to_free;
-    while (*tmp != NULL)
-    {
-        free(*tmp);
-        tmp++;
-    }
-    free(to_free);
-    to_free = NULL;
+//    while (*tmp != NULL)
+//    {
+//        free(*tmp);
+//        tmp++;
+//    }
+//    free(to_free);
+//    to_free = NULL;
 }
 
 char *          Handler::ft_strdup(const char *s)

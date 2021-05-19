@@ -49,7 +49,7 @@ ParseRequest::~ParseRequest()
 
 	bool					ParseRequest::addToBuffer(std::string str)
 	{
-        if (_data.nmb == 14)
+        if (_data.nmb == 16)
             std::cout << BW;
 
 	    if (_data.status == REQUEST_READY)
