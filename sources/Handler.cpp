@@ -148,9 +148,7 @@ void Handler::handle_head(void)
 }
 
 void Handler::append_body(void)
-{
-	//возможно нужно будет заменить на функции из других библиотек
-	
+{	
 	std::ifstream ifs(this->path.c_str());
 	std::stringstream ss;
 	ss << ifs.rdbuf();
@@ -161,14 +159,18 @@ void Handler::append_body(void)
 
 void Handler::handle_put(void)
 {
-	std::string status_code;
 	int fd;
-	status_code = "204 No Content\r\n";
+	std::string status = "204 No Content\r\n";
+	int status_code = 204;
 	
 	fd = open(this->path.c_str(), O_RDWR);
 	if (fd < 0)
-		status_code = "201 Created\r\n";
-	close(fd);
+	{
+		status = "201 Created\r\n";
+		status_code = 201;
+	}
+	else
+		close(fd);
 	
 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 	if (!ofs.good())
@@ -179,7 +181,7 @@ void Handler::handle_put(void)
 	ofs << request.body;
 	ofs.close();
 	
-	this->response.append(status_code);
+	this->response.append(status);
 	this->response.append("Server: Webserv/1.1\r\n");
 		
 	this->response.append("Date: ");
@@ -204,6 +206,9 @@ void Handler::handle_put(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
     this->response.append("\r\n");
+
+	if (status_code == 201)
+		this->response.append(request.body);
 }
 
 void Handler::handle_post(void)
@@ -211,8 +216,11 @@ void Handler::handle_post(void)
     // дополняем список переменных окружения (глобальная переменная g_env)
     char ** envPost = create_env();
 
-//    if (!(envPost))
-//        return ; // error
+   	if (!(envPost))
+	{
+		error_message(500);
+       return ;
+	}
 
     char *args[2] = {(char*)"./cgi_tester", NULL};
     std::string body;
@@ -234,32 +242,39 @@ void Handler::handle_post(void)
 
 char **         Handler::add_headers(int len, int headersNmb, char **result)
 {
-//    std::vector
+   std::vector<std::string> headers = {
+	   "REQUEST_METHOD=POST",
+	   "SERVER_PROTOCOL=HTTP/1.1",
+	   "PATH_INFO=/cgi_tester",
+	   "CONTENT_LENGTH=100000000",
+	   "CONTENT_TYPE=test/file"
+    };
 
-    for (int i = len; i < (len + headersNmb); i++)
+	int j = 0;
+    for (int i = len; i < (len + headersNmb) && j < (int)headers.size(); i++, j++)
     {
-        if (!(result[i] = ft_strdup("REQUEST_METHOD=POST")))
+        if (!(result[i] = ft_strdup(headers[j].c_str())))
         {
             ft_free_array(result);
             return (NULL);
         }
-        std::cout << result[i] << std::endl;
     }
+	return result;
 }
 
 char **         Handler::create_env(void)
 {
     char **result;
     int len = 0;
-    int headersNmb = 1;
+    int headersNmb = 5;
 
-    while (this->env[len] != NULL)
+    while (this->env[len] != NULL) {
         len++;
+	}
 
-    if (!(result = (char **)malloc(sizeof(char *) * (len + headersNmb + 1))))
+	if (!(result = (char **)calloc(len + headersNmb + 1, sizeof(char*))))
         return NULL;
 
-    bzero(result, len + headersNmb + 1);
 
     for (int i = 0; i < len && this->env[i]; i++)
     {
@@ -268,7 +283,6 @@ char **         Handler::create_env(void)
             ft_free_array(result);
             return (NULL);
         }
-        std::cout << result[i] << std::endl;
     }
     add_headers(len, headersNmb, result);
     return result;
@@ -280,8 +294,7 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
     int status = 0;
     int fd[2];
     pid_t pid;
-    int stat;
-
+    // int stat;
 
     if (pipe(fd) != 0)
     {
@@ -289,10 +302,11 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
         status = 1;
         return status;
     }
-    pid = fork();
+    pid = fork(); //проверить на ошибку
     if (pid == 0) // дочерний процесс
     {
         dup2(fd[1], 1);
+		fcntl(fd[1], F_SETFL, O_NONBLOCK);
         close(fd[0]);
         if (execve(args[0], args, env) == -1)
         {
@@ -312,23 +326,46 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
     {
         dup2(fd[0], 0);
         close(fd[1]);
-        waitpid(pid, &stat, WUNTRACED);
-        while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
-            waitpid(pid, &stat, WUNTRACED);
-        status = WEXITSTATUS(stat);
-        //читаем и записываем в строку
-        char buffer[INBUFSIZE];
+		// fcntl(fd[0], F_SETFL, O_NONBLOCK);
+
+		char buffer[INBUFSIZE];
         int res = 0;
-        while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
-        {
-            body->append(buffer);
-            bzero(buffer, INBUFSIZE);
-        }
-        if (res < 0)
-        {
-            error_message(500);
-            status = 1;
-        }
+        // waitpid(pid, &stat, WUNTRACED);
+        // while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
+		// {
+            // waitpid(pid, &stat, WUNTRACED);
+        	while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
+        	{
+				std::cout << buffer << std::endl; //for debug
+           		body->append(buffer);
+            	bzero(buffer, INBUFSIZE);
+        	}
+			std::cerr << BLUE << strerror(errno) << BW << std::endl;
+        	if (res < 0)
+        	{
+           		kill(pid, SIGKILL);
+            	status = 1;
+        	}
+		// }
+        if (status == 1 /*|| (status = WEXITSTATUS(stat)) == 1*/)
+		{
+			std::cerr << BLUE << strerror(errno) << BW << std::endl;
+			error_message(500);
+			return (status);
+		}
+        //читаем и записываем в строку
+        // char buffer[INBUFSIZE];
+        // int res = 0;
+        // while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
+        // {
+        //     body->append(buffer);
+        //     bzero(buffer, INBUFSIZE);
+        // }
+        // if (res < 0)
+        // {
+        //     error_message(500);
+        //     status = 1;
+        // }
         close(fd[0]);
     }
     return status;

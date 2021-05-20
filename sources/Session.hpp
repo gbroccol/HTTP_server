@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Session.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/13 15:55:10 by gbroccol         ###   ########.fr       */
+/*   Updated: 2021/05/20 19:41:59 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ public:
     enum states state;
     char **env;
 
-//private:
+private:
 	ParseRequest *  parseRequest;
 	Handler *       handler;
 	bool            request_left;
@@ -47,6 +47,7 @@ public:
 	int do_read(void);
 	void commit(FILE *f);
 	void handle_request(fd_set * writefds);
+	bool isRequestLeft(void);
 
 
 private:

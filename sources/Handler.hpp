@@ -48,7 +48,7 @@ public:
 
 	void handle_post(void);
 	char ** create_env(void);
-    char **        add_headers(int len, int headersNmb, char **result);
+    char ** add_headers(int len, int headersNmb, char **result);
 
 
 	int launch_cgi(char **args, char ** env, std::string * body);

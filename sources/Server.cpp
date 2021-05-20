@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+        */
+/*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/13 15:41:45 by gbroccol         ###   ########.fr       */
+/*   Updated: 2021/05/20 19:43:39 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,9 +87,7 @@ void Server::run(void)
 		{
 			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
 				ssr = this->sessions[i]->do_read();
-				if (ssr == 1 || this->sessions[i]->request_left) {
-                    this->sessions[i]->request_left = this->sessions[i]->parseRequest->addToBuffer(
-                            (std::string) this->sessions[i]->buf);
+				if (ssr == 1 || this->sessions[i]->isRequestLeft()) {
                     this->sessions[i]->handle_request(&writefds);
                 }
 				else if (!ssr)
