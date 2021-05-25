@@ -231,7 +231,7 @@ void Handler::handle_post(void)
     }
     std::cout << RED << "cgi done" << BW << std::endl;
 
-    std::cout << GREEN << body<< BW << std::endl;
+    std::cout << "BODY from cgi: " << GREEN << body<< BW << std::endl;
 
 
 //    ft_free_array(envPost);
@@ -242,13 +242,12 @@ void Handler::handle_post(void)
 
 char **         Handler::add_headers(int len, int headersNmb, char **result)
 {
-   std::vector<std::string> headers = {
-	   "REQUEST_METHOD=POST",
-	   "SERVER_PROTOCOL=HTTP/1.1",
-	   "PATH_INFO=/cgi_tester",
-	   "CONTENT_LENGTH=100000000",
-	   "CONTENT_TYPE=test/file"
-    };
+    std::vector<std::string> headers;
+    headers.push_back("REQUEST_METHOD=POST");
+    headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
+    headers.push_back("PATH_INFO=/cgi_tester");
+    headers.push_back("CONTENT_LENGTH=100000000");
+    headers.push_back("CONTENT_TYPE=test/file");
 
 	int j = 0;
     for (int i = len; i < (len + headersNmb) && j < (int)headers.size(); i++, j++)

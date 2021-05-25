@@ -190,8 +190,8 @@ ParseRequest::~ParseRequest()
 	    /*
 	     * <длина блока в HEX>
 	     */
-        pos = _buff.find("\r\n", 0); // проверить на ошибку
-        _data.bodyLen.insert(0, _buff, 0, pos);
+        _data.bodyLen = stoi (_buff, 0, 16);
+        pos = _buff.find("\r\n", 0);
         _buff.erase(0, pos);
 
         /*
@@ -202,16 +202,15 @@ ParseRequest::~ParseRequest()
         /*
 	     * <содержание блока>
 	     */
-        pos = _buff.find("\r\n", 0); // проверить на ошибку
-        _data.body.append(_buff, 0, pos);
-        _buff.erase(0, pos);
+        _data.body.append(_buff, 0, _data.bodyLen);
+        _buff.erase(0, _data.bodyLen);
 
         /*
 	     * <CRLF>
 	     */
         _buff.erase(0, 2);
 
-        if (pos == 0)
+        if (_data.bodyLen == 0)
             _data.status = REQUEST_READY;
 	}
 
@@ -224,7 +223,7 @@ ParseRequest::~ParseRequest()
 		_data.version.clear();
 		_data.headers.clear();
 		_data.body.clear();
-//		_data.bodyLen = -1;
+		_data.bodyLen = -1;
 		_data.status = REQUEST_PARSE;
 
 		/*
