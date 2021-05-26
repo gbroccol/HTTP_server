@@ -290,6 +290,34 @@ char **         Handler::create_env(void)
 
 int Handler::launch_cgi(char **args, char **env, std::string * body)
 {
+//    int fd_to_write;
+//    //create file to write body
+//    std::ofstream fileWrite("filename.txt");
+//    fd_to_write = fileWrite.fd();
+
+
+//    FILE *stream;
+    int  fd_to_write;
+
+    if ((fd_to_write = creat("file.txt", S_IWUSR)) < 0)
+        perror("creat() error");
+
+    std::cout << "New FD - " << fd_to_write << std::endl;
+
+//    else
+//    {
+//        if ((stream = fdopen(fd_my, "w")) == NULL) {
+//            perror("fdopen() error");
+//            close(fd_my);
+//        }
+//        else {
+//            fputs("This is a test", stream);
+//            fclose(stream);
+//        }}
+
+
+
+
     int status = 0;
     int fd[2];
     pid_t pid;
@@ -304,11 +332,13 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
     pid = fork(); //проверить на ошибку
     if (pid == 0) // дочерний процесс
     {
-        dup2(fd[1], 1);
+//        dup2(fd[1], 1); // fd to write
+        dup2(fd[1], fd_to_write);
 		fcntl(fd[1], F_SETFL, O_NONBLOCK);
         close(fd[0]);
         if (execve(args[0], args, env) == -1)
         {
+            std::cout << "execve error" << std::endl;
             error_message(500);
             status = 1;
             exit(status);
@@ -367,6 +397,12 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
         // }
         close(fd[0]);
     }
+
+    //    std::ifstream fileRead("filename.txt");
+//    Close the file
+//    fileWrite.close();
+//    fileRead.close();
+
     return status;
 }
 
