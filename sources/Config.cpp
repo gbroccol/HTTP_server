@@ -194,7 +194,6 @@ bool checkIndex(std::string root, std::string indexPath)
 	std::ifstream fconfig(indexPath);
 
 	int index = 1;
-	// int index = indexPath.find('.');
 	if(index > 0)
 	{
 		tmp = indexPath.substr(index,indexPath.length() - 1);
@@ -304,6 +303,16 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
 			throw Config::IncorrectConfigException();
 		locNode->method.push_back(tmp);
 	}
+    else if(save == "autoindex")
+    {
+        if(tmp == "on")
+            locNode->autoIndex = ON;
+        else if(tmp == "off")
+            locNode->autoIndex = OFF;
+        else
+            throw Config::IncorrectConfigException();
+        locNode->repeat_autoIndex = true;
+    }
 }
 
 void Config::serverTokenSearch(std::string save, std::string tmp, configServer *servNode)
@@ -341,6 +350,8 @@ void					Config::initLocNode(location *locNode)
 	locNode->repeat_path = false;
 	locNode->repeat_root = false;
 	locNode->root = "";
+    locNode->autoIndex = -1;
+    locNode->repeat_autoIndex = false;
 }
 
 void					Config::initServNode(configServer *servNode)
@@ -356,7 +367,8 @@ void					Config::initServNode(configServer *servNode)
 bool				Config::checkMainValLoc(struct location *locNode)
 {
 	if(locNode->repeat_path == true && locNode->repeat_index == true &&
-	   locNode->repeat_root == true && locNode->repeat_method == true)
+	   locNode->repeat_root == true && locNode->repeat_method == true
+	   && locNode->repeat_autoIndex == true)
 	   return (true);
 	else
 		return (false);
@@ -374,7 +386,7 @@ bool				Config::checkMainValServ(struct configServer *servNode)
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
 	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-	std::string location_tokens[] = {"index", "root", "MaxBody", "method"};
+	std::string location_tokens[] = {"index", "root", "MaxBody", "method", "autoindex"};
 	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
 
 
@@ -399,7 +411,7 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 	}
 	else
 	{
-		for(unsigned int i = 0; i < 4; i++)
+		for(unsigned int i = 0; i < 5; i++)
 		{
 			if(location_tokens[i] == str)
 			{
