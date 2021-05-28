@@ -16,6 +16,7 @@
 # include "Webserv.hpp"
 # include "Session.hpp"
 # include "Config.hpp"
+# include "Authentication.hpp"
 
 class Server
 {
@@ -27,6 +28,8 @@ private:
 	configServer			config;
 	fd_set 					readfds;
 	fd_set 					writefds;
+
+    Authentication *        _authentication;
 
 public:
 	Server(void);

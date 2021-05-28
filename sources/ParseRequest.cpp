@@ -49,8 +49,8 @@ ParseRequest::~ParseRequest()
 
 	bool					ParseRequest::addToBuffer(std::string str)
 	{
-        if (_data.nmb == 16)
-            std::cout << BW;
+//        if (_data.nmb == 16)
+//            std::cout << BW;
 
 	    if (_data.status == REQUEST_READY)
             clearData();
@@ -59,13 +59,11 @@ ParseRequest::~ParseRequest()
 //		std::cout << GREEN << _buff << BW << std::endl << std::endl;
 
 
-		if (_buff.find("\r\n", 0) != std::string::npos)
+//		if (_parsPart == BODY_PART || _buff.find("\r\n", 0) != std::string::npos)
             this->parseHTTPRequest();
 
 		if (_data.status == REQUEST_READY)
-        {
 		    std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
-        }
 
 		if (_buff.length() != 0)
             return true; // запустить парсинг снова
@@ -91,30 +89,17 @@ ParseRequest::~ParseRequest()
 	void					ParseRequest::parseHTTPRequest() // <CRLF><CRLF> == "\r\n\r\n"
 	{
 		size_t pos;
-		std::string tmp;
+		std::string tmp; // убрать tmp из body
 		
-		while ((pos = _buff.find("\r\n", 0)) != std::string::npos)
+		while (_parsPart != BODY_PART && (pos = _buff.find("\r\n", 0)) != std::string::npos)
 		{
-		    if (pos == 0 && _parsPart != BODY_PART) // && _parsPart == HEADERS_PART) // закончились заголовки
-			{
-		        _buff.erase(0, 2);
+		    if (pos == 0) // закончились заголовки
+            {
+                _buff.erase(0, 2);
                 checkIfBody();
                 if (_data.status == REQUEST_READY)
                     return;
-				continue ;
-			}
-
-            if (_parsPart == BODY_PART)
-            {
-                tmp.clear();
-                tmp.insert(0, _buff, pos + 2, _buff.size());
-                if (tmp.find("\r\n", 0) != std::string::npos)
-                {
-                    if (_data.transferEncoding)
-                        parseBodyTE();
-                    continue ;
-                } else
-                    return;
+                break;
             }
 
 			tmp.clear();
@@ -126,6 +111,11 @@ ParseRequest::~ParseRequest()
 			else if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
 				parseHeaders(tmp);
 		}
+        while  (_parsPart == BODY_PART && _data.status != REQUEST_READY)
+        {
+            if (_data.transferEncoding && parseBodyTE())
+                break;
+        }
 	}
 
 	void					ParseRequest::parseStartingLine(std::string head)
@@ -137,22 +127,18 @@ ParseRequest::~ParseRequest()
 		std::cout << RED << "Starting Line " << BW;
 
 		size_t pos = 0;
-		
-		// Find request type
+
 		if ((pos = head.find(" ", 0)) != std::string::npos) // error
 		{
 			_data.method.insert(0, head, 0, pos);
 			head.erase(0, pos + 1);
 		}
-		
-		// Find path
 		if ((pos = head.find(" ", 0)) != std::string::npos) // error
 		{
 			_data.path.insert(0, head, 0, pos);
 			head.erase(0, pos + 1);
 		}
-		
-		// Find HTTP version
+
 		pos = head.size(); // error
 		_data.version.insert(0, head, 0, pos);
 
@@ -183,40 +169,52 @@ ParseRequest::~ParseRequest()
 		std::cout << BLUE << key << ": " << value << BW << std::endl;
 	}
 
-	void					ParseRequest::parseBodyTE()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
+	int				    	ParseRequest::parseBodyTE()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
 	{
-	    int pos = 0;
-
 	    /*
-	     * <длина блока в HEX>
+	     * <длина блока в HEX><CRLF>
 	     */
-        _data.bodyLen = stoi (_buff, 0, 16);
-        pos = _buff.find("\r\n", 0);
-        _buff.erase(0, pos);
-
-        /*
-	     * <CRLF>
-	     */
-        _buff.erase(0, 2);
-
+	    if (_packetPart == HEX_CRLF_PART)
+        {
+            if (_buff.find("\r\n", 0) == std::string::npos)
+                return 1; // need more data
+            int pos = _buff.find("\r\n", 0);
+            _data.bodyLen = stoi (_buff, 0, 16);
+            _buff.erase(0, pos + 2);
+            _packetPart = BODY_CRLF_PART;
+        }
         /*
 	     * <содержание блока>
 	     */
-        _data.body.append(_buff, 0, _data.bodyLen);
-        _buff.erase(0, _data.bodyLen);
-
-        /*
-	     * <CRLF>
-	     */
-        _buff.erase(0, 2);
-
-        if (_data.bodyLen == 0)
-            _data.status = REQUEST_READY;
+        if (_packetPart == BODY_CRLF_PART)
+        {
+            if (_buff.length() >= _data.bodyLen)
+            {
+                _data.body.append(_buff, 0, _data.bodyLen); // а я точно могу считать это все???
+                _buff.erase(0, _data.bodyLen);
+                _packetPart = CRLF_PART;
+            }
+            else
+                return 1;
+        }
+        if (_packetPart == CRLF_PART)
+        {
+            if (_buff.find("\r\n", 0) != std::string::npos)
+            {
+                _buff.erase(0, 2);
+                _packetPart = HEX_CRLF_PART;
+                if (_data.bodyLen == 0)
+                    _data.status = REQUEST_READY;
+            } else
+                return 1;
+        }
+        return 0;
 	}
 
 	void					ParseRequest::clearData()
 	{
         _parsPart = PRE_PART;
+        _packetPart = HEX_CRLF_PART;
 
 		_data.method.clear();
 		_data.path.clear();
