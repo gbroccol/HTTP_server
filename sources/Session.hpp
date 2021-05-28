@@ -17,7 +17,6 @@
 # include "ParseRequest.hpp"
 # include "Handler.hpp"
 
-
 enum states {
     fsm_start, fsm_finish, fsm_error, fsm_request
 };
@@ -53,6 +52,7 @@ public:
 private:
 
 	Session(void);
+	bool _signIn;
 };
 
 #endif

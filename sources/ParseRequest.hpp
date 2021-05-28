@@ -10,10 +10,16 @@
 #define YELLOW "\033[0;33m"
 #define PURPLE "\033[0;35m"
 
+// _parsPart
 #define	PRE_PART 0
 #define	START_LINE_PART 1
 #define HEADERS_PART 2
 #define BODY_PART 3
+
+// _packetPart
+#define	HEX_CRLF_PART 0
+#define	BODY_CRLF_PART 1
+#define CRLF_PART 2
 
 class ParseRequest
 {
@@ -31,7 +37,7 @@ class ParseRequest
 		void					parseHTTPRequest();
 		void					parseStartingLine(std::string startLine);       // part 1
 		void					parseHeaders(std::string header);               // part 2
-		void					parseBodyTE();                                  // part 3 transferEncoding BODY
+		int 					parseBodyTE();                                  // part 3 transferEncoding BODY
 
 
         void					checkIfBody();
@@ -52,6 +58,7 @@ class ParseRequest
 		std::string				_buff;
         size_t					_parsPart;
 		struct data				_data; // tmp_data
+        size_t                  _packetPart;
 };
 
 // std::ostream &			operator<<( std::ostream & o, ParseRequest const & i );

@@ -15,8 +15,9 @@ NAME =		webserv
 
 CC =		clang++
 
-FLAGS =		-Wall -Werror -Wextra -g -std=c++98 -MMD  -I ./sources
+FLAGS =		-Wall -Werror -Wextra -g -MMD  -I ./sources
 # -fsanitize=address
+# -std=c++98
 
 MAIN = $(SRCS_DIR)main.cpp
 
@@ -26,6 +27,7 @@ SRCS =		main.cpp \
 			Handler.cpp \
 			Session.cpp \
 			ParseRequest.cpp\
+			Authentication.cpp \
 
 SRCS_DIR = ./sources/
 

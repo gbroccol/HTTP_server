@@ -19,6 +19,7 @@ Session::Session(configServer config)
 {
 	this->parseRequest = new ParseRequest;
     this->handler      = new Handler(config);
+    this->_signIn = false;
 	return; 
 }
 
@@ -41,10 +42,9 @@ int Session::send_message(void)
 int Session::do_read(void)
 {
 	int read_res;
-    bzero(this->buf, INBUFSIZE);
-    read_res = read(this->fd, this->buf, INBUFSIZE);
+	read_res = read(this->fd, this->buf, INBUFSIZE);
 	if(read_res < 0) {
-		this->state = fsm_error;
+		this->state = fsm_error; // internal server error
 		return 0;
 	}
 	else if (read_res == 0)
@@ -53,9 +53,10 @@ int Session::do_read(void)
 		// this->state = fsm_finish;
 		return 0;
 	}
+	this->buf[read_res] = 0;
 
-//	if(this->state == fsm_finish)
-//		return 0;
+//  if(this->state == fsm_finish)
+//    return 0;
 	return 1;
 }
 
