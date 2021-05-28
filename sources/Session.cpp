@@ -15,11 +15,12 @@
 
 Session::Session(void) { return; } // private
 
-Session::Session(configServer config)
+Session::Session(configServer config, Authentication * authentication)
 {
 	this->parseRequest = new ParseRequest;
     this->handler      = new Handler(config);
-    this->_signIn = false;
+    this->_signIn      = false;
+    this->authentication = authentication;
 	return; 
 }
 
@@ -73,12 +74,30 @@ void Session::commit(FILE *f)
 
 void Session::handle_request(fd_set * writefds)
 {
-	this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
-	if (parseRequest->getData().status == REQUEST_READY) 
-	{
-        this->wr_buf = this->handler->handle(parseRequest->getData(), this->env);
+//    data tmp = ;
+
+    this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
+    if (parseRequest->getData().status == REQUEST_READY)
+    {
+        std::multimap <std::string, std::string>::iterator itCL = parseRequest->getData().headers.find("Authorization");
+
+        if (itCL != parseRequest->getData().headers.end())
+        {
+            this->_signIn = true;
+        }
+        this->wr_buf = this->handler->handle(parseRequest->getData(), this->env, this->_signIn);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
+
+//    data tmp = parseRequest->getData();
+//
+//	this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
+//	if (tmp.status == REQUEST_READY)
+//	{
+//
+//        this->wr_buf = this->handler->handle(tmp, this->env, this->_signIn);
+//        FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
+//    }
 }
 
 bool Session::isRequestLeft(void)
