@@ -28,6 +28,8 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
     }
 
 	makePath();
+	if(config.locations[this->index_location]->autoIndex == ON)
+        getFilesOrDirFromRoot(request.path, config.locations[this->index_location]->root);
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
@@ -40,6 +42,35 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
 	this->path.clear();
 	this->location_path.clear();
 	return this->response;
+}
+
+void Handler::getFilesOrDirFromRoot(std::string path, std::string LocPath)
+{
+    DIR *dir;
+    struct dirent *dirStruct;
+    std::string indexPath = "";
+
+    if( LocPath[ LocPath.length() - 1] == '/')
+        indexPath = '.' +  LocPath;
+    else
+        indexPath =  '.' +  LocPath + '/';
+   if((dir  = opendir(indexPath.c_str())) == nullptr)
+       std::cout <<"dir is NULL"<<std::endl;
+    while((dirStruct = readdir(dir)) != nullptr)
+    {
+        this->arrDir.push_back(dirStruct->d_name);
+        getLink(dirStruct->d_name);
+        std::cout << "D_NAME: " <<dirStruct->d_name<<std::endl;
+    }
+    closedir(dir);
+}
+
+std::string Handler::getLink(std::string path)
+{
+    int index;
+    std::string link;
+    link = "<a href=\"" + path + "\">" + " path </a> <\br>";
+    return (link);
 }
 
 

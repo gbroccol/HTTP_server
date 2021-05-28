@@ -38,6 +38,9 @@
 # define REQUEST_PARSE 0
 # define REQUEST_READY 1
 
+#define ON 0
+#define OFF 1
+
 
 struct data
 {

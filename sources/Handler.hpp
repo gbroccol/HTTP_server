@@ -29,6 +29,7 @@ private:
 	std::string 	location_path;
 	configServer	config;
 	char            **env;
+	std::vector<std::string> arrDir;
 
 
 public:
@@ -75,6 +76,8 @@ int isLocation(std::vector<location *> locations, std::string path);
     int             ft_strlen(const char *str);
     void		    ft_free_array(char **to_free);
     char *          ft_strdup(const char *s);
+    void            getFilesOrDirFromRoot(std::string path, std::string LocPath);
+    std::string getLink(std::string path);
 };
 
 #endif
