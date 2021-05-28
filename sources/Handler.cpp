@@ -93,12 +93,12 @@ void Handler::makePath(void)
 
     if (dir)
     {
-		if (config.locations[index_location]->index.length() > 0) {
+//		if (config.locations[index_location]->index.length() > 0) {
 			this->path.append("/");
 			this->path.append(config.locations[index_location]->index);                     // путь до странички
 			this->location_path.append(config.locations[index_location]->index);          // путь до странички БЕЗ ДИРРЕКТОРИИ
-		}
-		else
+//		}
+//		else
 			this->isDir = true;
         closedir(dir);
     }
@@ -121,7 +121,8 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
     while((dirStruct = readdir(dir)) != nullptr)
     {
         this->arrDir.push_back(dirStruct->d_name);
-        getLink(dirStruct->d_name);
+        if((std::string)dirStruct->d_name != ".")
+            getLink(dirStruct->d_name);
     }
     closedir(dir);
 }
@@ -173,8 +174,8 @@ void Handler::makeAutoindexPage(std::string * body)
 {
 	
 	body->append("<html>");
-	for (int i = 0; i < (int)arrDir.size(); i++) {
-		body->append(getLink(arrDir[i]));
+	for (int i = 1; i < (int)arrDir.size(); i++) {
+		    body->append(getLink(arrDir[i]));
 	}
 	body->append("</html>");
 	this->lastModTime = getPresentTime();

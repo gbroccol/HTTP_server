@@ -262,6 +262,8 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 			str.erase(0, pos + 1);
 			if(checkMainValLoc(locNode) == true)
 			{
+			    if(locNode->repeat_index == false)
+			        locNode->index = "";
 				servNode->locations.push_back(locNode);
 				break ;
 			}
@@ -367,8 +369,7 @@ void					Config::initServNode(configServer *servNode)
 bool				Config::checkMainValLoc(struct location *locNode)
 {
 	if(locNode->repeat_path == true && locNode->repeat_index == true &&
-	   locNode->repeat_root == true && locNode->repeat_method == true
-	   && locNode->repeat_autoIndex == true)
+	   locNode->repeat_root == true && locNode->repeat_method == true)
 	   return (true);
 	else
 		return (false);
