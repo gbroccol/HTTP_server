@@ -368,8 +368,7 @@ void					Config::initServNode(configServer *servNode)
 
 bool				Config::checkMainValLoc(struct location *locNode)
 {
-	if(locNode->repeat_path == true && locNode->repeat_index == true &&
-	   locNode->repeat_root == true && locNode->repeat_method == true)
+	if(locNode->repeat_path == true && locNode->repeat_root == true && locNode->repeat_method == true)
 	   return (true);
 	else
 		return (false);
