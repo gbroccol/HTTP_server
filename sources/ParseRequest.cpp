@@ -188,7 +188,8 @@ ParseRequest::~ParseRequest()
 	     */
         if (_packetPart == BODY_CRLF_PART)
         {
-            if (_buff.find("\r\n", 0) != std::string::npos) { // delete
+            if (_buff.length() >= _data.bodyLen)
+            {
                 _data.body.append(_buff, 0, _data.bodyLen); // а я точно могу считать это все???
                 _buff.erase(0, _data.bodyLen);
                 _packetPart = CRLF_PART;
