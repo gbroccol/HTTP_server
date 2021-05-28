@@ -14,6 +14,7 @@
 
 Server::Server(void)
 {
+    this->_authentication = new Authentication;
 	this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
 	return;
 }
