@@ -5,6 +5,7 @@ Handler::Handler(void){ return; } // private
 Handler::Handler(configServer const & config)
 {
     this->config = config;
+	this->isDir = false;
 	return;
 }
 Handler::~Handler(void)
@@ -28,6 +29,8 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
     }
 
 	makePath();
+	if(config.locations[this->index_location]->autoIndex == ON)
+        getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
@@ -41,7 +44,6 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
 	this->location_path.clear();
 	return this->response;
 }
-
 
 int Handler::isRequestCorrect(void)
 {
@@ -91,28 +93,49 @@ void Handler::makePath(void)
 
     if (dir)
     {
-        this->path.append("/");
-        this->path.append(config.locations[index_location]->index);                     // путь до странички
-        this->location_path.append(config.locations[index_location]->index);           // путь до странички БЕЗ ДИРРЕКТОРИИ
+//		if (config.locations[index_location]->index.length() > 0) {
+			this->path.append("/");
+			this->path.append(config.locations[index_location]->index);                     // путь до странички
+			this->location_path.append(config.locations[index_location]->index);          // путь до странички БЕЗ ДИРРЕКТОРИИ
+//		}
+//		else
+			this->isDir = true;
         closedir(dir);
     }
 }
 
+void Handler::getFilesOrDirFromRoot(std::string LocPath)
+{
+    DIR *dir;
+    struct dirent *dirStruct;
+    std::string indexPath = "";
+
+	this->arrDir.clear();
+
+    if( LocPath[ LocPath.length() - 1] == '/')
+        indexPath = '.' +  LocPath;
+    else
+        indexPath =  '.' +  LocPath + '/';
+   if((dir  = opendir(indexPath.c_str())) == nullptr)
+		;													// error?
+    while((dirStruct = readdir(dir)) != nullptr)
+    {
+        this->arrDir.push_back(dirStruct->d_name);
+        if((std::string)dirStruct->d_name != ".")
+            getLink(dirStruct->d_name);
+    }
+    closedir(dir);
+}
+
 void Handler::handle_head(void)
 {
-	int fd;
-	struct stat file_stat;
-	
-	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
-	{
-		if (errno == ENOENT || errno == EFAULT)
-			error_message(404);
-		else
-			error_message(500);
+	std::string body;
+
+	if (isDir && config.locations[this->index_location]->autoIndex == ON)
+		makeAutoindexPage(&body);
+	else if (checkFile() != 0)
 		return;
-	}
 	
-	fstat(fd, &file_stat);
 	this->response.append("200 OK\r\n");
 	this->response.append("Server: Webserv/1.1\r\n");
 		
@@ -126,49 +149,91 @@ void Handler::handle_head(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
-	// как определяем тип файла ??
 	this->response.append("Content-Type: ");
 	this->response.append("text/html");
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
-	this->response.append(lltostr(file_stat.st_size));
+	this->response.append(this->contentLength);
 	this->response.append("\r\n");
 
 	this->response.append("Last-Modified: ");
-	this->response.append(getLastModificationTime(file_stat.st_mtime));
+	this->response.append(this->lastModTime);
 	this->response.append("\r\n");
 
 	this->response.append("\r\n");
 	
-	close(fd);
-	
-	if (request.method == "GET")
-		append_body();
+	if (request.method == "GET") {
+		if (body.length() == 0)
+			loadBodyFromFile(&body);
+		this->response.append(body);
+	}
 }
 
-void Handler::append_body(void)
+void Handler::makeAutoindexPage(std::string * body)
 {
-	//возможно нужно будет заменить на функции из других библиотек
 	
+	body->append("<html>");
+	for (int i = 1; i < (int)arrDir.size(); i++) {
+		    body->append(getLink(arrDir[i]));
+	}
+	body->append("</html>");
+	this->lastModTime = getPresentTime();
+	this->contentLength = lltostr(body->length());
+}
+
+std::string Handler::getLink(std::string path)
+{
+    std::string link;
+    link = "<a href=\"" + path + "\">" + path + "</a> </br>";
+    return (link);
+}
+
+int Handler::checkFile(void)
+{
+	int fd;
+	struct stat file_stat;
+	
+	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
+	{
+		if (errno == ENOENT || errno == EFAULT)
+			error_message(404);
+		else
+			error_message(500);
+		return 1;
+	}
+	
+	fstat(fd, &file_stat);
+	this->contentLength = lltostr(file_stat.st_size);
+	this->lastModTime = getLastModificationTime(file_stat.st_mtime);
+	close(fd);
+	return 0;
+}
+
+void Handler::loadBodyFromFile(std::string * body)
+{	
 	std::ifstream ifs(this->path.c_str());
 	std::stringstream ss;
 	ss << ifs.rdbuf();
 	
-	this->response.append(ss.str());
+	body->append(ss.str());
 	ifs.close();
 }
 
 void Handler::handle_put(void)
 {
-	std::string status_code;
 	int fd;
-	status_code = "204 No Content\r\n";
+	std::string status = "204 No Content\r\n";
+	int status_code = 204;
 	
 	fd = open(this->path.c_str(), O_RDWR);
 	if (fd < 0)
-		status_code = "201 Created\r\n";
-	close(fd);
+	{
+		status = "201 Created\r\n";
+		status_code = 201;
+	}
+	else
+		close(fd);
 	
 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 	if (!ofs.good())
@@ -179,7 +244,7 @@ void Handler::handle_put(void)
 	ofs << request.body;
 	ofs.close();
 	
-	this->response.append(status_code);
+	this->response.append(status);
 	this->response.append("Server: Webserv/1.1\r\n");
 		
 	this->response.append("Date: ");
@@ -204,68 +269,122 @@ void Handler::handle_put(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
     this->response.append("\r\n");
+
+	if (status_code == 201)
+		this->response.append(request.body);
 }
 
 void Handler::handle_post(void)
 {
     // дополняем список переменных окружения (глобальная переменная g_env)
-    char ** env = create_env();
+    char ** envPost = create_env();
 
-    if (!(env = create_env()))
-        return ; // error
+   	if (!(envPost))
+	{
+		error_message(500);
+       return ;
+	}
 
     char *args[2] = {(char*)"./cgi_tester", NULL};
     std::string body;
-    if (launch_cgi(args, env, &body) == 1)
+    if (launch_cgi(args, envPost, &body) == 1)
     {
-//        free whole env
+        ft_free_array(envPost);
         return;
     }
+    std::cout << RED << "cgi done" << BW << std::endl;
 
+    std::cout << "BODY from cgi: " << GREEN << body<< BW << std::endl;
+
+
+//    ft_free_array(envPost);
     //формируем ответ
     //добавляем к нему тело
     // записываем тело в файл указанный в запросе
 }
 
+char **         Handler::add_headers(int len, int headersNmb, char **result)
+{
+    std::vector<std::string> headers;
+    headers.push_back("REQUEST_METHOD=POST");
+    headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
+    headers.push_back("PATH_INFO=/cgi_tester");
+    headers.push_back("CONTENT_LENGTH=100000000");
+    headers.push_back("CONTENT_TYPE=test/file");
+
+	int j = 0;
+    for (int i = len; i < (len + headersNmb) && j < (int)headers.size(); i++, j++)
+    {
+        if (!(result[i] = ft_strdup(headers[j].c_str())))
+        {
+            ft_free_array(result);
+            return (NULL);
+        }
+    }
+	return result;
+}
 
 char **         Handler::create_env(void)
 {
     char **result;
     int len = 0;
-    int headersNmb = 0;
+    int headersNmb = 5;
 
-    while (this->env[len] != NULL)
+    while (this->env[len] != NULL) {
         len++;
+	}
 
-    if (!(result = (char **)malloc(sizeof(char *) * (len + headersNmb + 1))))
+	if (!(result = (char **)calloc(len + headersNmb + 1, sizeof(char*))))
         return NULL;
 
-    bzero(result, len + headersNmb + 1);
 
     for (int i = 0; i < len && this->env[i]; i++)
     {
         if (!(result[i] = ft_strdup(this->env[i])))
         {
-            ft_free_array(env);
+            ft_free_array(result);
             return (NULL);
         }
     }
-
-//    for (int i = len; i < (len + headersNmb); i++)
-//    {
-//
-//    }
+    add_headers(len, headersNmb, result);
     return result;
 }
 
 
 int Handler::launch_cgi(char **args, char **env, std::string * body)
 {
+//    int fd_to_write;
+//    //create file to write body
+//    std::ofstream fileWrite("filename.txt");
+//    fd_to_write = fileWrite.fd();
+
+
+//    FILE *stream;
+    int  fd_to_write;
+
+    if ((fd_to_write = creat("file.txt", S_IWUSR)) < 0)
+        perror("creat() error");
+
+    std::cout << "New FD - " << fd_to_write << std::endl;
+
+//    else
+//    {
+//        if ((stream = fdopen(fd_my, "w")) == NULL) {
+//            perror("fdopen() error");
+//            close(fd_my);
+//        }
+//        else {
+//            fputs("This is a test", stream);
+//            fclose(stream);
+//        }}
+
+
+
+
     int status = 0;
     int fd[2];
     pid_t pid;
-    int stat;
-
+    // int stat;
 
     if (pipe(fd) != 0)
     {
@@ -273,13 +392,16 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
         status = 1;
         return status;
     }
-    pid = fork();
+    pid = fork(); //проверить на ошибку
     if (pid == 0) // дочерний процесс
     {
-        dup2(fd[1], 1);
+//        dup2(fd[1], 1); // fd to write
+        dup2(fd[1], fd_to_write);
+		fcntl(fd[1], F_SETFL, O_NONBLOCK);
         close(fd[0]);
         if (execve(args[0], args, env) == -1)
         {
+            std::cout << "execve error" << std::endl;
             error_message(500);
             status = 1;
             exit(status);
@@ -296,26 +418,54 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
     {
         dup2(fd[0], 0);
         close(fd[1]);
-        waitpid(pid, &stat, WUNTRACED);
-        while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
-            waitpid(pid, &stat, WUNTRACED);
-        status = WEXITSTATUS(stat);
-        //читаем и записываем в строку
-        char buffer[INBUFSIZE];
-        int res = 0;
-        while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
-        {
-            body->append(buffer);
-            bzero(buffer, INBUFSIZE);
-        }
-        if (res < 0)
-        {
-            error_message(500);
-            status = 1;
-        }
+		// fcntl(fd[0], F_SETFL, O_NONBLOCK);
 
+		char buffer[INBUFSIZE];
+        int res = 0;
+        // waitpid(pid, &stat, WUNTRACED);
+        // while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
+		// {
+            // waitpid(pid, &stat, WUNTRACED);
+        	while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
+        	{
+				std::cout << buffer << std::endl; //for debug
+           		body->append(buffer);
+            	bzero(buffer, INBUFSIZE);
+        	}
+			std::cerr << BLUE << strerror(errno) << BW << std::endl;
+        	if (res < 0)
+        	{
+           		kill(pid, SIGKILL);
+            	status = 1;
+        	}
+		// }
+        if (status == 1 /*|| (status = WEXITSTATUS(stat)) == 1*/)
+		{
+			std::cerr << BLUE << strerror(errno) << BW << std::endl;
+			error_message(500);
+			return (status);
+		}
+        //читаем и записываем в строку
+        // char buffer[INBUFSIZE];
+        // int res = 0;
+        // while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
+        // {
+        //     body->append(buffer);
+        //     bzero(buffer, INBUFSIZE);
+        // }
+        // if (res < 0)
+        // {
+        //     error_message(500);
+        //     status = 1;
+        // }
         close(fd[0]);
     }
+
+    //    std::ifstream fileRead("filename.txt");
+//    Close the file
+//    fileWrite.close();
+//    fileRead.close();
+
     return status;
 }
 
@@ -387,23 +537,6 @@ void Handler::allow_header(void)
 }
 
 // Additional functions
-
-std::string Handler::lltostr(long long number)
-{
-	std::string res;
-	
-	if (number >= 10)
-	{
-		while (number > 0)
-		{
-			res.insert(res.begin(), (number % 10 + '0'));
-			number = number / 10;
-		}
-	}
-	else
-		res.insert(res.begin(), (number + '0'));
-	return res;
-}
 
 std::string Handler::subpath(void)
 {
@@ -555,13 +688,13 @@ void		    Handler::ft_free_array(char **to_free)
     char	**tmp;
 
     tmp = to_free;
-    while (*tmp != NULL)
-    {
-        free(*tmp);
-        tmp++;
-    }
-    free(to_free);
-    to_free = NULL;
+//    while (*tmp != NULL)
+//    {
+//        free(*tmp);
+//        tmp++;
+//    }
+//    free(to_free);
+//    to_free = NULL;
 }
 
 char *          Handler::ft_strdup(const char *s)
@@ -582,4 +715,21 @@ char *          Handler::ft_strdup(const char *s)
     }
     res[i] = '\0';
     return (res);
+}
+
+std::string Handler::lltostr(long long number)
+{
+	std::string res;
+	
+	if (number >= 10)
+	{
+		while (number > 0)
+		{
+			res.insert(res.begin(), (number % 10 + '0'));
+			number = number / 10;
+		}
+	}
+	else
+		res.insert(res.begin(), (number + '0'));
+	return res;
 }

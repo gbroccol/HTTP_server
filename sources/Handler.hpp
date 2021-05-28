@@ -22,14 +22,22 @@ class Handler
 private:
 
     Handler(void);
+
 	std::string 	response;
 	data 			request;
+
 	int 			index_location;
 	std::string		path;
 	std::string 	location_path;
+
 	configServer	config;
 	char            **env;
 
+	std::vector<std::string> arrDir;
+	bool			isDir;
+
+	std::string		lastModTime;
+	std::string		contentLength;
 
 public:
 
@@ -43,11 +51,11 @@ public:
 	void makePath(void);
     std::string subpath(void);
 	void handle_head(void);
-	void append_body(void);
 	void handle_put(void);
 
 	void handle_post(void);
 	char ** create_env(void);
+    char ** add_headers(int len, int headersNmb, char **result);
 
 
 	int launch_cgi(char **args, char ** env, std::string * body);
@@ -74,6 +82,12 @@ int isLocation(std::vector<location *> locations, std::string path);
     int             ft_strlen(const char *str);
     void		    ft_free_array(char **to_free);
     char *          ft_strdup(const char *s);
+
+    void            getFilesOrDirFromRoot(std::string LocPath);
+    std::string getLink(std::string path);
+	void makeAutoindexPage(std::string * body);
+	int checkFile(void);
+	void loadBodyFromFile(std::string * body);
 };
 
 #endif

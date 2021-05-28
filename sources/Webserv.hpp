@@ -31,12 +31,15 @@
 # include <exception>
 # include <ctime>
 
-# define INBUFSIZE 1024
+# define INBUFSIZE 60000
 # define LISTEN_QLEN 32
 # define INIT_SESS_ARR_SIZE 32
 
 # define REQUEST_PARSE 0
 # define REQUEST_READY 1
+
+#define ON 0
+#define OFF 1
 
 
 struct data
@@ -48,7 +51,7 @@ struct data
     std::multimap <std::string, std::string>    headers;
 
     std::string							    	body;
-    std::string                                 bodyLen;
+    int                                         bodyLen;
 
     size_t                                      status;
     int                                         nmb;

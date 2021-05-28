@@ -1,5 +1,9 @@
 /cmake-build-debug/*
 content/.DS_Store
 .DS_Store
+ubuntu_tester
+ubuntu_cgi_tester
+main2.cpp
+.vscode/
 
 

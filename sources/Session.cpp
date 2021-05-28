@@ -54,19 +54,6 @@ int Session::do_read(void)
 		return 0;
 	}
 
-	//parse
-	
-//	try {
-//		parseRequest->addToBuffer((std::string)this->buf);
-//	}
-//	catch (int const & e)
-//	{
-//		// сообщить основному процессу, что можно запускать обработчик запроса
-//		return 2;
-//	}
-	
-//	bzero(this->buf, INBUFSIZE);
-
 //	if(this->state == fsm_finish)
 //		return 0;
 	return 1;
@@ -85,9 +72,15 @@ void Session::commit(FILE *f)
 
 void Session::handle_request(fd_set * writefds)
 {
-	if (parseRequest->getData().status == REQUEST_READY) {
-	    //парсинг хедеров
+	this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
+	if (parseRequest->getData().status == REQUEST_READY) 
+	{
         this->wr_buf = this->handler->handle(parseRequest->getData(), this->env);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
+}
+
+bool Session::isRequestLeft(void)
+{
+	return this->request_left;
 }
