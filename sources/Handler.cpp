@@ -185,7 +185,8 @@ void Handler::makeAutoindexPage(std::string * body)
 std::string Handler::getLink(std::string path)
 {
     std::string link;
-    link = "<a href=\"" + path + "\">" + path + "</a> </br>";
+    link = "<div style=\"display: inline-block;width: 35%;\"></span><a href=\""+ path +"\">"+ path + "</a></div>"
+	    "<div style=\"display: inline-block\">"+ getPresentTime() +"</div></br>";
     return (link);
 }
 
