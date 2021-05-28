@@ -5,6 +5,7 @@ Handler::Handler(void){ return; } // private
 Handler::Handler(configServer const & config)
 {
     this->config = config;
+	this->isDir = false;
 	return;
 }
 Handler::~Handler(void)
@@ -29,7 +30,7 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
 
 	makePath();
 	if(config.locations[this->index_location]->autoIndex == ON)
-        getFilesOrDirFromRoot(request.path, config.locations[this->index_location]->root);
+        getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
@@ -43,36 +44,6 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
 	this->location_path.clear();
 	return this->response;
 }
-
-void Handler::getFilesOrDirFromRoot(std::string path, std::string LocPath)
-{
-    DIR *dir;
-    struct dirent *dirStruct;
-    std::string indexPath = "";
-
-    if( LocPath[ LocPath.length() - 1] == '/')
-        indexPath = '.' +  LocPath;
-    else
-        indexPath =  '.' +  LocPath + '/';
-   if((dir  = opendir(indexPath.c_str())) == nullptr)
-       std::cout <<"dir is NULL"<<std::endl;
-    while((dirStruct = readdir(dir)) != nullptr)
-    {
-        this->arrDir.push_back(dirStruct->d_name);
-        getLink(dirStruct->d_name);
-        std::cout << "D_NAME: " <<dirStruct->d_name<<std::endl;
-    }
-    closedir(dir);
-}
-
-std::string Handler::getLink(std::string path)
-{
-    int index;
-    std::string link;
-    link = "<a href=\"" + path + "\">" + " path </a> <\br>";
-    return (link);
-}
-
 
 int Handler::isRequestCorrect(void)
 {
@@ -122,28 +93,48 @@ void Handler::makePath(void)
 
     if (dir)
     {
-        this->path.append("/");
-        this->path.append(config.locations[index_location]->index);                     // путь до странички
-        this->location_path.append(config.locations[index_location]->index);           // путь до странички БЕЗ ДИРРЕКТОРИИ
+		if (config.locations[index_location]->index.length() > 0) {
+			this->path.append("/");
+			this->path.append(config.locations[index_location]->index);                     // путь до странички
+			this->location_path.append(config.locations[index_location]->index);          // путь до странички БЕЗ ДИРРЕКТОРИИ
+		}
+		else
+			this->isDir = true;
         closedir(dir);
     }
 }
 
+void Handler::getFilesOrDirFromRoot(std::string LocPath)
+{
+    DIR *dir;
+    struct dirent *dirStruct;
+    std::string indexPath = "";
+
+	this->arrDir.clear();
+
+    if( LocPath[ LocPath.length() - 1] == '/')
+        indexPath = '.' +  LocPath;
+    else
+        indexPath =  '.' +  LocPath + '/';
+   if((dir  = opendir(indexPath.c_str())) == nullptr)
+		;													// error?
+    while((dirStruct = readdir(dir)) != nullptr)
+    {
+        this->arrDir.push_back(dirStruct->d_name);
+        getLink(dirStruct->d_name);
+    }
+    closedir(dir);
+}
+
 void Handler::handle_head(void)
 {
-	int fd;
-	struct stat file_stat;
-	
-	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
-	{
-		if (errno == ENOENT || errno == EFAULT)
-			error_message(404);
-		else
-			error_message(500);
+	std::string body;
+
+	if (isDir && config.locations[this->index_location]->autoIndex == ON)
+		makeAutoindexPage(&body);
+	else if (checkFile() != 0)
 		return;
-	}
 	
-	fstat(fd, &file_stat);
 	this->response.append("200 OK\r\n");
 	this->response.append("Server: Webserv/1.1\r\n");
 		
@@ -157,34 +148,74 @@ void Handler::handle_head(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
-	// как определяем тип файла ??
 	this->response.append("Content-Type: ");
 	this->response.append("text/html");
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
-	this->response.append(lltostr(file_stat.st_size));
+	this->response.append(this->contentLength);
 	this->response.append("\r\n");
 
 	this->response.append("Last-Modified: ");
-	this->response.append(getLastModificationTime(file_stat.st_mtime));
+	this->response.append(this->lastModTime);
 	this->response.append("\r\n");
 
 	this->response.append("\r\n");
 	
-	close(fd);
-	
-	if (request.method == "GET")
-		append_body();
+	if (request.method == "GET") {
+		if (body.length() == 0)
+			loadBodyFromFile(&body);
+		this->response.append(body);
+	}
 }
 
-void Handler::append_body(void)
+void Handler::makeAutoindexPage(std::string * body)
+{
+	
+	body->append("<html>");
+	for (int i = 0; i < (int)arrDir.size(); i++) {
+		body->append(getLink(arrDir[i]));
+	}
+	body->append("</html>");
+	this->lastModTime = getPresentTime();
+	this->contentLength = lltostr(body->length());
+}
+
+std::string Handler::getLink(std::string path)
+{
+    std::string link;
+    link = "<a href=\"" + path + "\">" + path + "</a> </br>";
+    return (link);
+}
+
+int Handler::checkFile(void)
+{
+	int fd;
+	struct stat file_stat;
+	
+	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
+	{
+		if (errno == ENOENT || errno == EFAULT)
+			error_message(404);
+		else
+			error_message(500);
+		return 1;
+	}
+	
+	fstat(fd, &file_stat);
+	this->contentLength = lltostr(file_stat.st_size);
+	this->lastModTime = getLastModificationTime(file_stat.st_mtime);
+	close(fd);
+	return 0;
+}
+
+void Handler::loadBodyFromFile(std::string * body)
 {	
 	std::ifstream ifs(this->path.c_str());
 	std::stringstream ss;
 	ss << ifs.rdbuf();
 	
-	this->response.append(ss.str());
+	body->append(ss.str());
 	ifs.close();
 }
 
@@ -506,23 +537,6 @@ void Handler::allow_header(void)
 
 // Additional functions
 
-std::string Handler::lltostr(long long number)
-{
-	std::string res;
-	
-	if (number >= 10)
-	{
-		while (number > 0)
-		{
-			res.insert(res.begin(), (number % 10 + '0'));
-			number = number / 10;
-		}
-	}
-	else
-		res.insert(res.begin(), (number + '0'));
-	return res;
-}
-
 std::string Handler::subpath(void)
 {
     size_t i = 0;
@@ -700,4 +714,21 @@ char *          Handler::ft_strdup(const char *s)
     }
     res[i] = '\0';
     return (res);
+}
+
+std::string Handler::lltostr(long long number)
+{
+	std::string res;
+	
+	if (number >= 10)
+	{
+		while (number > 0)
+		{
+			res.insert(res.begin(), (number % 10 + '0'));
+			number = number / 10;
+		}
+	}
+	else
+		res.insert(res.begin(), (number + '0'));
+	return res;
 }
