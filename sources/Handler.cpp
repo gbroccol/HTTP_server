@@ -93,12 +93,12 @@ void Handler::makePath(void)
 
     if (dir)
     {
-//		if (config.locations[index_location]->index.length() > 0) {
+		if (config.locations[index_location]->index.length() > 0) {
 			this->path.append("/");
 			this->path.append(config.locations[index_location]->index);                     // путь до странички
 			this->location_path.append(config.locations[index_location]->index);          // путь до странички БЕЗ ДИРРЕКТОРИИ
-//		}
-//		else
+		}
+		else
 			this->isDir = true;
         closedir(dir);
     }
