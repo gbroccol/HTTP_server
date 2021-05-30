@@ -262,8 +262,8 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 			str.erase(0, pos + 1);
 			if(checkMainValLoc(locNode) == true)
 			{
-			    if(locNode->repeat_index == false)
-			        locNode->index = "";
+			    if(locNode->repeat_index == false) {
+			        locNode->index = ""; }
 				servNode->locations.push_back(locNode);
 				break ;
 			}

@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/20 19:43:39 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/30 22:53:55 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,18 +86,20 @@ void Server::run(void)
 			accept_client();
 		for (i = 0; i < (int)this->sessions.size(); i++) 
 		{
-			if (this->sessions[i] && FD_ISSET(i, &readfds)) {
-				ssr = this->sessions[i]->do_read();
-				if (ssr == 1 || this->sessions[i]->isRequestLeft()) {
-                    this->sessions[i]->handle_request(&writefds);
-                }
-				else if (!ssr)
-					close_session(i);
-			}
-			if (this->sessions[i] && FD_ISSET(i, &writefds)) {
-				ssr = this->sessions[i]->send_message();
-				if (!ssr)
-					close_session(i);
+			if (this->sessions[i]) {
+				if (FD_ISSET(i, &readfds)) {
+					ssr = this->sessions[i]->do_read();
+					if (ssr == 1 || this->sessions[i]->isRequestLeft()) {
+						this->sessions[i]->handle_request(&writefds);
+					}
+					else if (!ssr)
+						close_session(i);
+				}
+				if (FD_ISSET(i, &writefds)) {
+					ssr = this->sessions[i]->send_message();
+					if (!ssr)
+						close_session(i);
+				}
 			}
 		}
 	}

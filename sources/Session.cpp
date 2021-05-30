@@ -20,6 +20,7 @@ Session::Session(configServer config)
 	this->parseRequest = new ParseRequest;
     this->handler      = new Handler(config);
     this->_signIn = false;
+	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 
@@ -27,36 +28,32 @@ Session::~Session(void) { return; }
 
 int Session::send_message(void)
 {
-	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
 		this->state = fsm_error;
 		return 0;
 	}
 	wr_buf.clear();
-	// this->state = fsm_finish;
-	// return 0;
 	return 1;
 }
 
 int Session::do_read(void)
 {
-	int read_res;
-	read_res = read(this->fd, this->buf, INBUFSIZE);
-	if(read_res < 0) {
-		this->state = fsm_error; // internal server error
-		return 0;
-	}
-	else if (read_res == 0)
-	{
-		// передать в парсер информацию о том, что сообщение закончено
-		// this->state = fsm_finish;
-		return 0;
-	}
-	this->buf[read_res] = 0;
+	ssize_t read_res;
+	char tmp[INBUFSIZE];
 
-//  if(this->state == fsm_finish)
-//    return 0;
+	this->buf.clear();
+
+	read_res = recv(this->fd, tmp, INBUFSIZE, MSG_DONTWAIT);
+	if (read_res <= 0) {
+		if (read_res < 0) {
+		// internal server error?
+		; }
+		else
+			std::cout << "Client disconnected" << std::endl;
+		return 0;
+	}
+	this->buf.append(tmp, read_res);
 	return 1;
 }
 
@@ -73,7 +70,7 @@ void Session::commit(FILE *f)
 
 void Session::handle_request(fd_set * writefds)
 {
-	this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
+	this->request_left = this->parseRequest->addToBuffer(this->buf);
 	if (parseRequest->getData().status == REQUEST_READY) 
 	{
         this->wr_buf = this->handler->handle(parseRequest->getData(), this->env);

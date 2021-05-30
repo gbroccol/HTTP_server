@@ -188,7 +188,7 @@ ParseRequest::~ParseRequest()
 	     */
         if (_packetPart == BODY_CRLF_PART)
         {
-            if (_buff.length() >= _data.bodyLen)
+            if ((int)_buff.length() >= _data.bodyLen)
             {
                 _data.body.append(_buff, 0, _data.bodyLen); // а я точно могу считать это все???
                 _buff.erase(0, _data.bodyLen);

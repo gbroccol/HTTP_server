@@ -38,7 +38,8 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
 	else if (request.method == "PUT")
 		handle_put();
 
-	std::cout << this->response << std::endl; //for debug
+	if (request.method != "POST")
+		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->path.clear();
 	this->location_path.clear();
@@ -95,6 +96,7 @@ void Handler::makePath(void)
     {
 		if (config.locations[index_location]->index.length() > 0) {
 			this->path.append("/");
+			this->location_path.append("/");
 			this->path.append(config.locations[index_location]->index);                     // путь до странички
 			this->location_path.append(config.locations[index_location]->index);          // путь до странички БЕЗ ДИРРЕКТОРИИ
 		}
@@ -286,32 +288,83 @@ void Handler::handle_post(void)
        return ;
 	}
 
-    char *args[2] = {(char*)"./cgi_tester", NULL};
+	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+	if (!ofs.good())
+	{
+		error_message(500);
+		return;
+	}
+	ofs << request.body;
+	ofs.close();
+
+	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
     std::string body;
     if (launch_cgi(args, envPost, &body) == 1)
     {
         ft_free_array(envPost);
         return;
     }
-    std::cout << RED << "cgi done" << BW << std::endl;
 
-    std::cout << "BODY from cgi: " << GREEN << body<< BW << std::endl;
+	size_t offset = body.find("\r\n\r\n");
+	if (offset == std::string::npos)
+		offset = 0;
+	offset += 4;
 
+    this->response.append("200 OK\r\n");
+	this->response.append("Server: Webserv/1.1\r\n");
+		
+	this->response.append("Date: ");
+	this->response.append(getPresentTime());
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
+		
+	this->response.append("Content-Location: ");
+	this->response.append(this->location_path);
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Length: ");
+	this->response.append(lltostr(body.length() - offset));
+	this->response.append("\r\n");
 
-//    ft_free_array(envPost);
-    //формируем ответ
-    //добавляем к нему тело
-    // записываем тело в файл указанный в запросе
+	this->response.append("Location: ");
+	this->response.append(this->location_path);
+	this->response.append("\r\n");
+
+	this->response.append(body, 0, offset);
+
+	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+
+	this->response.append(body, offset, body.length() - offset);
+   	ft_free_array(envPost);
 }
 
 char **         Handler::add_headers(int len, int headersNmb, char **result)
 {
     std::vector<std::string> headers;
+	std::string contentType = request.headers.find("Content-Type")->first;
+	std::string userAgent = request.headers.find("User-Agent")->first;
+
+	headers.push_back("AUTH_TYPE=Anonymous");
+	headers.push_back("CONTENT_LENGTH=" + lltostr(request.body.length()));
+	headers.push_back("CONTENT_TYPE=" + contentType);
+	headers.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	headers.push_back("PATH_INFO=" + request.path);
+	headers.push_back("PATH_TRANSLATED=" + this->path);
+	headers.push_back("QUERY_STRING=");
+	headers.push_back("REMOTE_ADDR=");
+	headers.push_back("REMOTE_IDENT=");
+	headers.push_back("REMOTE_USER=");
     headers.push_back("REQUEST_METHOD=POST");
+	headers.push_back("REQUEST_URI=" + request.path);
+	headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
+	// headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	headers.push_back("SERVER_NAME=" + config.server_name);
+	headers.push_back("SERVER_PORT=" + lltostr(config.port));
     headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
-    headers.push_back("PATH_INFO=/cgi_tester");
-    headers.push_back("CONTENT_LENGTH=100000000");
-    headers.push_back("CONTENT_TYPE=test/file");
+	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
+	headers.push_back("HTTP_USER_AGENT=" + userAgent);
 
 	int j = 0;
     for (int i = len; i < (len + headersNmb) && j < (int)headers.size(); i++, j++)
@@ -329,7 +382,7 @@ char **         Handler::create_env(void)
 {
     char **result;
     int len = 0;
-    int headersNmb = 5;
+    int headersNmb = 18;
 
     while (this->env[len] != NULL) {
         len++;
@@ -354,38 +407,12 @@ char **         Handler::create_env(void)
 
 int Handler::launch_cgi(char **args, char **env, std::string * body)
 {
-//    int fd_to_write;
-//    //create file to write body
-//    std::ofstream fileWrite("filename.txt");
-//    fd_to_write = fileWrite.fd();
-
-
-//    FILE *stream;
-    int  fd_to_write;
-
-    if ((fd_to_write = creat("file.txt", S_IWUSR)) < 0)
-        perror("creat() error");
-
-    std::cout << "New FD - " << fd_to_write << std::endl;
-
-//    else
-//    {
-//        if ((stream = fdopen(fd_my, "w")) == NULL) {
-//            perror("fdopen() error");
-//            close(fd_my);
-//        }
-//        else {
-//            fputs("This is a test", stream);
-//            fclose(stream);
-//        }}
-
-
-
-
+int std_input = dup(0);
     int status = 0;
     int fd[2];
     pid_t pid;
-    // int stat;
+
+	errno = 0;
 
     if (pipe(fd) != 0)
     {
@@ -393,17 +420,18 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
         status = 1;
         return status;
     }
-    pid = fork(); //проверить на ошибку
+    pid = fork();
     if (pid == 0) // дочерний процесс
     {
-//        dup2(fd[1], 1); // fd to write
-        dup2(fd[1], fd_to_write);
-		fcntl(fd[1], F_SETFL, O_NONBLOCK);
+       	dup2(fd[1], 1); // fd to write
+		int in = open(this->path.c_str(), O_RDWR);
+		// int out = open("file.txt", O_RDWR | O_CREAT | O_TRUNC, 0666);
+		// dup2(out, 1);
         close(fd[0]);
+		dup2(in, 0);
         if (execve(args[0], args, env) == -1)
         {
-            std::cout << "execve error" << std::endl;
-            error_message(500);
+			std::cerr << RED << strerror(errno) << BW << std::endl;
             status = 1;
             exit(status);
         }
@@ -419,53 +447,25 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
     {
         dup2(fd[0], 0);
         close(fd[1]);
-		// fcntl(fd[0], F_SETFL, O_NONBLOCK);
 
 		char buffer[INBUFSIZE];
         int res = 0;
-        // waitpid(pid, &stat, WUNTRACED);
-        // while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
-		// {
-            // waitpid(pid, &stat, WUNTRACED);
-        	while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
-        	{
-				std::cout << buffer << std::endl; //for debug
-           		body->append(buffer);
-            	bzero(buffer, INBUFSIZE);
-        	}
-			std::cerr << BLUE << strerror(errno) << BW << std::endl;
-        	if (res < 0)
-        	{
-           		kill(pid, SIGKILL);
-            	status = 1;
-        	}
-		// }
-        if (status == 1 /*|| (status = WEXITSTATUS(stat)) == 1*/)
+
+        while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
+          	body->append(buffer, 0, res);
+        if (res < 0)
+        {
+        	kill(pid, SIGKILL);
+        	status = 1;
+        }
+        if (status == 1)
 		{
-			std::cerr << BLUE << strerror(errno) << BW << std::endl;
 			error_message(500);
 			return (status);
 		}
-        //читаем и записываем в строку
-        // char buffer[INBUFSIZE];
-        // int res = 0;
-        // while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
-        // {
-        //     body->append(buffer);
-        //     bzero(buffer, INBUFSIZE);
-        // }
-        // if (res < 0)
-        // {
-        //     error_message(500);
-        //     status = 1;
-        // }
+		dup2(std_input, 0);
         close(fd[0]);
     }
-
-    //    std::ifstream fileRead("filename.txt");
-//    Close the file
-//    fileWrite.close();
-//    fileRead.close();
 
     return status;
 }
