@@ -8,7 +8,7 @@ Authentication::Authentication()
     std::map<std::string, std::string>::iterator it;
     it = _credentials.find("login");
 
-    std::cout << PURPLE << " First user for testing is LOGIN - " << it->first << " PASSWORD - " << it->second << BW << std::endl;
+   // std::cout << PURPLE << " First user for testing is LOGIN - " << it->first << " PASSWORD - " << it->second << BW << std::endl;
 
 //    addNewUser("login", "password");
 //    addNewUser("gbroccol", "password");
