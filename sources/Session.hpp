@@ -16,6 +16,7 @@
 # include "Webserv.hpp"
 # include "ParseRequest.hpp"
 # include "Handler.hpp"
+# include "Authentication.hpp"
 
 enum states {
     fsm_start, fsm_finish, fsm_error, fsm_request
@@ -33,14 +34,15 @@ public:
     char **env;
 
 private:
-	ParseRequest *  parseRequest;
-	Handler *       handler;
-	bool            request_left;
+	ParseRequest *      parseRequest;
+	Handler *           handler;
+    Authentication *    authentication;
+	bool                request_left;
 	
 
 public:
 
-   Session(configServer config);
+   Session(configServer config, Authentication * authentication);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);

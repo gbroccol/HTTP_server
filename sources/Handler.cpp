@@ -13,7 +13,7 @@ Handler::~Handler(void)
 	return;
 }
 
-std::string const & Handler::handle(data const & req, char **env) // убрать конфиг и переменные окружения в отдельниый инит
+std::string const & Handler::handle(data const & req, char **env, bool _signIn) // убрать конфиг и переменные окружения в отдельниый инит
 {
 
     this->response.clear();                             // ответ для клиента
@@ -21,6 +21,7 @@ std::string const & Handler::handle(data const & req, char **env) // убрат�
 
 	this->request = req;
 	this->env = env;
+    this->_signIn = _signIn;
 
 	if (!isRequestCorrect())
     {
@@ -52,6 +53,8 @@ int Handler::isRequestCorrect(void)
 
 	if (request.headers.count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
+	else if (_signIn == false )
+        status_code = 401;
 	else if (request.version != "HTTP/1.1")
 		status_code = 505;
 	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
@@ -500,6 +503,19 @@ void Handler::error_message(int const & status_code)
 		case 400:
 			this->response.append("400 Bad Request\r\n");
 			break;
+		case 401:
+            this->response.append("401 Unauthorized\r\n");
+
+            this->response.append("Date: ");
+            this->response.append(getPresentTime());
+            this->response.append("\r\n");
+
+            this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
+            this->response.append("Content-Length: ");
+            this->response.append("0"); // body size
+            this->response.append("\r\n\r\n");
+            // body
+            return;
 		case 404:
 			this->response.append("404 Not found\r\n");
 			break;

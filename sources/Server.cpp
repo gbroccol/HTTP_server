@@ -125,7 +125,7 @@ void Server::accept_client(void)
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 {
-	Session *sess = new Session(this->config);
+	Session *sess = new Session(this->config, this->_authentication);
 	sess->fd = fd;
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);
