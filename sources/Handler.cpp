@@ -53,8 +53,8 @@ int Handler::isRequestCorrect(void)
 
 	if (request.headers.count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
-//	else if (_signIn == false)
-//        status_code = 401;
+	else if (_signIn == false )
+        status_code = 401;
 	else if (request.version != "HTTP/1.1")
 		status_code = 505;
 	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
