@@ -17,6 +17,9 @@
 # include "Webserv.hpp"
 # include "Config.hpp"
 
+#define ON true
+#define OFF false
+
 class Handler
 {
 private:
@@ -40,6 +43,8 @@ private:
 	std::string		lastModTime;
 	std::string		contentLength;
 
+	bool            _error401;
+
 public:
 
 
@@ -51,7 +56,9 @@ public:
     int doesLocationAnswersMethod(void);
 	void makePath(void);
     std::string subpath(void);
-	void handle_head(void);
+
+    void handle_401(void);
+    void handle_head(void);
 	void handle_put(void);
 
 	void handle_post(void);

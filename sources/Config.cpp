@@ -327,9 +327,7 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
             locNode->authentication = OFF;
         else
             throw Config::IncorrectConfigException();
-        std::cout << "locNode->authentication: "<<locNode->authentication<<std::endl;
         locNode->repeat_authentication = true;
-        std::cout << "repeat_authentication: " <<locNode->repeat_authentication<<std::endl;
     }
 }
 
@@ -370,6 +368,8 @@ void					Config::initLocNode(location *locNode)
 	locNode->root = "";
     locNode->autoIndex = -1;
     locNode->repeat_autoIndex = false;
+    locNode->authentication = false;
+    locNode->repeat_authentication = false;
 }
 
 void					Config::initServNode(configServer *servNode)

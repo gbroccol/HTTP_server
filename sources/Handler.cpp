@@ -6,6 +6,7 @@ Handler::Handler(configServer const & config)
 {
     this->config = config;
 	this->isDir = false;
+    this->_error401 = false;
 	return;
 }
 Handler::~Handler(void)
@@ -30,9 +31,13 @@ std::string const & Handler::handle(data const & req, char **env, bool _signIn) 
     }
 
 	makePath();
+
 	if(config.locations[this->index_location]->autoIndex == ON)
         getFilesOrDirFromRoot(config.locations[this->index_location]->root);
-	if (request.method == "HEAD" || request.method == "GET")
+
+    if (_error401)
+        handle_401();
+	else if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
 		handle_post();
@@ -51,10 +56,8 @@ int Handler::isRequestCorrect(void)
 	std::string methods = "GET, HEAD, PUT, POST";
 	int status_code = 0;
 
-	if (request.headers.count("Host") > 1) // проверить, что заголовок и хедеры не пустые
+	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
-	else if (_signIn == false )
-        status_code = 401;
 	else if (request.version != "HTTP/1.1")
 		status_code = 505;
 	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
@@ -85,12 +88,22 @@ int Handler::doesLocationAnswersMethod(void)
 void Handler::makePath(void)
 {
 	DIR	*dir;
-	
-	this->path = ".";
-	this->path.append(config.locations[index_location]->root);
-    this->path.append("/");
-	this->path.append(subpath());
-	this->location_path.append(request.path);
+
+    this->_error401 = false;
+    if (config.locations[index_location]->authentication && _signIn == false)
+    {
+        this->path = "./content/home_page/authentication.html";
+        this->location_path = "/home_page/authentication.html";
+        this->_error401 = true;
+    }
+    else
+    {
+        this->path = ".";
+        this->path.append(config.locations[index_location]->root);
+        this->path.append("/");
+        this->path.append(subpath());
+        this->location_path.append(request.path);
+    }
 
 	dir = opendir(path.c_str());
 
@@ -116,9 +129,9 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
 	this->arrDir.clear();
 
     if( LocPath[ LocPath.length() - 1] == '/')
-        indexPath = '.' +  LocPath;
+        indexPath = '.' + config.locations[index_location]->path + LocPath;
     else
-        indexPath =  '.' +  LocPath + '/';
+        indexPath =  '.' +  config.locations[index_location]->path + '/' + LocPath + '/';
    if((dir  = opendir(indexPath.c_str())) == nullptr)
 		;													// error?
     while((dirStruct = readdir(dir)) != nullptr)
@@ -128,6 +141,51 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
             getLink(dirStruct->d_name);
     }
     closedir(dir);
+}
+
+void Handler::handle_401(void)
+{
+    std::string body;
+
+    if (isDir && config.locations[this->index_location]->autoIndex == ON)
+        makeAutoindexPage(&body);
+    else if (checkFile() != 0)
+        return;
+
+    this->response.append("401 Unauthorized\r\n");
+    this->response.append("Server: Webserv/1.1\r\n");
+
+    this->response.append("Date: ");
+    this->response.append(getPresentTime());
+    this->response.append("\r\n");
+
+    this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
+
+    this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
+
+    this->response.append("Content-Location: ");
+    this->response.append(this->location_path);
+    this->response.append("\r\n");
+
+    this->response.append("Content-Type: ");
+    this->response.append("text/html");
+    this->response.append("\r\n");
+
+    this->response.append("Content-Length: ");
+    this->response.append(this->contentLength);
+    this->response.append("\r\n");
+
+    this->response.append("Last-Modified: ");
+    this->response.append(this->lastModTime);
+    this->response.append("\r\n");
+
+    this->response.append("\r\n");
+
+//    if (request.method == "GET") {
+        if (body.length() == 0)
+            loadBodyFromFile(&body);
+        this->response.append(body);
+//    }
 }
 
 void Handler::handle_head(void)
@@ -432,7 +490,7 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
             // waitpid(pid, &stat, WUNTRACED);
         	while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
         	{
-				std::cout << buffer << std::endl; //for debug
+//				std::cout << buffer << std::endl; //for debug
            		body->append(buffer);
             	bzero(buffer, INBUFSIZE);
         	}
@@ -503,19 +561,6 @@ void Handler::error_message(int const & status_code)
 		case 400:
 			this->response.append("400 Bad Request\r\n");
 			break;
-		case 401:
-            this->response.append("401 Unauthorized\r\n");
-
-            this->response.append("Date: ");
-            this->response.append(getPresentTime());
-            this->response.append("\r\n");
-
-            this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
-            this->response.append("Content-Length: ");
-            this->response.append("0"); // body size
-            this->response.append("\r\n\r\n");
-            // body
-            return;
 		case 404:
 			this->response.append("404 Not found\r\n");
 			break;
@@ -555,12 +600,12 @@ void Handler::allow_header(void)
 
 // Additional functions
 
-std::string Handler::subpath(void)
+std::string Handler::subpath(void) // KATE
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
-    while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
-        i++;
+//    while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
+//        i++;
     return (request.path.substr(i));
 }
 
