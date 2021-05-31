@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gbroccol <gbroccol@student.42.fr>          +#+  +:+       +#+         #
+#    By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/05/05 16:47:32 by pvivian           #+#    #+#              #
-#    Updated: 2021/05/13 15:52:39 by gbroccol         ###   ########.fr        #
+#    Updated: 2021/05/31 09:03:54 by pvivian          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -55,6 +55,7 @@ clean:
 
 fclean:
 	rm -rf $(OBJS_DIR) $(NAME) $(LOGFILE)
+	./clear.sh
 	
 re: fclean all
 

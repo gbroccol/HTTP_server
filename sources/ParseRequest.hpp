@@ -50,6 +50,7 @@ class ParseRequest
 //		std::string				getBuff();
 
         data                    getData() const;
+		bool					isRequestReady(void) const;
 
 
 

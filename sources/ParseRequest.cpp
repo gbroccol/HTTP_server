@@ -236,6 +236,10 @@ ParseRequest::~ParseRequest()
 
 //	std::string					ParseRequest::getBuff() { return _buff; }
     data                        ParseRequest::getData() const { return _data; }
+	bool						ParseRequest::isRequestReady(void) const
+	{
+		return _data.status == REQUEST_READY;
+	}
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------

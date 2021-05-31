@@ -71,7 +71,7 @@ void Session::commit(FILE *f)
 void Session::handle_request(fd_set * writefds)
 {
 	this->request_left = this->parseRequest->addToBuffer(this->buf);
-	if (parseRequest->getData().status == REQUEST_READY) 
+	if (parseRequest->isRequestReady()) 
 	{
         this->wr_buf = this->handler->handle(parseRequest->getData(), this->env);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
