@@ -307,6 +307,8 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
 	}
     else if(save == "autoindex")
     {
+        if(tmp.empty() || locNode->repeat_autoIndex == true)
+            throw Config::IncorrectConfigException();
         if(tmp == "on")
             locNode->autoIndex = ON;
         else if(tmp == "off")
@@ -314,6 +316,20 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
         else
             throw Config::IncorrectConfigException();
         locNode->repeat_autoIndex = true;
+    }
+    else if(save == "authentication")
+    {
+        if(tmp.empty() || locNode->repeat_authentication == true)
+            throw Config::IncorrectConfigException();
+        if(tmp == "on")
+            locNode->authentication = ON;
+        else if(tmp == "off")
+            locNode->authentication = OFF;
+        else
+            throw Config::IncorrectConfigException();
+        std::cout << "locNode->authentication: "<<locNode->authentication<<std::endl;
+        locNode->repeat_authentication = true;
+        std::cout << "repeat_authentication: " <<locNode->repeat_authentication<<std::endl;
     }
 }
 
@@ -386,7 +402,7 @@ bool				Config::checkMainValServ(struct configServer *servNode)
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
 	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-	std::string location_tokens[] = {"index", "root", "MaxBody", "method", "autoindex"};
+	std::string location_tokens[] = {"index", "root", "MaxBody", "method", "autoindex", "authentication"};
 	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
 
 
@@ -411,7 +427,7 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 	}
 	else
 	{
-		for(unsigned int i = 0; i < 5; i++)
+		for(unsigned int i = 0; i < 6; i++)
 		{
 			if(location_tokens[i] == str)
 			{

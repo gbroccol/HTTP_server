@@ -36,6 +36,8 @@
 		bool 					repeat_method;
         int                     autoIndex;
         bool 					repeat_autoIndex;
+        int                     authentication;
+        bool 					repeat_authentication;
 	};
 
 struct 	configServer
