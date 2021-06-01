@@ -57,15 +57,23 @@ public:
 	void makePath(void);
     std::string subpath(void);
 
+    /* 401 */
     void handle_401(void);
+
+    /* HEAD */
     void handle_head(void);
+
+    /* PUT */
 	void handle_put(void);
 
+	/* POST */
 	void handle_post(void);
 	char ** create_env(void);
     char ** add_headers(int len, int headersNmb, char **result);
-
 	int launch_cgi(char **args, char ** env, std::string * body);
+
+	/* DELETE */
+    void handle_delete(void);
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);

@@ -43,6 +43,8 @@ std::string const & Handler::handle(data const & req, char **env, bool _signIn) 
 		handle_post();
 	else if (request.method == "PUT")
 		handle_put();
+//	else if (request.method == "DELETE")
+//        handle_delete();
 
 	if (request.method != "POST")
 		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
@@ -52,9 +54,68 @@ std::string const & Handler::handle(data const & req, char **env, bool _signIn) 
 	return this->response;
 }
 
+void Handler::handle_delete() // do we need autoIndex?
+{
+    int     statusCode = 200;
+    bool    deleteAccess = OFF;
+
+    if (this->path.find("./content/YoupiBanane/", 0) != std::string::npos && this->path.find("./content/YoupiBanane/", 0) == 0)
+        deleteAccess = ON;
+    else
+        statusCode = 403; // Forbidden - do not have access to delete this file
+
+    if (deleteAccess == OFF)
+        error_message(statusCode);
+    else
+    {
+        if (remove(this->path.c_str()) != 0 ) // this->path
+            error_message(404);
+        else
+            puts( "File successfully deleted" );
+
+        std::string body = "<html>\n<body>\n<h1>File deleted.</h1>\n</body>\n</html>";
+
+//        if (isDir && config.locations[this->index_location]->autoIndex == ON)
+//            makeAutoindexPage(&body);
+//        else if (checkFile() != 0)
+//            return;
+
+        this->response.append("200 OK\r\n");
+        this->response.append("Server: Webserv/1.1\r\n");
+
+        this->response.append("Date: ");
+        this->response.append(getPresentTime());
+        this->response.append("\r\n");
+
+        this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
+
+        this->response.append("Content-Location: ");
+        this->response.append(this->location_path);
+        this->response.append("\r\n");
+
+        this->response.append("Content-Type: ");
+        this->response.append("text/html");
+        this->response.append("\r\n");
+
+        this->response.append("Content-Length: ");
+        this->response.append(this->contentLength);
+        this->response.append("\r\n");
+
+        this->response.append("Last-Modified: ");
+        this->response.append(this->lastModTime);
+        this->response.append("\r\n");
+
+        this->response.append("\r\n");
+
+//        if (body.length() == 0)
+//            loadBodyFromFile(&body);
+        this->response.append(body);
+    }
+}
+
 int Handler::isRequestCorrect(void)
 {
-	std::string methods = "GET, HEAD, PUT, POST";
+	std::string methods = "GET, HEAD, PUT, POST, DELETE";
 	int status_code = 0;
 
 	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
@@ -90,21 +151,21 @@ void Handler::makePath(void)
 {
 	DIR	*dir;
 
-    this->_error401 = false;
-    if (config.locations[index_location]->authentication && _signIn == false)
-    {
-        this->path = "./content/home_page/authentication.html";
-        this->location_path = "/home_page/authentication.html";
-        this->_error401 = true;
-    }
-    else
-    {
+//    this->_error401 = false;
+//    if (config.locations[index_location]->authentication && _signIn == false)
+//    {
+//        this->path = "./content/home_page/authentication.html";
+//        this->location_path = "/home_page/authentication.html";
+//        this->_error401 = true;
+//    }
+//    else
+//    {
         this->path = ".";
         this->path.append(config.locations[index_location]->root);
         this->path.append("/");
         this->path.append(subpath());
         this->location_path.append(request.path);
-    }
+//    }
 
 	dir = opendir(path.c_str());
 
@@ -561,6 +622,9 @@ void Handler::error_message(int const & status_code)
 		case 400:
 			this->response.append("400 Bad Request\r\n");
 			break;
+	    case 403:
+            this->response.append("403 Forbidden\r\n");
+            break;
 		case 404:
 			this->response.append("404 Not found\r\n");
 			break;
@@ -604,8 +668,9 @@ std::string Handler::subpath(void) // KATE
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
-   while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
-       i++;
+    if (loc_path != "/close") // delete
+       while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
+           i++;
     return (request.path.substr(i));
 }
 
