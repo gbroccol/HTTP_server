@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/20 19:41:59 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/05/30 18:12:58 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ public:
 	int fd;
     unsigned long from_ip;
     unsigned short from_port;
-    char buf[INBUFSIZE];
+    std::string buf;
 	std::string wr_buf;
     enum states state;
     char **env;

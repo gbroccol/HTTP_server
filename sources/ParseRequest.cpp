@@ -213,7 +213,7 @@ ParseRequest::~ParseRequest()
 	     */
         if (_packetPart == BODY_CRLF_PART)
         {
-            if (_buff.length() >= _data.bodyLen)
+            if ((int)_buff.length() >= _data.bodyLen)
             {
                 _data.body.append(_buff, 0, _data.bodyLen); // а я точно могу считать это все???
                 _buff.erase(0, _data.bodyLen);
@@ -259,24 +259,11 @@ ParseRequest::~ParseRequest()
 ** --------------------------------- GET ----------------------------------
 */
 
-//	std::string					ParseRequest::getBuff() { return _buff; }
-    data                        ParseRequest::getData() const
-    {
-//        std::cout << GREEN << "_________________  GET DATA  _________________________" << BW << std::endl << std::endl;
-//
-//        std::multimap <std::string, std::string>::const_iterator printB = _data.headers->begin();
-//        std::multimap <std::string, std::string>::const_iterator printEND = _data.headers->end();
-//
-//        while (printB != printEND)
-//        {
-//            std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
-//
-//            printB++;
-//        }
-
-
-        return _data;
-    }
+    data                        ParseRequest::getData() const { return _data; }
+	bool						ParseRequest::isRequestReady(void) const
+	{
+		return _data.status == REQUEST_READY;
+	}
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
