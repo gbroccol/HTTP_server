@@ -604,8 +604,8 @@ std::string Handler::subpath(void) // KATE
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
-//    while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
-//        i++;
+   while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
+       i++;
     return (request.path.substr(i));
 }
 

@@ -38,8 +38,8 @@
 # define REQUEST_PARSE 0
 # define REQUEST_READY 1
 
-#define ON 0 // change and delete in config.hpp
-#define OFF 1
+#define ON true
+#define OFF false
 
 #define BW "\033[0;0m"
 #define RED "\033[0;31m"

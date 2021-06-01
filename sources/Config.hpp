@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:31:32 by pvivian           #+#    #+#             */
-/*   Updated: 2021/05/11 14:29:04 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/06/01 14:10:54 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,6 @@
 #define METHOD 2
 #define SERVER 1
 #define LOCATION 0
-
-#define ON true
-#define OFF false
 
 
 	struct 						location
