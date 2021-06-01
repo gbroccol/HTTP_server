@@ -38,7 +38,7 @@
 # define REQUEST_PARSE 0
 # define REQUEST_READY 1
 
-#define ON 0
+#define ON 0 // change and delete in config.hpp
 #define OFF 1
 
 #define BW "\033[0;0m"
@@ -54,7 +54,7 @@ struct data
     std::string							    	path;
     std::string							    	version;
 
-    std::multimap <std::string, std::string>    headers;
+    std::multimap <std::string, std::string> *  headers;
 
     std::string							    	body;
     int                                         bodyLen;

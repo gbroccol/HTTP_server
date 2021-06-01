@@ -74,15 +74,29 @@ void Session::commit(FILE *f)
 
 void Session::handle_request(fd_set * writefds)
 {
-//    data tmp = ;
+//    data tmp = parseRequest->getData();
 
     this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
     if (parseRequest->getData().status == REQUEST_READY)
     {
-        std::multimap <std::string, std::string>::iterator itCL = parseRequest->getData().headers.find("Authorization");
+//        std::cout << GREEN << "_________________  REQUEST_READY  _________________________" << BW << std::endl << std::endl;
+//
+//        std::cout << GREEN << tmp.path << BW << std::endl << std::endl;
+//
+        std::multimap <std::string, std::string>::iterator itCL = parseRequest->getData().headers->find("Authorization");
+//
+//        std::multimap <std::string, std::string>::iterator printB = parseRequest->getData().headers->begin();
+//        std::multimap <std::string, std::string>::iterator printEND = parseRequest->getData().headers->end();
+//
+//        while (printB != printEND)
+//        {
+//            std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
+//            printB++;
+//        }
 
-        if (itCL != parseRequest->getData().headers.end())
+        if (itCL != parseRequest->getData().headers->end())
         {
+            std::cout << "_signIn ON" << std::endl;
             this->_signIn = true;
         }
         this->wr_buf = this->handler->handle(parseRequest->getData(), this->env, this->_signIn);

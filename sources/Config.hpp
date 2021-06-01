@@ -18,8 +18,9 @@
 #define METHOD 2
 #define SERVER 1
 #define LOCATION 0
-#define ON 0
-#define OFF 1
+
+#define ON true
+#define OFF false
 
 
 	struct 						location
@@ -34,9 +35,9 @@
 		bool 					repeat_maxBody;
 		std::vector<std::string> method;
 		bool 					repeat_method;
-        int                     autoIndex;
+        bool                    autoIndex;
         bool 					repeat_autoIndex;
-        int                     authentication;
+        bool                    authentication;
         bool 					repeat_authentication;
 	};
 

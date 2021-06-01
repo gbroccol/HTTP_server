@@ -7,6 +7,7 @@
 ParseRequest::ParseRequest()
 {
     _data.nmb = 0;
+    _data.headers = new std::multimap<std::string, std::string>;
 	clearData();
 }
 
@@ -20,6 +21,7 @@ ParseRequest::ParseRequest()
 
 ParseRequest::~ParseRequest()
 {
+    delete _data.headers;
 }
 
 
@@ -63,7 +65,20 @@ ParseRequest::~ParseRequest()
             this->parseHTTPRequest();
 
 		if (_data.status == REQUEST_READY)
-		    std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
+        {
+            std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
+
+//            std::multimap <std::string, std::string>::iterator printB = _data.headers->begin();
+//            std::multimap <std::string, std::string>::iterator printEND = _data.headers->end();
+//
+//            while (printB != printEND)
+//            {
+//                std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
+//
+//                printB++;
+//            }
+        }
+
 
 		if (_buff.length() != 0)
             return true; // запустить парсинг снова
@@ -72,13 +87,13 @@ ParseRequest::~ParseRequest()
 
 	void					ParseRequest::checkIfBody()
     {
-        std::multimap <std::string, std::string>::iterator itCL = _data.headers.find("Content-Length");
-        std::multimap <std::string, std::string>::iterator itTE = _data.headers.find("Transfer-Encoding");
+        std::multimap <std::string, std::string>::iterator itCL = _data.headers->find("Content-Length");
+        std::multimap <std::string, std::string>::iterator itTE = _data.headers->find("Transfer-Encoding");
 
-        if (itCL != _data.headers.end()) {// I find Content-Length -> there is body part
+        if (itCL != _data.headers->end()) {// I find Content-Length -> there is body part
             _parsPart = BODY_PART;
         }
-        else if (itTE != _data.headers.end()) {
+        else if (itTE != _data.headers->end()) {
             _data.transferEncoding = true;
             _parsPart = BODY_PART;
         }
@@ -165,8 +180,18 @@ ParseRequest::~ParseRequest()
 		value.insert(0, header, 0, pos);
 //		header = header.erase(0, pos + 2);
 	
-		_data.headers.insert(std::make_pair(key, value));
+		_data.headers->insert(std::make_pair(key, value));
 		std::cout << BLUE << key << ": " << value << BW << std::endl;
+
+//        std::multimap <std::string, std::string>::iterator printB = _data.headers.begin();
+//        std::multimap <std::string, std::string>::iterator printEND = _data.headers.end();
+//
+//        while (printB != printEND)
+//        {
+//            std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
+//
+//            printB++;
+//        }
 	}
 
 	int				    	ParseRequest::parseBodyTE()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
@@ -219,7 +244,7 @@ ParseRequest::~ParseRequest()
 		_data.method.clear();
 		_data.path.clear();
 		_data.version.clear();
-		_data.headers.clear();
+		_data.headers->clear();
 		_data.body.clear();
 		_data.bodyLen = -1;
 		_data.status = REQUEST_PARSE;
@@ -235,7 +260,23 @@ ParseRequest::~ParseRequest()
 */
 
 //	std::string					ParseRequest::getBuff() { return _buff; }
-    data                        ParseRequest::getData() const { return _data; }
+    data                        ParseRequest::getData() const
+    {
+//        std::cout << GREEN << "_________________  GET DATA  _________________________" << BW << std::endl << std::endl;
+//
+//        std::multimap <std::string, std::string>::const_iterator printB = _data.headers->begin();
+//        std::multimap <std::string, std::string>::const_iterator printEND = _data.headers->end();
+//
+//        while (printB != printEND)
+//        {
+//            std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
+//
+//            printB++;
+//        }
+
+
+        return _data;
+    }
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
