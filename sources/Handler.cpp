@@ -46,6 +46,7 @@ std::string const & Handler::handle(data const & req, char **env, bool _signIn) 
 //	else if (request.method == "DELETE")
 //        handle_delete();
 
+
 	if (request.method != "POST")
 		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
@@ -164,6 +165,8 @@ void Handler::makePath(void)
         this->path.append(config.locations[index_location]->root);
         this->path.append("/");
         this->path.append(subpath());
+
+//        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
         this->location_path.append(request.path);
 //    }
 
@@ -274,7 +277,12 @@ void Handler::handle_head(void)
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Type: ");
-	this->response.append("text/html");
+
+	if (this->request.path.find("download/images", 0) != std::string::npos)
+        this->response.append("image/png");
+	else
+        this->response.append("text/html");
+
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
@@ -668,7 +676,7 @@ std::string Handler::subpath(void) // KATE
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
-    if (loc_path != "/close") // delete
+    if (loc_path != "/close" || loc_path != "/download") // delete
        while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
            i++;
     return (request.path.substr(i));

@@ -14,7 +14,8 @@
 			padding: 0;
 			margin: auto;
 
-			background:  #c1bdba;
+			background-image: url(moon.jpeg);
+			background-color:  #c1bdba;
 			font-family: 'Titillium Web', sans-serif;
 			text-align: center;
 
@@ -25,6 +26,11 @@
 			top: 0;
 
 			height: 100px;
+
+
+			background-repeat: no-repeat;
+			background-attachment: fixed;
+			background-size: cover;
 		}
 		button {
 			color: white;
@@ -47,6 +53,9 @@
 		.button:hover, .button:focus {
 			background: #179b77;
 		}
+		a {
+			text-decoration: none;
+		}
 	</style>
 
 </head>
@@ -55,6 +64,40 @@
 	<a href="../close/space.html">
 		<button class="button"> I want to see space </button>
 	</a>
+	<br>
+	<br>
+	Download <a href="../download/download.html" download> index.html </a>
+	<br>
+	<br>
+	<a href="../download/images/spacecat01.png" download>
+		<img src="../download/images/spacecat01.png" height="200px">
+	</a>
+	<a href="../download/images/spacecat02.png" download>
+		<img src="../download/images/spacecat02.png" height="200px">
+	</a>
+	<a href="../download/images/spacecat03.png" download>
+		<img src="../download/images/spacecat03.png" height="200px">
+	</a>
+	<a href="../download/images/spacecat04.png" download>
+		<img src="../download/images/spacecat04.png" height="200px">
+	</a>
+	<a href="../download/images/spacecat05.png" download>
+		<img src="../download/images/spacecat05.png" height="200px">
+	</a>
+	<a href="../download/images/spacecat05.png" download>
+		<img src="../download/images/spacecat06.png" height="200px">
+	</a>
+	<br>
+
+	<form enctype="multipart/form-data" method="post">
+		<p> Upload new files </p>
+		<p> <input type="file" name="data" multiple accept="image/png, text/html" >
+			<input type="submit" value="Upload new file"></p>
+	</form>
+
+<!--	<br>-->
+<!--	<br>-->
+<!--	<a href=""> Delete file (choose from list) </a>-->
 
 </body>
 </html>
