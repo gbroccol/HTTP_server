@@ -54,7 +54,7 @@ ParseRequest::~ParseRequest()
 //        if (_data.nmb == 16)
 //            std::cout << BW;
 
-	    if (_data.status == REQUEST_READY)
+	if (_data.status == REQUEST_READY)
             clearData();
 
         _buff += str;
@@ -65,41 +65,14 @@ ParseRequest::~ParseRequest()
             this->parseHTTPRequest();
 
 		if (_data.status == REQUEST_READY)
-        {
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
-
-//            std::multimap <std::string, std::string>::iterator printB = _data.headers->begin();
-//            std::multimap <std::string, std::string>::iterator printEND = _data.headers->end();
-//
-//            while (printB != printEND)
-//            {
-//                std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
-//
-//                printB++;
-//            }
-        }
-
 
 		if (_buff.length() != 0)
             return true; // запустить парсинг снова
         return false; // буфер пустой
 	}
 
-	void					ParseRequest::checkIfBody()
-    {
-        std::multimap <std::string, std::string>::iterator itCL = _data.headers->find("Content-Length");
-        std::multimap <std::string, std::string>::iterator itTE = _data.headers->find("Transfer-Encoding");
 
-        if (itCL != _data.headers->end()) {// I find Content-Length -> there is body part
-            _parsPart = BODY_PART;
-        }
-        else if (itTE != _data.headers->end()) {
-            _data.transferEncoding = true;
-            _parsPart = BODY_PART;
-        }
-        else
-            _data.status = REQUEST_READY;
-    }
 
 	void					ParseRequest::parseHTTPRequest() // <CRLF><CRLF> == "\r\n\r\n"
 	{
@@ -126,10 +99,30 @@ ParseRequest::~ParseRequest()
 			else if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
 				parseHeaders(tmp);
 		}
-        while  (_parsPart == BODY_PART && _data.status != REQUEST_READY)
+
+		int status = 0;
+
+        while  (_parsPart == BODY_PART && _data.status != REQUEST_READY && !status)
         {
-            if (_data.transferEncoding && parseBodyTE())
-                break;
+            switch (_data.bodyEncryption) {
+
+                case TRANSFER_ENCODING_CHANG:
+                    while (_data.status != REQUEST_READY && !status)
+                        status = parseBodyChang();
+                    break;
+                case TRANSFER_ENCODING_COMPRESS:
+                    break;
+                case TRANSFER_ENCODING_DEFLATE:
+                    break;
+                case TRANSFER_ENCODING_GZIP:
+                    break;
+                case TRANSFER_ENCODING_IDENTYTY:
+                    break;
+                case CONTENT_LENGTH:
+                    while (_data.status != REQUEST_READY && !status)
+                        status = parseContentLength();
+                    break;
+            }
         }
 	}
 
@@ -194,7 +187,37 @@ ParseRequest::~ParseRequest()
 //        }
 	}
 
-	int				    	ParseRequest::parseBodyTE()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
+    void					ParseRequest::checkIfBody()
+    {
+        std::multimap <std::string, std::string>::iterator itCL = _data.headers->find("Content-Length");
+
+        std::multimap <std::string, std::string>::iterator itTE = _data.headers->find("Transfer-Encoding");
+
+        if (itCL != _data.headers->end())
+        {
+            _data.bodyEncryption = CONTENT_LENGTH;
+            _data.bodyLen = 61951; // stoi (itTE->second, 0, 10);
+            _parsPart = BODY_PART;
+        }
+        else if (itTE != _data.headers->end()) //
+        {
+            if (itTE->second == "chunked")
+                _data.bodyEncryption = TRANSFER_ENCODING_CHANG;
+            else if (itTE->second == "compress")
+                _data.bodyEncryption = TRANSFER_ENCODING_COMPRESS;
+            else if (itTE->second == "deflate")
+                _data.bodyEncryption = TRANSFER_ENCODING_DEFLATE;
+            else if (itTE->second == "gzip")
+                _data.bodyEncryption = TRANSFER_ENCODING_GZIP;
+            else if (itTE->second == "identity")
+                _data.bodyEncryption = TRANSFER_ENCODING_IDENTYTY;
+            _parsPart = BODY_PART;
+        }
+        else
+            _data.status = REQUEST_READY;
+    }
+
+	int				    	ParseRequest::parseBodyChang()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
 	{
 	    /*
 	     * <длина блока в HEX><CRLF>
@@ -236,6 +259,25 @@ ParseRequest::~ParseRequest()
         return 0;
 	}
 
+	int                     ParseRequest::parseContentLength()
+    {
+//	    std::cout << RED << (int)_buff.length() << std::endl;
+//        std::cout << YELLOW << "I need " << _data.bodyLen - (int)_buff.length() << BW << std::endl;
+
+        if ((int)_buff.length() >= _data.bodyLen)
+        {
+            _data.body.append(_buff, 0, _data.bodyLen);
+//            std::cout << RED << _data.bodyLen << "     " << std::endl;
+//            getchar();
+            std::cout << YELLOW << _data.body << BW << std::endl;
+            _buff.erase(0, _data.bodyLen);
+            _data.status = REQUEST_READY;
+        }
+        else
+            return 1;
+        return 0;
+    }
+
 	void					ParseRequest::clearData()
 	{
         _parsPart = PRE_PART;
@@ -252,7 +294,7 @@ ParseRequest::~ParseRequest()
 		/*
 		 * headers
 		 */
-        _data.transferEncoding = false;
+        _data.bodyEncryption = -1;
 	}
 
 /*

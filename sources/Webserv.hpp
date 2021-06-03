@@ -48,6 +48,16 @@
 #define YELLOW "\033[0;33m"
 #define PURPLE "\033[0;35m"
 
+/*
+ * BODY ENCODING TYPES
+ */
+#define TRANSFER_ENCODING_CHANG 0
+#define TRANSFER_ENCODING_COMPRESS 1
+#define TRANSFER_ENCODING_DEFLATE 2
+#define TRANSFER_ENCODING_GZIP 3
+#define TRANSFER_ENCODING_IDENTYTY 4
+#define CONTENT_LENGTH 5
+
 struct data
 {
     std::string							    	method;
@@ -66,7 +76,7 @@ struct data
     /*
      * headers
     */
-    bool                                        transferEncoding;
+    int                                        bodyEncryption;
 };
 
 
