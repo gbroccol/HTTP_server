@@ -14,7 +14,7 @@
 			padding: 0;
 			margin: auto;
 
-			background-image: url(moon.jpeg);
+			background-image: url(background.jpeg);
 			background-color:  #c1bdba;
 			font-family: 'Titillium Web', sans-serif;
 			text-align: center;
@@ -91,12 +91,56 @@
 
 	<form enctype="multipart/form-data" method="post">
 		<p> Upload new files </p>
-		<p> <input type="file" name="data" multiple accept="image/png, text/html" >
+		<p>
+<!--			<input type="file" name="data" multiple accept="image/png, text/html" >-->
+			<input id="image-file" type="file" onchange="SavePhoto(this)" >
 			<input type="submit" value="Upload new file"></p>
 	</form>
 
 <!--	<br>-->
 <!--	<br>-->
+
+<!--	Попытка 2 <br>-->
+
+<!--	<input id="image-file" type="file" onchange="SavePhoto(this)" >-->
+<!--	<br><br>-->
+<!--	Before selecting the file open chrome console > network tab to see the request details.-->
+<!--	<br><br>-->
+<!--	<small>Because in this example we send request to https://stacksnippets.net/upload/image the response code will be 404 ofcourse...</small>-->
+
+<!--	<br><br>-->
+<!--	(in stack overflow snippets there is problem with error handling, however in-->
+<!--	<a href="https://jsfiddle.net/Lamik/b8ed5x3y/5/">jsfiddle version</a> for 404 errors 4xx/5xx are-->
+<!--	<a href="https://stackoverflow.com/a/33355142/860099">not throwing</a>-->
+<!--	at all but we can read response status which contains code)-->
+
+
+	<script>
+		async function SavePhoto(inp)
+		{
+			let user = { name:'john', age:34 };
+			let formData = new FormData();
+			let photo = inp.files[0];
+
+			formData.append("photo", photo);
+			formData.append("user", JSON.stringify(user));
+
+			const ctrl = new AbortController()    // timeout
+			setTimeout(() => ctrl.abort(), 5000);
+
+			try {
+				let r = await fetch('/upload/image',
+						{method: "POST", body: formData, signal: ctrl.signal});
+				console.log('HTTP response code:',r.status);
+			} catch(e) {
+				console.log('Huston we have problem...:', e);
+			}
+
+		}
+	</script>
+
+
+
 <!--	<a href=""> Delete file (choose from list) </a>-->
 
 </body>
