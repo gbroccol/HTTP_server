@@ -64,6 +64,9 @@
 	<a href="../close/space.html">
 		<button class="button"> I want to see space </button>
 	</a>
+	<a href="../home_page/authentication.html">
+		<button class="button"> Authentication </button>
+	</a>
 	<br>
 	<br>
 	Download <a href="../download/download.html" download> index.html </a>
@@ -94,7 +97,7 @@
 		<p>
 <!--			<input type="file" name="data" multiple accept="image/png, text/html" >-->
 			<input id="image-file" type="file" onchange="SavePhoto(this)" >
-			<input type="submit" value="Upload new file"></p>
+<!--			<input type="submit" value="Upload new file"></p>-->
 	</form>
 
 <!--	<br>-->
@@ -129,13 +132,11 @@
 			setTimeout(() => ctrl.abort(), 5000);
 
 			try {
-				let r = await fetch('/upload/image',
-						{method: "POST", body: formData, signal: ctrl.signal});
+				let r = await fetch('/users', { method: "POST", body: formData, signal: ctrl.signal });
 				console.log('HTTP response code:',r.status);
 			} catch(e) {
 				console.log('Huston we have problem...:', e);
 			}
-
 		}
 	</script>
 

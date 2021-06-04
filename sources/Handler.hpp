@@ -92,17 +92,40 @@ int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
 void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
 						int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
 int isLocation(std::vector<location *> locations, std::string path);
+
+    /*
+     * ADD HEADERS
+     */
+    void addHeaderStatus(int status);
+    void addHeaderServer(void);
+    void addHeaderDate(void);
+    void addHeaderContentLanguage(void);
+    void addHeaderContentLocation(void);
+    void addHeaderContentLength(std::string size);
+    void addHeaderLocation(void);
+
+
+
+
+
+
+
+
+
+
+
+
+    void            getFilesOrDirFromRoot(std::string LocPath);
+    std::string getLink(std::string path);
+    void makeAutoindexPage(std::string * body);
+    int checkFile(void);
+    void loadBodyFromFile(std::string * body);
+
   
   	/* libft */
     int             ft_strlen(const char *str);
     void		    ft_free_array(char **to_free);
     char *          ft_strdup(const char *s);
-
-    void            getFilesOrDirFromRoot(std::string LocPath);
-    std::string getLink(std::string path);
-	void makeAutoindexPage(std::string * body);
-	int checkFile(void);
-	void loadBodyFromFile(std::string * body);
 };
 
 #endif

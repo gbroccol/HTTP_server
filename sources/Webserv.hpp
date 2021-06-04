@@ -65,20 +65,11 @@ struct data
     std::string							    	version;
 
     std::multimap <std::string, std::string> *  headers;
-
     std::string							    	body;
     int                                         bodyLen;
-
     size_t                                      status;
     int                                         nmb;
-
-
-    /*
-     * headers
-    */
-    int                                        bodyEncryption;
+    int                                         bodyEncryption;
 };
-
-
 
 #endif

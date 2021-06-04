@@ -54,15 +54,13 @@ ParseRequest::~ParseRequest()
 //        if (_data.nmb == 16)
 //            std::cout << BW;
 
-	if (_data.status == REQUEST_READY)
-            clearData();
+	    if (_data.status == REQUEST_READY)
+	       clearData();
 
         _buff += str;
 //		std::cout << GREEN << _buff << BW << std::endl << std::endl;
 
-
-//		if (_parsPart == BODY_PART || _buff.find("\r\n", 0) != std::string::npos)
-            this->parseHTTPRequest();
+        this->parseHTTPRequest();
 
 		if (_data.status == REQUEST_READY)
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
@@ -94,10 +92,10 @@ ParseRequest::~ParseRequest()
 			tmp.insert(0, _buff, 0, pos);
 			_buff.erase(0, pos + 2);
 
-			if (_parsPart == PRE_PART)
-                parseStartingLine(tmp.c_str());
-			else if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
+			if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
 				parseHeaders(tmp);
+            else if (_parsPart == PRE_PART)
+                parseStartingLine(tmp.c_str());
 		}
 
 		int status = 0;

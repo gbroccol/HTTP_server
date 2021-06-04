@@ -409,21 +409,40 @@ void Handler::handle_put(void)
 
 void Handler::handle_post(void)
 {
+    /*
+     *  Upload files
+     */
+//    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
+//    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
+//    if (pos != std::string::npos)
+//    {
+//        std::string boundary;
+//        boundary.append(itCL->second, pos, std::string::npos);
+//
+//
+//
+//        addHeaderStatus(200);
+//        addHeaderServer();
+//        addHeaderDate();
+//        addHeaderContentLanguage();
+//        addHeaderContentLocation();
+//        addHeaderContentLength("0");
+//        addHeaderLocation();
+//        this->response.append("\r\n");
+//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//        return;
+//    }
+
     // дополняем список переменных окружения (глобальная переменная g_env)
     char ** envPost = create_env();
 
    	if (!(envPost))
-	{
-		error_message(500);
-       return ;
-	}
+   	    return error_message(500);
 
 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 	if (!ofs.good())
-	{
-		error_message(500);
-		return;
-	}
+		return error_message(500);
+
 	ofs << request.body;
 	ofs.close();
 
@@ -431,36 +450,21 @@ void Handler::handle_post(void)
     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
     std::string body;
     if (launch_cgi(args, envPost, &body) == 1)
-    {
-        ft_free_array(envPost);
-        return;
-    }
+        return ft_free_array(envPost);
 
 	size_t offset = body.find("\r\n\r\n");
 	if (offset == std::string::npos)
 		offset = 0;
 	offset += 4;
 
-    this->response.append("200 OK\r\n");
-	this->response.append("Server: Webserv/1.1\r\n");
-		
-	this->response.append("Date: ");
-	this->response.append(getPresentTime());
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-	this->response.append("Content-Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Length: ");
-	this->response.append(lltostr(body.length() - offset));
-	this->response.append("\r\n");
-
-	this->response.append("Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
+	/* headers */
+    addHeaderStatus(200);
+    addHeaderServer();
+    addHeaderDate();
+    addHeaderContentLanguage();
+    addHeaderContentLocation();
+    addHeaderContentLength(lltostr(body.length() - offset));
+    addHeaderLocation();
 
 	this->response.append(body, 0, offset);
 
@@ -803,6 +807,58 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 	}
 	return(theBestLocation);
 }
+
+/*
+ * ------------------------- Add headers ----------------------------
+ */
+
+void Handler::addHeaderStatus(int status)
+{
+    switch (status) {
+        case 200:
+            this->response.append("200 OK\r\n");
+    }
+}
+void Handler::addHeaderServer() { this->response.append("Server: Webserv/1.1\r\n"); }
+void Handler::addHeaderDate()
+{
+    this->response.append("Date: ");
+    this->response.append(getPresentTime());
+    this->response.append("\r\n");
+}
+void Handler::addHeaderContentLanguage() { this->response.append("Content-Language: en\r\n"); }
+void Handler::addHeaderContentLocation()
+{
+    this->response.append("Content-Location: ");
+    this->response.append(this->location_path);
+    this->response.append("\r\n");
+}
+void Handler::addHeaderContentLength(std::string size)
+{
+    this->response.append("Content-Length: ");
+    this->response.append(size);
+    this->response.append("\r\n");
+}
+void Handler::addHeaderLocation(void)
+{
+    this->response.append("Location: ");
+    this->response.append(this->location_path);
+    this->response.append("\r\n");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
  * ------------------------------ libft ------------------------------
