@@ -21,7 +21,7 @@ Session::Session(configServer config, Authentication * authentication)
     this->handler      = new Handler(config);
     this->_signIn      = false;
     this->authentication = authentication;
-	fcntl(this->fd, F_SETFL, O_NONBLOCK);
+//	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 

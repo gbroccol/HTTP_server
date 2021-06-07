@@ -439,7 +439,7 @@ char **         Handler::add_headers(int len, int headersNmb, char **result)
 	// headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
 	headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
 	headers.push_back("SERVER_NAME=" + config.server_name);
-	headers.push_back("SERVER_PORT=" + lltostr(config.port, 10));
+	headers.push_back("SERVER_PORT=" + lltostr(config.port[0])); //// hardcode
     headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
 	headers.push_back("HTTP_user-agent=" + userAgent);
@@ -843,28 +843,3 @@ std::string Handler::lltostr(long long number, int base)
 		res.insert(res.begin(), (number + '0'));
 	return res;
 }
-
-
-
-// AUTH_TYPE=Anonymous
-// CONTENT_LENGTH=100000000
-// CONTENT_TYPE=test/file
-// GATEWAY_INTERFACE=CGI/1.1
-// PATH_INFO=/directory
-// PATH_TRANSLATED=/Users/hrema/Desktop/intra-uuid-f3a8d25e-8abf-4fff-beb5-99a712910710-3486716/webServ/YoupiBanane/directory
-// QUERY_STRING=
-// REMOTE_ADDR=127.0.0.1
-// REMOTE_IDENT=.localhost:8080
-// REMOTE_USER=
-// REQUEST_METHOD=POST
-// REQUEST_URI=/directory
-// SCRIPT_NAME=cgi_tester
-// SERVER_NAME=for_tester
-// SERVER_PORT=8080
-// SERVER_PROTOCOL=HTTP/1.1
-// SERVER_SOFTWARE=webServ
-// HTTP_accept-encoding=gzip
-// HTTP_content-type=test/file
-// HTTP_host=localhost:8080
-// HTTP_transfer-encoding=chunked
-// HTTP_user-agent=go-http-client/1.1

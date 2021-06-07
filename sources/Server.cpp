@@ -27,36 +27,38 @@ Server::~Server(void)
 
 void Server::init(const configServer & config, char **env)
 {
-	int sock, opt;
-	struct sockaddr_in addr;
+	int opt;
+	std::vector<int>sock;
+    struct sockaddr_in addr;
 	FILE *f;
+    opt = 1;
+	for(size_t i = 0; i < config.port.size(); i++)
+    {
+        sock.push_back(socket(AF_INET, SOCK_STREAM, 0));
+        if(sock[i] == -1)
+            throw std::runtime_error("Could not create a socket");
+        setsockopt(sock[i], SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = inet_addr(config.ip.c_str());
+        if (addr.sin_addr.s_addr == (unsigned int)-1)
+            throw std::runtime_error("Invalid server address");
+        addr.sin_port = htons(config.port[i]);
+        if(bind(sock[i], (struct sockaddr*) &addr, sizeof(addr)) == -1)
+            throw std::runtime_error("Could not bind socket");
 
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(sock == -1)
-		throw std::runtime_error("Could not create a socket");
+        listen(sock[i], LISTEN_QLEN);
+        this->listenSocket = sock[i];
 
-	opt = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+        f = fopen((config.server_name + "_log").c_str(), "wb");  /// logfile name
+        if(!f) {
+            close(sock[i]);
+            throw std::runtime_error("Could not create a log file");
+        }
+        this->res = f;
+        this->config = config;
+        this->env = env;
+    }
 
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(config.server_name.c_str());
-	if (addr.sin_addr.s_addr == (unsigned int)-1)
-		throw std::runtime_error("Invalid server address");
-	addr.sin_port = htons(config.port);
-	if(bind(sock, (struct sockaddr*) &addr, sizeof(addr)) == -1)
-		throw std::runtime_error("Could not bind socket");
-
-	listen(sock, LISTEN_QLEN);
-	this->listenSocket = sock;
-
-	f = fopen((config.server_name + "_log").c_str(), "wb");  /// logfile name
-	if(!f) {
-		close(sock);
-		throw std::runtime_error("Could not create a log file");
-	}
-	this->res = f;
-	this->config = config;
-	this->env = env;
 }
 	
 void Server::run(void)

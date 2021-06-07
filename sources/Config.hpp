@@ -40,8 +40,9 @@
 
 struct 	configServer
 {
-		int 					port;
+        std::vector<int> 		port;
 		bool 					repeat_port;
+        std::string 			ip;
 		std::string 			server_name;
 		bool 					repeat_server_name;
 		std::string 			error_page;
@@ -54,9 +55,6 @@ class Config
 {
 
 private:
-	long 						_port;
-	char 						*_root;
-	std::string					_server_name;
 	
 	std::vector<configServer*> 	servers;
 	
@@ -64,12 +62,8 @@ public:
 	Config();
 	~Config();
 
-	long 						getPort(void) const;
 	configServer        		*getconfigServer(int index);
 	size_t						getSize(void);
-	char 						*getLogFile(void) const;
-	void 						setPort(long const & p);
-	void 						setLogFile(char * name);
 	bool						checkMainValLoc(location *locNode);
 	void						initLocNode(location *locNode);
 	void						initServNode(configServer *servNode);
