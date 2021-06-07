@@ -14,14 +14,13 @@ Handler::~Handler(void)
 	return;
 }
 
-std::string const & Handler::handle(data const & req, char **env, bool _signIn) // убрать конфиг и переменные окружения в отдельниый инит
+std::string const & Handler::handle(data const & req, bool _signIn) // убрать конфиг и переменные окружения в отдельниый инит
 {
 
     this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
 
 	this->request = req;
-	this->env = env;
     this->_signIn = _signIn;
 
 	if (!isRequestCorrect())
@@ -57,10 +56,11 @@ int Handler::isRequestCorrect(void)
 	std::string methods = "GET, HEAD, PUT, POST";
 	int status_code = 0;
 
+
 	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
-	else if (request.version != "HTTP/1.1")
-		status_code = 505;
+//	else if (request.version != "HTTP/1.1")
+//		status_code = 505;
 	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
 	 	status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
@@ -342,7 +342,6 @@ void Handler::handle_put(void)
 
 void Handler::handle_post(void)
 {
-    // дополняем список переменных окружения (глобальная переменная g_env)
     char ** envPost = create_env();
 
    	if (!(envPost))
@@ -360,8 +359,8 @@ void Handler::handle_post(void)
 	ofs << request.body;
 	ofs.close();
 
-	// char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
-    char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
+	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
     std::string body;
     if (launch_cgi(args, envPost, &body) == 1)
     {
@@ -418,7 +417,7 @@ void Handler::handle_post(void)
    	ft_free_array(envPost);
 }
 
-char **         Handler::add_headers(int len, int headersNmb, char **result)
+char **         Handler::add_headers(int headersNmb, char **result)
 {
     std::vector<std::string> headers;
 	std::string contentType = request.headers->find("Content-Type")->second;
@@ -436,10 +435,10 @@ char **         Handler::add_headers(int len, int headersNmb, char **result)
 	headers.push_back("REMOTE_USER=");
     headers.push_back("REQUEST_METHOD=POST");
 	headers.push_back("REQUEST_URI=" + request.path);
-	// headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
+	// headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
 	headers.push_back("SERVER_NAME=" + config.server_name);
-	headers.push_back("SERVER_PORT=" + lltostr(config.port[0])); //// hardcode
+	headers.push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
     headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
 	headers.push_back("HTTP_user-agent=" + userAgent);
@@ -452,7 +451,7 @@ char **         Handler::add_headers(int len, int headersNmb, char **result)
 
 
 	int j = 0;
-    for (int i = len; i < (len + headersNmb) && j < (int)headers.size(); i++, j++)
+    for (int i = 0; i < headersNmb && j < (int)headers.size(); i++, j++)
     {
         if (!(result[i] = ft_strdup(headers[j].c_str())))
         {
@@ -466,26 +465,13 @@ char **         Handler::add_headers(int len, int headersNmb, char **result)
 char **         Handler::create_env(void)
 {
     char **result;
-    int len = 0;
     int headersNmb = 23;
 
-    while (this->env[len] != NULL) {
-        len++;
-	}
 
-	if (!(result = (char **)calloc(len + headersNmb + 1, sizeof(char*))))
+	if (!(result = (char **)calloc(headersNmb + 1, sizeof(char*))))
         return NULL;
 
-
-    for (int i = 0; i < len && this->env[i]; i++)
-    {
-        if (!(result[i] = ft_strdup(this->env[i])))
-        {
-            ft_free_array(result);
-            return (NULL);
-        }
-    }
-    add_headers(len, headersNmb, result);
+    add_headers(headersNmb, result);
     return result;
 }
 

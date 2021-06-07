@@ -21,7 +21,7 @@ Session::Session(configServer config, Authentication * authentication)
     this->handler      = new Handler(config);
     this->_signIn      = false;
     this->authentication = authentication;
-//	fcntl(this->fd, F_SETFL, O_NONBLOCK);
+	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 
@@ -82,7 +82,7 @@ void Session::handle_request(fd_set * writefds)
             std::cout << "_signIn ON" << std::endl;
             this->_signIn = true;
         }
-        this->wr_buf = this->handler->handle(parseRequest->getData(), this->env, this->_signIn);
+        this->wr_buf = this->handler->handle(parseRequest->getData(), this->_signIn);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
 

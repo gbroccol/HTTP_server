@@ -168,13 +168,13 @@ bool checkErrorPage(std::string path)
 {
 
     // std::ifstream fconfig(path);
-    std::ifstream fconfig("./config/example.conf");
+    std::ifstream err_page("./content/error_page/error.html");
     std::string tmp = "";
     int index = path.find('.');
     if(index > 0)
     {
         tmp = path.substr(index, path.length() - 1);
-        if(tmp.length() == 1 || !fconfig.is_open())
+        if(tmp.length() == 1 || !err_page.is_open())
             return(false);
     }
     else if(index < 0)
@@ -485,12 +485,12 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 /*
 ** --------------------------------- GETTERS AND SETTERS ---------------------------------
 */
-	configServer        *Config::getconfigServer(int index)
+	configServer        *Config::getconfigServer(int index) const
 	{
 		return(servers[index]);
 	}
 
-	size_t		Config::getSize(void)
+	size_t		Config::getSize(void) const
 	{
 		return this->servers.size();
 	}

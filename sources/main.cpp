@@ -1,14 +1,13 @@
 
-#include "Webserv.hpp"
+# include "Webserv.hpp"
+# include "Cluster.hpp"
 # include "Server.hpp"
 # include "Config.hpp"
 
-int main(int argc,  char **argv, char **env)
+int main(int argc,  char **argv)
 {
-	std::vector<Server *> servers;
-	Server * server;
+	Cluster cluster;
 	Config config;
-	configServer *confServer;
 	std::string configFile = "./config/default.conf";
 
 	try 
@@ -22,16 +21,8 @@ int main(int argc,  char **argv, char **env)
 		}
 
 		config.getFile(configFile);
-		
-		for (size_t  i = 0; i < config.getSize(); i++)
-		{
-			confServer = config.getconfigServer((int)i);
-			server = new Server;
-			server->init(*confServer, env);
-			servers.push_back(server);
-		}
-		for (size_t i = 0; i < servers.size(); i++)
-			servers[i]->run();
+		cluster.init(config);
+		cluster.run();
 	}
     catch (std::exception const & e)
 	{

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+         #
+#    By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/05/05 16:47:32 by pvivian           #+#    #+#              #
-#    Updated: 2021/05/31 09:03:54 by pvivian          ###   ########.fr        #
+#    Updated: 2021/06/07 14:39:07 by pvivian          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,13 +15,14 @@ NAME =		webserv
 
 CC =		clang++
 
-FLAGS =		-Wall -Werror -Wextra -g -MMD  -I ./sources
+FLAGS =		-Wall -Werror -Wextra -g -MMD  -I ./sources -std=c++98
 # -fsanitize=address
 # -std=c++98
 
 MAIN = $(SRCS_DIR)main.cpp
 
 SRCS =		main.cpp \
+			Cluster.cpp \
 			Config.cpp \
 			Server.cpp \
 			Handler.cpp \
