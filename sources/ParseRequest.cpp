@@ -6,8 +6,9 @@
 
 ParseRequest::ParseRequest()
 {
-    _data.nmb = 0;
-    _data.headers = new std::multimap<std::string, std::string>;
+    _data.nmb      = 0;
+    _data.headers  = new std::multimap<std::string, std::string>;
+    _data.formData = new std::multimap<std::string, std::string>;
 	clearData();
 }
 
@@ -63,7 +64,11 @@ ParseRequest::~ParseRequest()
         this->parseHTTPRequest();
 
 		if (_data.status == REQUEST_READY)
+        {
+            std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
+        }
+
 
 		if (_buff.length() != 0)
             return true; // запустить парсинг снова
@@ -143,6 +148,9 @@ ParseRequest::~ParseRequest()
 		{
 			_data.path.insert(0, head, 0, pos);
 			head.erase(0, pos + 1);
+
+//            if (_data.path.find("/close/space.html", 0) != std::string::npos)
+//                _data.path = "/close/space.html";
 		}
 
 		pos = head.size(); // error
@@ -194,7 +202,7 @@ ParseRequest::~ParseRequest()
         if (itCL != _data.headers->end())
         {
             _data.bodyEncryption = CONTENT_LENGTH;
-            _data.bodyLen = 61951; // stoi (itTE->second, 0, 10);
+            _data.bodyLen = stoi(itCL->second, 0, 10);
             _parsPart = BODY_PART;
         }
         else if (itTE != _data.headers->end()) //
@@ -259,17 +267,45 @@ ParseRequest::~ParseRequest()
 
 	int                     ParseRequest::parseContentLength()
     {
-//	    std::cout << RED << (int)_buff.length() << std::endl;
-//        std::cout << YELLOW << "I need " << _data.bodyLen - (int)_buff.length() << BW << std::endl;
-
         if ((int)_buff.length() >= _data.bodyLen)
         {
-            _data.body.append(_buff, 0, _data.bodyLen);
-//            std::cout << RED << _data.bodyLen << "     " << std::endl;
-//            getchar();
-            std::cout << YELLOW << _data.body << BW << std::endl;
+            _data.body.append(_buff, 0, _data.bodyLen); // _data.bodyLen
             _buff.erase(0, _data.bodyLen);
             _data.status = REQUEST_READY;
+
+            std::multimap <std::string, std::string>::iterator itCT = _data.headers->find("Content-Type");
+            if (itCT != _data.headers->end() && itCT->second == "application/x-www-form-urlencoded")
+            {
+                std::cout << YELLOW << _data.body << BW << std::endl;
+
+                size_t pos = 0;
+                std::string tmp = _data.body;
+                std::string key;
+                std::string value;
+
+                while (tmp.length() > 0)
+                {
+                    key.clear();
+                    value.clear();
+
+                    pos = tmp.find("=", 0);
+                    key.insert(0, tmp, 0, pos);
+                    tmp = tmp.erase(0, pos + 1);
+
+                    if ((pos = tmp.find("&", 0)) != std::string::npos)
+                    {
+                        value.insert(0, tmp, 0, pos);
+                        tmp =tmp.erase(0, pos + 1);
+                    }
+                    else
+                    {
+                        value.insert(0, tmp, 0, tmp.length());
+                        tmp.clear();
+                    }
+                    std::cout << BLUE << key << ": " << value << BW << std::endl;
+                    _data.formData->insert(std::make_pair(key, value));
+                }
+            }
         }
         else
             return 1;

@@ -15,6 +15,25 @@
         }
         .slider {
             position: fixed;
+            top: 30px;
+            /*right: 40%;*/
+            width: 100%;
+            color: white;
+            font-family: sans-serif;
+            font-size: 64px;
+            text-align: center;
+        }
+        .buttons {
+            position: fixed;
+            top: 0px;
+            right: 20px;
+            color: white;
+            font-family: sans-serif;
+            font-size: 64px;
+            text-align: center;
+        }
+        .text {
+            position: fixed;
             top: 30%;
             /*right: 40%;*/
             width: 100%;
@@ -23,15 +42,14 @@
             font-size: 64px;
             text-align: center;
         }
-        button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            color: white;
-            font-family: sans-serif;
-            text-align: center;
-            margin: 0;
-        }
+        /*button {*/
+        /*    position: fixed;*/
+        /*    right: 20px;*/
+        /*    color: white;*/
+        /*    font-family: sans-serif;*/
+        /*    text-align: center;*/
+        /*    margin: 0;*/
+        /*}*/
         .button {
             border: 0;
             outline: none;
@@ -55,13 +73,33 @@
 <body>
 
 <canvas id="stars"></canvas>
-<div class="slider">
-    <h1 class="animate__animated animate__fadeInLeftBig"> Hello world! </h1>
+
+<!--<div class="slider">-->
+<!--</div>-->
+
+<div class="buttons">
     <a href="../home_page/index.html">
-<!--        <a href="../home_page/authentication.html">-->
         <button class="button button-block"> Log out </button>
     </a>
+    <br>
+    <a href="../close/user_profile.html">
+        <button class="button button-block"> My account </button>
+    </a>
 </div>
+
+<div class="text">
+    <h1 class="animate__animated animate__fadeInLeftBig"> Hello world! </h1>
+</div>
+
+
+
+<!--<div class="form">-->
+<!--    <div class="container">-->
+
+
+
+<!--    </div>-->
+<!--</div>-->
 
 </body>
 

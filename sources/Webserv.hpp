@@ -70,6 +70,14 @@ struct data
     size_t                                      status;
     int                                         nmb;
     int                                         bodyEncryption;
+
+    std::multimap <std::string, std::string> *  formData;
+};
+
+struct user
+{
+    bool            signIn;
+    std::string     login;
 };
 
 #endif

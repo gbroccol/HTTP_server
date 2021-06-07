@@ -35,7 +35,7 @@ private:
 
 	configServer	config;
 	char            **env;
-	bool            _signIn;
+	user            _userData;
 
 	std::vector<std::string> arrDir;
 	bool			isDir;
@@ -51,7 +51,7 @@ public:
     Handler(configServer const & config);
 	~Handler(void);
 
-	std::string const & handle(data const & request, char **env, bool _signIn);
+	std::string const & handle(data const & req, char **env, user & userData);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
@@ -71,6 +71,8 @@ public:
 	char ** create_env(void);
     char ** add_headers(int len, int headersNmb, char **result);
 	int launch_cgi(char **args, char ** env, std::string * body);
+	int updateFile(std::string & boundary);
+    int createNewFile(std::string fileName, std::string content);
 
 	/* DELETE */
     void handle_delete(void);
@@ -103,6 +105,7 @@ int isLocation(std::vector<location *> locations, std::string path);
     void addHeaderContentLocation(void);
     void addHeaderContentLength(std::string size);
     void addHeaderLocation(void);
+    void addHeaderContentType(void);
 
 
 

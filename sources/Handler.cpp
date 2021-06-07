@@ -14,7 +14,7 @@ Handler::~Handler(void)
 	return;
 }
 
-std::string const & Handler::handle(data const & req, char **env, bool _signIn) // убрать конфиг и переменные окружения в отдельниый инит
+std::string const & Handler::handle(data const & req, char **env, user & userData) // убрать конфиг и переменные окружения в отдельниый инит
 {
 
     this->response.clear();                             // ответ для клиента
@@ -22,7 +22,7 @@ std::string const & Handler::handle(data const & req, char **env, bool _signIn) 
 
 	this->request = req;
 	this->env = env;
-    this->_signIn = _signIn;
+    this->_userData = userData;
 
 	if (!isRequestCorrect())
     {
@@ -35,7 +35,7 @@ std::string const & Handler::handle(data const & req, char **env, bool _signIn) 
 	if(config.locations[this->index_location]->autoIndex == ON)
         getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 
-    if (_error401)
+	if (_error401)
         handle_401();
 	else if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
@@ -152,15 +152,15 @@ void Handler::makePath(void)
 {
 	DIR	*dir;
 
-//    this->_error401 = false;
-//    if (config.locations[index_location]->authentication && _signIn == false)
-//    {
-//        this->path = "./content/home_page/authentication.html";
-//        this->location_path = "/home_page/authentication.html";
+    this->_error401 = false;
+    if (config.locations[index_location]->authentication && _userData.signIn == false)
+    {
+        this->path = "./content/home_page/index.html";
+        this->location_path = "/home_page/index.html";
 //        this->_error401 = true;
-//    }
-//    else
-//    {
+    }
+    else
+    {
         this->path = ".";
         this->path.append(config.locations[index_location]->root);
         this->path.append("/");
@@ -168,7 +168,7 @@ void Handler::makePath(void)
 
 //        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
         this->location_path.append(request.path);
-//    }
+    }
 
 	dir = opendir(path.c_str());
 
@@ -275,13 +275,8 @@ void Handler::handle_head(void)
 	this->response.append("Content-Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
-		
-	this->response.append("Content-Type: ");
 
-	if (this->request.path.find("download/images", 0) != std::string::npos)
-        this->response.append("image/png");
-	else
-        this->response.append("text/html");
+    addHeaderContentType();
 
 	this->response.append("\r\n");
 		
@@ -407,31 +402,151 @@ void Handler::handle_put(void)
 		this->response.append(request.body);
 }
 
+int Handler::updateFile(std::string & boundary) // return status
+{
+    int status = 200;
+    size_t pos;
+
+    std::string type;
+    std::string name;
+    std::string fileName;
+    std::string mime;
+    std::string content;
+    /*
+     * пропустить boundary
+     */
+    request.body.erase(0, boundary.length() + 2 + 2);
+    /*
+     * прочитать хедоры
+     */
+    int separate = 0;
+    std::string header;
+    while ((pos = request.body.find("\r\n", 0)) != std::string::npos)
+    {
+        if (pos == 0)
+        {
+            request.body.erase(0, 2);
+            break;
+        }
+        separate = request.body.find(":", 0);
+        header = request.body.substr(0, separate);
+        if (header == "Content-Disposition")
+        {
+            request.body.erase(0, separate + 2);
+            /* form-data */
+            separate = request.body.find(";", 0);
+            type = request.body.substr(0, separate);
+            request.body.erase(0, separate + 2);
+            /* name=\"photo\" */
+            if (request.body.find("name", 0) == 0)
+            {
+                separate = request.body.find(";", 0);
+                name = request.body.substr(6, separate - 1 - 6);
+                request.body.erase(0, separate + 2);
+            }
+            if ((separate = request.body.find("filename", 0)) == 0)
+            {
+                separate = request.body.find("\r\n", 0);
+                fileName = request.body.substr(10, separate - 1 - 10);
+                request.body.erase(0, separate + 2);
+            }
+        }
+        else if (header == "Content-Type")
+        {
+            separate = request.body.find("\r\n", 0);
+            mime = request.body.substr(12 + 2, separate - 12 - 2);
+            request.body.erase(0, separate + 2);
+        }
+    }
+    /*
+     * прочитать содержимое файла
+     */
+    if ((pos = request.body.find(boundary, 0)) != std::string::npos)
+    {
+        content = request.body.substr(0, pos - 2);
+        request.body.erase(0, pos - 2);
+        request.body.clear();
+
+        status = createNewFile(fileName, content);
+    }
+    return status;
+}
+
+int Handler::createNewFile(std::string fileName, std::string content)
+{
+    if (fileName.length() == 0)
+        return 1;
+
+    std::string path = "./content/users/";
+    path += "gbroccol";
+    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+
+    std::ofstream outfile ("./content/users/gbroccol/avatar.png");
+    outfile << content << std::endl;
+    outfile.close();
+
+    return 200;
+}
+
 void Handler::handle_post(void)
 {
     /*
      *  Upload files
      */
-//    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
-//    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
-//    if (pos != std::string::npos)
-//    {
-//        std::string boundary;
-//        boundary.append(itCL->second, pos, std::string::npos);
-//
-//
-//
-//        addHeaderStatus(200);
-//        addHeaderServer();
-//        addHeaderDate();
-//        addHeaderContentLanguage();
-//        addHeaderContentLocation();
-//        addHeaderContentLength("0");
-//        addHeaderLocation();
-//        this->response.append("\r\n");
-//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-//        return;
-//    }
+    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
+    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
+    if (pos != std::string::npos && pos == 0)
+    {
+        pos = itCL->second.find("=", 0);
+        std::string boundary;
+        boundary.append(itCL->second, pos + 1, std::string::npos);
+
+        addHeaderStatus(updateFile(boundary));
+        addHeaderServer();
+        addHeaderDate();
+        addHeaderContentLanguage();
+        addHeaderContentLocation();
+        addHeaderContentLength("0");
+        addHeaderLocation();
+        this->response.append("\r\n");
+        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+        return;
+    }
+
+
+    if (this->request.formData->size() != 0) // регистрация
+    {
+        int status = 200;
+        std::string body;
+
+//        if (_userData.signIn == false)
+//        {
+//            status = 403;
+//        }
+//        else
+//        {
+            loadBodyFromFile(&body);
+
+//        }
+
+
+        addHeaderStatus(status); // другой статус если такого пользователя нет
+        addHeaderServer();
+        addHeaderDate();
+        addHeaderContentLanguage();
+        addHeaderContentLocation();
+        addHeaderContentLength(std::to_string(body.length()));
+        addHeaderLocation();
+        this->response.append("\r\n");
+
+        this->response.append(body);
+
+        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+
+        return;
+    }
+
+
 
     // дополняем список переменных окружения (глобальная переменная g_env)
     char ** envPost = create_env();
@@ -844,6 +959,18 @@ void Handler::addHeaderLocation(void)
     this->response.append("Location: ");
     this->response.append(this->location_path);
     this->response.append("\r\n");
+}
+
+void Handler::addHeaderContentType(void) // hardcode
+{
+    this->response.append("Content-Type: ");
+
+    if (this->request.path.find(".png", 0) != std::string::npos)
+        this->response.append("image/png");
+    if (this->request.path.find(".jpeg", 0) != std::string::npos)
+        this->response.append("image/jpeg");
+    else
+        this->response.append("text/html");
 }
 
 
