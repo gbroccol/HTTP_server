@@ -422,7 +422,7 @@ char **         Handler::add_headers(int len, int headersNmb, char **result)
 	headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
 	// headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
 	headers.push_back("SERVER_NAME=" + config.server_name);
-	headers.push_back("SERVER_PORT=" + lltostr(config.port));
+	headers.push_back("SERVER_PORT=" + lltostr(config.port[0]));
     headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
 	headers.push_back("HTTP_USER_AGENT=" + userAgent);
