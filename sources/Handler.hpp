@@ -73,7 +73,7 @@ public:
 	void error_message(int const & status_code);
 	void allow_header(void);
 
-	std::string lltostr(long long number);
+	std::string lltostr(long long number, int base);
 
 int isFiles(std::string path, std::string locPath);
 int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);

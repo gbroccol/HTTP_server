@@ -281,7 +281,7 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
         if(locNode->repeat_maxBody == true)
             throw Config::IncorrectConfigException();
         locNode->maxBody = std::stoi(tmp); //check char?
-        if(locNode->maxBody > LISTEN_QLEN || locNode->maxBody < 0)
+        if(locNode->maxBody > 1000000 || locNode->maxBody < 0)
             throw Config::IncorrectConfigException();
         locNode->repeat_maxBody = true;
     }
@@ -444,10 +444,9 @@ bool				Config::checkMainValServ(struct configServer *servNode)
 
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
-    std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-    std::string location_tokens[] = {"index", "root", "MaxBody", "method", "autoindex", "authentication"};
-    std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
-
+	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
+	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication"};
+	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
 
     if (config_part == SERVER)
     {
