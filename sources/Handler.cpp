@@ -67,6 +67,8 @@ int Handler::isRequestCorrect(void)
 		status_code = 501;
 	else if (!doesLocationAnswersMethod())
         status_code = 405;
+	else if (config.locations[index_location]->maxBody > 0 && (int)request.body.length() > config.locations[index_location]->maxBody)
+		status_code = 413;
 
 	if (status_code != 0)
 	{
@@ -242,7 +244,7 @@ void Handler::makeAutoindexPage(std::string * body)
 	}
 	body->append("</html>");
 	this->lastModTime = getPresentTime();
-	this->contentLength = lltostr(body->length());
+	this->contentLength = lltostr(body->length(), 10);
 }
 
 std::string Handler::getLink(std::string path)
@@ -268,7 +270,7 @@ int Handler::checkFile(void)
 	}
 	
 	fstat(fd, &file_stat);
-	this->contentLength = lltostr(file_stat.st_size);
+	this->contentLength = lltostr(file_stat.st_size, 10);
 	this->lastModTime = getLastModificationTime(file_stat.st_mtime);
 	close(fd);
 	return 0;
@@ -326,7 +328,7 @@ void Handler::handle_put(void)
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
-	this->response.append(lltostr(request.body.size())); //нужно подтянуть из хедера запроса, если он есть
+	this->response.append(lltostr(request.body.size(), 10)); //нужно подтянуть из хедера запроса, если он есть
 	this->response.append("\r\n");
 
 	this->response.append("Location: ");
@@ -358,8 +360,8 @@ void Handler::handle_post(void)
 	ofs << request.body;
 	ofs.close();
 
-	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
-    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
+	// char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+    char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
     std::string body;
     if (launch_cgi(args, envPost, &body) == 1)
     {
@@ -367,10 +369,10 @@ void Handler::handle_post(void)
         return;
     }
 
-	size_t offset = body.find("\r\n\r\n");
-	if (offset == std::string::npos)
-		offset = 0;
-	offset += 4;
+	// size_t offset = body.find("\r\n\r\n");
+	// if (offset == std::string::npos)
+	// 	offset = 0;
+	// offset += 4;
 
     this->response.append("200 OK\r\n");
 	this->response.append("Server: Webserv/1.1\r\n");
@@ -385,30 +387,45 @@ void Handler::handle_post(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
-	this->response.append("Content-Length: ");
-	this->response.append(lltostr(body.length() - offset));
-	this->response.append("\r\n");
+	// this->response.append("Content-Length: ");
+	// this->response.append(lltostr(body.length() - offset), 10);
+	// this->response.append("\r\n");
+
+	this->response.append("Transfer-Encoding: chunked\r\n");
 
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 
-	this->response.append(body, 0, offset);
+	// this->response.append(body, 0, offset);
 
 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
-	this->response.append(body, offset, body.length() - offset);
+	// this->response.append(body, offset, body.length() - offset);
+	this->response.append(body);
+
+
+	// std::ofstream resp("RESPONSE", std::ios_base::trunc);
+	// if (!resp.good())
+	// {
+	// 	error_message(500);
+	// 	return;
+	// }
+	// resp << response;
+	// resp.close();
+
+
    	ft_free_array(envPost);
 }
 
 char **         Handler::add_headers(int len, int headersNmb, char **result)
 {
     std::vector<std::string> headers;
-	std::string contentType = request.headers->find("Content-Type")->first;
-	std::string userAgent = request.headers->find("User-Agent")->first;
+	std::string contentType = request.headers->find("Content-Type")->second;
+	std::string userAgent = request.headers->find("User-Agent")->second;
 
 	headers.push_back("AUTH_TYPE=Anonymous");
-	headers.push_back("CONTENT_LENGTH=" + lltostr(request.body.length()));
+	headers.push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
 	headers.push_back("CONTENT_TYPE=" + contentType);
 	headers.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	headers.push_back("PATH_INFO=" + request.path);
@@ -419,13 +436,20 @@ char **         Handler::add_headers(int len, int headersNmb, char **result)
 	headers.push_back("REMOTE_USER=");
     headers.push_back("REQUEST_METHOD=POST");
 	headers.push_back("REQUEST_URI=" + request.path);
-	headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	// headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
+	headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
 	headers.push_back("SERVER_NAME=" + config.server_name);
-	headers.push_back("SERVER_PORT=" + lltostr(config.port));
+	headers.push_back("SERVER_PORT=" + lltostr(config.port, 10));
     headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
-	headers.push_back("HTTP_USER_AGENT=" + userAgent);
+	headers.push_back("HTTP_user-agent=" + userAgent);
+	headers.push_back("HTTP_accept-encoding=gzip");
+	headers.push_back("HTTP_content-type=test/file");
+	headers.push_back("HTTP_host=localhost:8080");
+	headers.push_back("HTTP_transfer-encoding=chunked");
+	// if (request.headers->find("X-Secret-Header-For-Test") != request.headers->end())
+		headers.push_back("HTTP_x-secret-header-for-test=1");
+
 
 	int j = 0;
     for (int i = len; i < (len + headersNmb) && j < (int)headers.size(); i++, j++)
@@ -443,7 +467,7 @@ char **         Handler::create_env(void)
 {
     char **result;
     int len = 0;
-    int headersNmb = 18;
+    int headersNmb = 23;
 
     while (this->env[len] != NULL) {
         len++;
@@ -511,23 +535,41 @@ int std_input = dup(0);
 
 		char buffer[INBUFSIZE];
         int res = 0;
+		size_t offset = 0;
 
-        while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
-          	body->append(buffer, 0, res);
+        while((res = read(fd[0], buffer, INBUFSIZE)) > 0) {
+			if (body->length() == 0) {
+				std::string temp(buffer);
+				offset = temp.find("\r\n\r\n");
+				// offset += 4;
+				body->append(temp, 0, offset);
+				body->append("\r\n\r\n");
+				offset += 4;
+				body->append(lltostr(res - offset, 16));
+				body->append("\r\n");
+				body->append(temp, offset, res - offset);
+				body->append("\r\n");
+			}
+			else
+			{
+				body->append(lltostr(res, 16));
+				body->append("\r\n");
+				body->append(buffer, 0, res);
+				body->append("\r\n");
+			}
+				// body->append(buffer, 0, res);
+		}
+		body->append("0\r\n\r\n");
         if (res < 0)
         {
         	kill(pid, SIGKILL);
         	status = 1;
         }
         if (status == 1)
-		{
 			error_message(500);
-			return (status);
-		}
 		dup2(std_input, 0);
         close(fd[0]);
     }
-
     return status;
 }
 
@@ -568,6 +610,9 @@ void Handler::error_message(int const & status_code)
 			this->response.append("405 Method Not Allowed\r\n");
 			allow_header();
 			break;
+		case 413:
+			this->response.append("413 Payload Too Large\r\n");
+			break;
 		case 500:
 			this->response.append("500 Internal Server Error\r\n");
 			break;
@@ -600,7 +645,7 @@ void Handler::allow_header(void)
 
 // Additional functions
 
-std::string Handler::subpath(void) // KATE
+std::string Handler::subpath(void)
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
@@ -779,7 +824,7 @@ char *          Handler::ft_strdup(const char *s)
     return (res);
 }
 
-std::string Handler::lltostr(long long number)
+std::string Handler::lltostr(long long number, int base)
 {
 	std::string res;
 	
@@ -787,11 +832,39 @@ std::string Handler::lltostr(long long number)
 	{
 		while (number > 0)
 		{
-			res.insert(res.begin(), (number % 10 + '0'));
-			number = number / 10;
+			if (base == 16 && number % base >= 10)
+				res.insert(res.begin(), (number % base + 87));
+			else
+				res.insert(res.begin(), (number % base + '0'));
+			number = number / base;
 		}
 	}
 	else
 		res.insert(res.begin(), (number + '0'));
 	return res;
 }
+
+
+
+// AUTH_TYPE=Anonymous
+// CONTENT_LENGTH=100000000
+// CONTENT_TYPE=test/file
+// GATEWAY_INTERFACE=CGI/1.1
+// PATH_INFO=/directory
+// PATH_TRANSLATED=/Users/hrema/Desktop/intra-uuid-f3a8d25e-8abf-4fff-beb5-99a712910710-3486716/webServ/YoupiBanane/directory
+// QUERY_STRING=
+// REMOTE_ADDR=127.0.0.1
+// REMOTE_IDENT=.localhost:8080
+// REMOTE_USER=
+// REQUEST_METHOD=POST
+// REQUEST_URI=/directory
+// SCRIPT_NAME=cgi_tester
+// SERVER_NAME=for_tester
+// SERVER_PORT=8080
+// SERVER_PROTOCOL=HTTP/1.1
+// SERVER_SOFTWARE=webServ
+// HTTP_accept-encoding=gzip
+// HTTP_content-type=test/file
+// HTTP_host=localhost:8080
+// HTTP_transfer-encoding=chunked
+// HTTP_user-agent=go-http-client/1.1

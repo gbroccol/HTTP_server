@@ -45,7 +45,7 @@ int Session::do_read(void)
 
 	this->buf.clear();
 
-	read_res = recv(this->fd, tmp, INBUFSIZE, MSG_DONTWAIT);
+	read_res = read(this->fd, tmp, INBUFSIZE);
 	if (read_res <= 0) {
 		if (read_res < 0) {
 		// internal server error?
