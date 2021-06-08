@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
+/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:31:32 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/01 14:10:54 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/06/07 15:01:40 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,9 @@
 
 struct 	configServer
 {
-		int 					port;
+        std::vector<int> 		port;
 		bool 					repeat_port;
+        std::string 			ip;
 		std::string 			server_name;
 		bool 					repeat_server_name;
 		std::string 			error_page;
@@ -54,9 +55,6 @@ class Config
 {
 
 private:
-	long 						_port;
-	char 						*_root;
-	std::string					_server_name;
 	
 	std::vector<configServer*> 	servers;
 	
@@ -64,12 +62,8 @@ public:
 	Config();
 	~Config();
 
-	long 						getPort(void) const;
-	configServer        		*getconfigServer(int index);
-	size_t						getSize(void);
-	char 						*getLogFile(void) const;
-	void 						setPort(long const & p);
-	void 						setLogFile(char * name);
+	configServer        		*getconfigServer(int index) const;
+	size_t						getSize(void) const;
 	bool						checkMainValLoc(location *locNode);
 	void						initLocNode(location *locNode);
 	void						initServNode(configServer *servNode);

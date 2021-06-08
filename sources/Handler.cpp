@@ -9,17 +9,21 @@ Handler::Handler(configServer const & config)
     this->_error401 = false;
 	return;
 }
-Handler::~Handler(void) { return; }
 
-std::string const & Handler::handle(data const & req, char **env, user & userData) // убрать конфиг и переменные окружения в отдельниый инит
+Handler::~Handler(void)
+{
+	this->response.clear();
+	return;
+}
+
+std::string const & Handler::handle(data const & req, user & userData)
 {
 
-    this->response.clear();                             // ответ для клиента
+  this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
 
 	this->request = req;
-	this->env = env;
-    this->_userData = userData;
+  this->_userData = userData;
 
 	if (!isRequestCorrect())
     {
@@ -52,6 +56,9 @@ std::string const & Handler::handle(data const & req, char **env, user & userDat
 
 	this->path.clear();
 	this->location_path.clear();
+	this->arrDir.clear();
+	this->contentLength.clear();
+	this->lastModTime.clear();
 	return this->response;
 }
 
@@ -60,16 +67,19 @@ int Handler::isRequestCorrect(void)
 	std::string methods = "GET, HEAD, PUT, POST, DELETE";
 	int status_code = 0;
 
+
 	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
-	else if (request.version != "HTTP/1.1")
-		status_code = 505;
+//	else if (request.version != "HTTP/1.1")
+//		status_code = 505;
 	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
 	 	status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
 	else if (!doesLocationAnswersMethod())
         status_code = 405;
+	else if (config.locations[index_location]->maxBody > 0 && (int)request.body.length() > config.locations[index_location]->maxBody)
+		status_code = 413;
 
 	if (status_code != 0)
 	{
@@ -255,45 +265,55 @@ void Handler::handle_post(void)
         return;
     }
 
-    // дополняем список переменных окружения (глобальная переменная g_env)
     char ** envPost = create_env();
 
-    if (!(envPost))
-        return error_message(500);
+   	if (!(envPost))
+	{
+		error_message(500);
+       return ;
+	}
 
-    std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
-    if (!ofs.good())
-        return error_message(500);
+	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+	if (!ofs.good())
+	{
+		error_message(500);
+		return;
+	}
+	ofs << request.body;
+	ofs.close();
 
-    ofs << request.body;
-    ofs.close();
-
-    char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
     std::string body;
     if (launch_cgi(args, envPost, &body) == 1)
-        return ft_free_array(envPost);
+    {
+        ft_free_array(envPost);
+        return;
+    }
 
-    size_t offset = body.find("\r\n\r\n");
-    if (offset == std::string::npos)
-        offset = 0;
-    offset += 4;
+  this->response.append("200 OK\r\n");
+	this->response.append("Server: Webserv/1.1\r\n");
+		
+	this->response.append("Date: ");
+	this->response.append(getPresentTime());
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
+		
+	this->response.append("Content-Location: ");
+	this->response.append(this->location_path);
+	this->response.append("\r\n");
+		
+	this->response.append("Transfer-Encoding: chunked\r\n");
 
-    /* headers */
-    addHeaderStatus(200);
-    addHeaderServer();
-    addHeaderDate();
-    addHeaderContentLanguage();
-    addHeaderContentLocation();
-    addHeaderContentLength(lltostr(body.length() - offset));
-    addHeaderLocation();
+	this->response.append("Location: ");
+	this->response.append(this->location_path);
+	this->response.append("\r\n");
 
-    this->response.append(body, 0, offset);
+	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
-    std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-
-    this->response.append(body, offset, body.length() - offset);
-    ft_free_array(envPost);
+	this->response.append(body);
+   	ft_free_array(envPost);
 }
 
 int Handler::updateFile(std::string & boundary)
@@ -462,7 +482,7 @@ void Handler::makeAutoindexPage(std::string * body)
 	}
 	body->append("</html>");
 	this->lastModTime = getPresentTime();
-	this->contentLength = lltostr(body->length());
+	this->contentLength = lltostr(body->length(), 10);
 }
 
 std::string Handler::getLink(std::string path)
@@ -488,7 +508,7 @@ int Handler::checkFile(void)
 	}
 	
 	fstat(fd, &file_stat);
-	this->contentLength = lltostr(file_stat.st_size);
+	this->contentLength = lltostr(file_stat.st_size, 10);
 	this->lastModTime = getLastModificationTime(file_stat.st_mtime);
 	close(fd);
 	return 0;
@@ -501,6 +521,7 @@ void Handler::loadBodyFromFile(std::string * body)
 	ss << ifs.rdbuf();
 	
 	body->append(ss.str());
+	ss.clear();
 	ifs.close();
 }
 
@@ -546,81 +567,121 @@ void Handler::handle_put(void)
 	this->response.append("\r\n");
 		
 	this->response.append("Content-Length: ");
-	this->response.append(lltostr(request.body.size())); //нужно подтянуть из хедера запроса, если он есть
+	this->response.append(lltostr(request.body.size(), 10)); //нужно подтянуть из хедера запроса, если он есть
 	this->response.append("\r\n");
 
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
-    this->response.append("\r\n");
+  this->response.append("\r\n");
 
 	if (status_code == 201)
 		this->response.append(request.body);
 }
 
 
+// void Handler::handle_post(void)
+// {
+//     char ** envPost = create_env();
 
-char **         Handler::add_headers(int len, int headersNmb, char **result)
+//    	if (!(envPost))
+// 	{
+// 		error_message(500);
+//        return ;
+// 	}
+
+// 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+// 	if (!ofs.good())
+// 	{
+// 		error_message(500);
+// 		return;
+// 	}
+// 	ofs << request.body;
+// 	ofs.close();
+
+// 	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+//     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
+//     std::string body;
+//     if (launch_cgi(args, envPost, &body) == 1)
+//     {
+//         ft_free_array(envPost);
+//         return;
+//     }
+
+//     this->response.append("200 OK\r\n");
+// 	this->response.append("Server: Webserv/1.1\r\n");
+		
+// 	this->response.append("Date: ");
+// 	this->response.append(getPresentTime());
+// 	this->response.append("\r\n");
+		
+// 	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
+		
+// 	this->response.append("Content-Location: ");
+// 	this->response.append(this->location_path);
+// 	this->response.append("\r\n");
+		
+// 	this->response.append("Transfer-Encoding: chunked\r\n");
+
+// 	this->response.append("Location: ");
+// 	this->response.append(this->location_path);
+// 	this->response.append("\r\n");
+
+// 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+
+// 	this->response.append(body);
+//    	ft_free_array(envPost);
+// }
+
+
+void         Handler::add_headers(std::vector<std::string> * headers)
 {
-    std::vector<std::string> headers;
-	std::string contentType = request.headers->find("Content-Type")->first;
-	std::string userAgent = request.headers->find("User-Agent")->first;
+	std::string contentType = request.headers->find("Content-Type")->second;
 
-	headers.push_back("AUTH_TYPE=Anonymous");
-	headers.push_back("CONTENT_LENGTH=" + lltostr(request.body.length()));
-	headers.push_back("CONTENT_TYPE=" + contentType);
-	headers.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	headers.push_back("PATH_INFO=" + request.path);
-	headers.push_back("PATH_TRANSLATED=" + this->path);
-	headers.push_back("QUERY_STRING=");
-	headers.push_back("REMOTE_ADDR=");
-	headers.push_back("REMOTE_IDENT=");
-	headers.push_back("REMOTE_USER=");
-    headers.push_back("REQUEST_METHOD=POST");
-	headers.push_back("REQUEST_URI=" + request.path);
-	headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
-	headers.push_back("SERVER_NAME=" + config.server_name);
-	headers.push_back("SERVER_PORT=" + lltostr(config.port));
-    headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
-	headers.push_back("HTTP_USER_AGENT=" + userAgent);
+	headers->push_back("AUTH_TYPE=Anonymous");
+	headers->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
+	headers->push_back("CONTENT_TYPE=" + contentType);
+	headers->push_back("GATEWAY_INTERFACE=CGI/1.1");
+	headers->push_back("PATH_INFO=" + request.path);
+	headers->push_back("PATH_TRANSLATED=" + this->path);
+	headers->push_back("QUERY_STRING=");
+	headers->push_back("REMOTE_ADDR=");
+	headers->push_back("REMOTE_IDENT=");
+	headers->push_back("REMOTE_USER=");
+    headers->push_back("REQUEST_METHOD=" + request.method);
+	headers->push_back("REQUEST_URI=" + request.path);
+	headers->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
+	// headers->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	headers->push_back("SERVER_NAME=" + config.server_name);
+	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
+    headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
+	headers->push_back("SERVER_SOFTWARE=Webserv/1.1");
 
-	int j = 0;
-    for (int i = len; i < (len + headersNmb) && j < (int)headers.size(); i++, j++)
-    {
-        if (!(result[i] = ft_strdup(headers[j].c_str())))
-        {
-            ft_free_array(result);
-            return (NULL);
-        }
-    }
-	return result;
+	std::multimap<std::string, std::string>::iterator it = request.headers->begin();
+	for (; it != request.headers->end(); it++)
+		headers->push_back("HTTP_" + it->first + "=" + it->second);
 }
 
 char **         Handler::create_env(void)
 {
     char **result;
-    int len = 0;
-    int headersNmb = 18;
+	std::vector<std::string> headers;
+	int headersNmb;
 
-    while (this->env[len] != NULL) {
-        len++;
-	}
+	add_headers(&headers);
+    headersNmb = headers.size();
 
-	if (!(result = (char **)calloc(len + headersNmb + 1, sizeof(char*))))
+	if (!(result = (char **)calloc(headersNmb + 1, sizeof(char*))))
         return NULL;
 
-
-    for (int i = 0; i < len && this->env[i]; i++)
+    for (int i = 0; i < headersNmb; i++)
     {
-        if (!(result[i] = ft_strdup(this->env[i])))
+        if (!(result[i] = ft_strdup(headers[i].c_str())))
         {
             ft_free_array(result);
             return (NULL);
         }
     }
-    add_headers(len, headersNmb, result);
     return result;
 }
 
@@ -670,23 +731,39 @@ int std_input = dup(0);
 
 		char buffer[INBUFSIZE];
         int res = 0;
+		size_t offset = 0;
 
-        while((res = read(fd[0], buffer, INBUFSIZE)) > 0)
-          	body->append(buffer, 0, res);
+        while((res = read(fd[0], buffer, INBUFSIZE)) > 0) {
+			if (body->length() == 0) {
+				std::string temp(buffer);
+				offset = temp.find("\r\n\r\n");
+				body->append(temp, 0, offset);
+				body->append("\r\n\r\n");
+				offset += 4;
+				body->append(lltostr(res - offset, 16));
+				body->append("\r\n");
+				body->append(temp, offset, res - offset);
+				body->append("\r\n");
+			}
+			else
+			{
+				body->append(lltostr(res, 16));
+				body->append("\r\n");
+				body->append(buffer, 0, res);
+				body->append("\r\n");
+			}
+		}
+		body->append("0\r\n\r\n");
         if (res < 0)
         {
         	kill(pid, SIGKILL);
         	status = 1;
         }
         if (status == 1)
-		{
 			error_message(500);
-			return (status);
-		}
 		dup2(std_input, 0);
         close(fd[0]);
     }
-
     return status;
 }
 
@@ -730,6 +807,9 @@ void Handler::error_message(int const & status_code)
 			this->response.append("405 Method Not Allowed\r\n");
 			allow_header();
 			break;
+		case 413:
+			this->response.append("413 Payload Too Large\r\n");
+			break;
 		case 500:
 			this->response.append("500 Internal Server Error\r\n");
 			break;
@@ -762,7 +842,7 @@ void Handler::allow_header(void)
 
 // Additional functions
 
-std::string Handler::subpath(void) // KATE
+std::string Handler::subpath(void)
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
@@ -993,13 +1073,13 @@ void		    Handler::ft_free_array(char **to_free)
     char	**tmp;
 
     tmp = to_free;
-//    while (*tmp != NULL)
-//    {
-//        free(*tmp);
-//        tmp++;
-//    }
-//    free(to_free);
-//    to_free = NULL;
+   while (*tmp != NULL)
+   {
+       free(*tmp);
+       tmp++;
+   }
+   free(to_free);
+   to_free = NULL;
 }
 
 char *          Handler::ft_strdup(const char *s)
@@ -1022,7 +1102,7 @@ char *          Handler::ft_strdup(const char *s)
     return (res);
 }
 
-std::string Handler::lltostr(long long number)
+std::string Handler::lltostr(long long number, int base)
 {
 	std::string res;
 	
@@ -1030,8 +1110,11 @@ std::string Handler::lltostr(long long number)
 	{
 		while (number > 0)
 		{
-			res.insert(res.begin(), (number % 10 + '0'));
-			number = number / 10;
+			if (base == 16 && number % base >= 10)
+				res.insert(res.begin(), (number % base + 87));
+			else
+				res.insert(res.begin(), (number % base + '0'));
+			number = number / base;
 		}
 	}
 	else

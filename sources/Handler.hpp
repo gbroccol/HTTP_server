@@ -34,9 +34,8 @@ private:
 	std::string 	location_path;
 
 	configServer	config;
-	char            **env;
 	user            _userData;
-
+  
 	std::vector<std::string> arrDir;
 	bool			isDir;
 
@@ -51,7 +50,7 @@ public:
     Handler(configServer const & config);
 	~Handler(void);
 
-	std::string const & handle(data const & req, char **env, user & userData);
+	std::string const & handle(data const & request, user & userData);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
@@ -69,7 +68,7 @@ public:
 	/* POST */
 	void handle_post(void);
 	char ** create_env(void);
-    char ** add_headers(int len, int headersNmb, char **result);
+  void add_headers(std::vector<std::string> * headers);
 	int launch_cgi(char **args, char ** env, std::string * body);
 	int updateFile(std::string & boundary);
     int createNewFile(std::string fileName, std::string content, std::string fileExtension);
@@ -83,7 +82,7 @@ public:
 	void error_message(int const & status_code);
 	void allow_header(void);
 
-	std::string lltostr(long long number);
+	std::string lltostr(long long number, int base);
 
 int isFiles(std::string path, std::string locPath);
 int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);

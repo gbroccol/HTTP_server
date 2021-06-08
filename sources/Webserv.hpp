@@ -32,8 +32,8 @@
 # include <ctime>
 
 # define INBUFSIZE 1024
-# define LISTEN_QLEN 32
-# define INIT_SESS_ARR_SIZE 32
+# define LISTEN_QLEN 128
+# define INIT_SESS_ARR_SIZE 128
 
 # define REQUEST_PARSE 0
 # define REQUEST_READY 1

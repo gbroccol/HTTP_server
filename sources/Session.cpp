@@ -27,13 +27,19 @@ Session::Session(configServer config, Authentication * authentication)
 	return; 
 }
 
-Session::~Session(void) { return; }
+Session::~Session(void) 
+{
+	delete this->handler;
+	delete this->parseRequest;
+	return; 
+}
 
 int Session::send_message(void)
 {
 	if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
 		this->state = fsm_error;
+		wr_buf.clear();
 		return 0;
 	}
 	wr_buf.clear();
@@ -47,7 +53,7 @@ int Session::do_read(void)
 
 	this->buf.clear();
 
-	read_res = recv(this->fd, tmp, INBUFSIZE, MSG_DONTWAIT);
+	read_res = read(this->fd, tmp, INBUFSIZE);
 	if (read_res <= 0) {
 		if (read_res < 0) {
 		// internal server error?
@@ -96,7 +102,7 @@ void Session::handle_request(fd_set * writefds)
 //                std::cout << RED << message << std::endl;
 //            }
         }
-        this->wr_buf = this->handler->handle(parseRequest->getData(), this->env, this->_user);
+        this->wr_buf = this->handler->handle(parseRequest->getData(), this->_user);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
 
