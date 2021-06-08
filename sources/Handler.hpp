@@ -72,7 +72,7 @@ public:
     char ** add_headers(int len, int headersNmb, char **result);
 	int launch_cgi(char **args, char ** env, std::string * body);
 	int updateFile(std::string & boundary);
-    int createNewFile(std::string fileName, std::string content);
+    int createNewFile(std::string fileName, std::string content, std::string fileExtension);
 
 	/* DELETE */
     void handle_delete(void);
@@ -98,6 +98,7 @@ int isLocation(std::vector<location *> locations, std::string path);
     /*
      * ADD HEADERS
      */
+
     void addHeaderStatus(int status);
     void addHeaderServer(void);
     void addHeaderDate(void);
@@ -106,17 +107,19 @@ int isLocation(std::vector<location *> locations, std::string path);
     void addHeaderContentLength(std::string size);
     void addHeaderLocation(void);
     void addHeaderContentType(void);
+    void addHeaderLastModified(void);
 
+  	/*
+  	 * libft
+  	 */
 
+    int             ft_strlen(const char *str);
+    void		    ft_free_array(char **to_free);
+    char *          ft_strdup(const char *s);
 
-
-
-
-
-
-
-
-
+    /*
+     * extra
+     */
 
     void            getFilesOrDirFromRoot(std::string LocPath);
     std::string getLink(std::string path);
@@ -124,11 +127,6 @@ int isLocation(std::vector<location *> locations, std::string path);
     int checkFile(void);
     void loadBodyFromFile(std::string * body);
 
-  
-  	/* libft */
-    int             ft_strlen(const char *str);
-    void		    ft_free_array(char **to_free);
-    char *          ft_strdup(const char *s);
 };
 
 #endif
