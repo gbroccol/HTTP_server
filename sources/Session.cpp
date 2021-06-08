@@ -25,13 +25,19 @@ Session::Session(configServer config, Authentication * authentication)
 	return; 
 }
 
-Session::~Session(void) { return; }
+Session::~Session(void) 
+{
+	delete this->handler;
+	delete this->parseRequest;
+	return; 
+}
 
 int Session::send_message(void)
 {
 	if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
 		this->state = fsm_error;
+		wr_buf.clear();
 		return 0;
 	}
 	wr_buf.clear();

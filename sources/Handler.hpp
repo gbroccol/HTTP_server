@@ -62,7 +62,7 @@ public:
 
 	void handle_post(void);
 	char ** create_env(void);
-    char ** add_headers(int headersNmb, char **result);
+    void add_headers(std::vector<std::string> * headers);
 
 	int launch_cgi(char **args, char ** env, std::string * body);
 

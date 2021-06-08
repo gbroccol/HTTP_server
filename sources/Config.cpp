@@ -74,6 +74,7 @@ void				Config::getFile(std::string file)
 		file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
 		while(file_in_str.length() > 0)
 			file_in_str =  parseStr(file_in_str);
+		fconfig.close();
 	}
 	else
 		throw Config::FileIsNotCorrectException();
@@ -177,7 +178,8 @@ bool checkErrorPage(std::string path)
         if(tmp.length() == 1 || !err_page.is_open())
             return(false);
     }
-    else if(index < 0)
+	err_page.close();
+    if(index < 0)
         return(false);
     return (true);
 }
@@ -200,7 +202,8 @@ bool checkIndex(std::string root, std::string indexPath)
         if(tmp.length() == 1 || !fconfig.is_open())
             return(false);
     }
-    else if(index < 0)
+	fconfig.close();
+    if(index < 0)
         return(false);
     return (true);
 }

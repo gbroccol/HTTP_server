@@ -11,10 +11,11 @@ Handler::Handler(configServer const & config)
 }
 Handler::~Handler(void)
 {
+	this->response.clear();
 	return;
 }
 
-std::string const & Handler::handle(data const & req, bool _signIn) // убрать конфиг и переменные окружения в отдельниый инит
+std::string const & Handler::handle(data const & req, bool _signIn)
 {
 
     this->response.clear();                             // ответ для клиента
@@ -48,6 +49,9 @@ std::string const & Handler::handle(data const & req, bool _signIn) // убра�
 
 	this->path.clear();
 	this->location_path.clear();
+	this->arrDir.clear();
+	this->contentLength.clear();
+	this->lastModTime.clear();
 	return this->response;
 }
 
@@ -178,10 +182,12 @@ void Handler::handle_401(void)
     this->response.append("Content-Length: ");
     this->response.append(this->contentLength);
     this->response.append("\r\n");
+	
 
     this->response.append("Last-Modified: ");
     this->response.append(this->lastModTime);
     this->response.append("\r\n");
+	
 
     this->response.append("\r\n");
 
@@ -283,6 +289,7 @@ void Handler::loadBodyFromFile(std::string * body)
 	ss << ifs.rdbuf();
 	
 	body->append(ss.str());
+	ss.clear();
 	ifs.close();
 }
 
@@ -368,11 +375,6 @@ void Handler::handle_post(void)
         return;
     }
 
-	// size_t offset = body.find("\r\n\r\n");
-	// if (offset == std::string::npos)
-	// 	offset = 0;
-	// offset += 4;
-
     this->response.append("200 OK\r\n");
 	this->response.append("Server: Webserv/1.1\r\n");
 		
@@ -386,92 +388,66 @@ void Handler::handle_post(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
-	// this->response.append("Content-Length: ");
-	// this->response.append(lltostr(body.length() - offset), 10);
-	// this->response.append("\r\n");
-
 	this->response.append("Transfer-Encoding: chunked\r\n");
 
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 
-	// this->response.append(body, 0, offset);
-
 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
-	// this->response.append(body, offset, body.length() - offset);
 	this->response.append(body);
-
-
-	// std::ofstream resp("RESPONSE", std::ios_base::trunc);
-	// if (!resp.good())
-	// {
-	// 	error_message(500);
-	// 	return;
-	// }
-	// resp << response;
-	// resp.close();
-
-
    	ft_free_array(envPost);
 }
 
-char **         Handler::add_headers(int headersNmb, char **result)
+void         Handler::add_headers(std::vector<std::string> * headers)
 {
-    std::vector<std::string> headers;
 	std::string contentType = request.headers->find("Content-Type")->second;
-	std::string userAgent = request.headers->find("User-Agent")->second;
 
-	headers.push_back("AUTH_TYPE=Anonymous");
-	headers.push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
-	headers.push_back("CONTENT_TYPE=" + contentType);
-	headers.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	headers.push_back("PATH_INFO=" + request.path);
-	headers.push_back("PATH_TRANSLATED=" + this->path);
-	headers.push_back("QUERY_STRING=");
-	headers.push_back("REMOTE_ADDR=");
-	headers.push_back("REMOTE_IDENT=");
-	headers.push_back("REMOTE_USER=");
-    headers.push_back("REQUEST_METHOD=POST");
-	headers.push_back("REQUEST_URI=" + request.path);
-	headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
-	headers.push_back("SERVER_NAME=" + config.server_name);
-	headers.push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
-    headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
-	headers.push_back("HTTP_user-agent=" + userAgent);
-	headers.push_back("HTTP_accept-encoding=gzip");
-	headers.push_back("HTTP_content-type=test/file");
-	headers.push_back("HTTP_host=localhost:8080");
-	headers.push_back("HTTP_transfer-encoding=chunked");
-	// if (request.headers->find("X-Secret-Header-For-Test") != request.headers->end())
-		headers.push_back("HTTP_x-secret-header-for-test=1");
+	headers->push_back("AUTH_TYPE=Anonymous");
+	headers->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
+	headers->push_back("CONTENT_TYPE=" + contentType);
+	headers->push_back("GATEWAY_INTERFACE=CGI/1.1");
+	headers->push_back("PATH_INFO=" + request.path);
+	headers->push_back("PATH_TRANSLATED=" + this->path);
+	headers->push_back("QUERY_STRING=");
+	headers->push_back("REMOTE_ADDR=");
+	headers->push_back("REMOTE_IDENT=");
+	headers->push_back("REMOTE_USER=");
+    headers->push_back("REQUEST_METHOD=" + request.method);
+	headers->push_back("REQUEST_URI=" + request.path);
+	headers->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
+	// headers->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	headers->push_back("SERVER_NAME=" + config.server_name);
+	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
+    headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
+	headers->push_back("SERVER_SOFTWARE=Webserv/1.1");
 
-
-	int j = 0;
-    for (int i = 0; i < headersNmb && j < (int)headers.size(); i++, j++)
-    {
-        if (!(result[i] = ft_strdup(headers[j].c_str())))
-        {
-            ft_free_array(result);
-            return (NULL);
-        }
-    }
-	return result;
+	std::multimap<std::string, std::string>::iterator it = request.headers->begin();
+	for (; it != request.headers->end(); it++)
+		headers->push_back("HTTP_" + it->first + "=" + it->second);
 }
 
 char **         Handler::create_env(void)
 {
     char **result;
-    int headersNmb = 23;
+	std::vector<std::string> headers;
+	int headersNmb;
 
+	add_headers(&headers);
+    headersNmb = headers.size();
 
 	if (!(result = (char **)calloc(headersNmb + 1, sizeof(char*))))
         return NULL;
 
-    add_headers(headersNmb, result);
+    for (int i = 0; i < headersNmb; i++)
+    {
+        if (!(result[i] = ft_strdup(headers[i].c_str())))
+        {
+            ft_free_array(result);
+            return (NULL);
+        }
+    }
     return result;
 }
 
@@ -527,7 +503,6 @@ int std_input = dup(0);
 			if (body->length() == 0) {
 				std::string temp(buffer);
 				offset = temp.find("\r\n\r\n");
-				// offset += 4;
 				body->append(temp, 0, offset);
 				body->append("\r\n\r\n");
 				offset += 4;
@@ -543,7 +518,6 @@ int std_input = dup(0);
 				body->append(buffer, 0, res);
 				body->append("\r\n");
 			}
-				// body->append(buffer, 0, res);
 		}
 		body->append("0\r\n\r\n");
         if (res < 0)
@@ -781,13 +755,13 @@ void		    Handler::ft_free_array(char **to_free)
     char	**tmp;
 
     tmp = to_free;
-//    while (*tmp != NULL)
-//    {
-//        free(*tmp);
-//        tmp++;
-//    }
-//    free(to_free);
-//    to_free = NULL;
+   while (*tmp != NULL)
+   {
+       free(*tmp);
+       tmp++;
+   }
+   free(to_free);
+   to_free = NULL;
 }
 
 char *          Handler::ft_strdup(const char *s)
