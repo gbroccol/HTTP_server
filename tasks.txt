@@ -5,15 +5,15 @@
 - добавить функции для хедоров https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types 
 - DELETE (use telnet or curl)
 - leaks
-- error pages
++ error pages
 - 401 code
 - HTTP redirection (for example, from users/ to home_page) ?
 
 ЛЕНА
 - different configs (default, for tester etc.)
 - server name
-- CGI in config 
-- check if the same port is not used in config
++ CGI in config
++ check if the same port is not used in config
 
 КАТЯ
 - CGI working with php-cgi/python

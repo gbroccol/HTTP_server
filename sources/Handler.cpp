@@ -51,8 +51,8 @@ std::string const & Handler::handle(data const & req, user & userData)
         handle_delete();
 
 
-	if (request.method != "POST")
-		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//	if (request.method != "POST")
+//		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->path.clear();
 	this->location_path.clear();
@@ -500,7 +500,7 @@ int Handler::checkFile(void)
 	
 	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
 	{
-		if (errno == ENOENT || errno == EFAULT)
+		if (errno == ENOENT || errno == EFAULT || errno == ENOTDIR) //  (int)errno == 20)
 			error_message(404);
 		else
 			error_message(500);
@@ -523,6 +523,17 @@ void Handler::loadBodyFromFile(std::string * body)
 	body->append(ss.str());
 	ss.clear();
 	ifs.close();
+}
+
+void Handler::loadBodyFromFile(std::string * body, std::string path)
+{
+    std::ifstream ifs(path.c_str());
+    std::stringstream ss;
+    ss << ifs.rdbuf();
+
+    body->append(ss.str());
+    ss.clear();
+    ifs.close();
 }
 
 void Handler::handle_put(void)
@@ -792,37 +803,76 @@ std::string Handler::getLastModificationTime(time_t const & time)
 
 void Handler::error_message(int const & status_code)
 {
+//    <h1>404</h1>
+//    <h2>UH OH! You're lost.</h2>
+
+    std::string message;
+
 	switch(status_code)
 	{
 		case 400:
-			this->response.append("400 Bad Request\r\n");
+            message = "Bad Request";
 			break;
 	    case 403:
-            this->response.append("403 Forbidden\r\n");
+            message = "Forbidden";
             break;
 		case 404:
-			this->response.append("404 Not found\r\n");
+            message = "Not found";
 			break;
 		case 405:
-			this->response.append("405 Method Not Allowed\r\n");
+            message = "Method Not Allowed";
 			allow_header();
 			break;
 		case 413:
-			this->response.append("413 Payload Too Large\r\n");
+            message = "Payload Too Large";
 			break;
 		case 500:
-			this->response.append("500 Internal Server Error\r\n");
+            message = "Internal Server Error";
 			break;
 		case 501:
-			this->response.append("501 Not Implemented\r\n");
+            message = "Not Implemented";
 			allow_header();
 			break;
 		case 505:
-			this->response.append("505 HTTP Version Not Supported\r\n");
+            message = "HTTP Version Not Supported";
 			break;
 	}
-    this->response.append("Content-Length: 0\r\n\r\n");
-	return;
+    this->response.append(std::to_string(status_code));
+    this->response.append(" ");
+    this->response.append(message);
+    this->response.append("\r\n");
+
+    std::string body;
+    loadBodyFromFile(&body, "./content/error_page/error.html"); // path to error page from config
+
+    size_t pos = body.find("<?php errorStatus(); ?>", 0);
+    if (pos != std::string::npos)
+    {
+        std::string errorStatus = "<h1></h1><h2></h2>";
+        errorStatus.insert(13, message);
+        errorStatus.insert(4, std::to_string(status_code));
+
+        body.erase(pos, 23);
+        body.insert(pos, errorStatus);
+
+//        std::cout << body << std::endl;
+
+    }
+
+    addHeaderContentLength(std::to_string(body.length()));
+
+    this->response.append("Location: /error_page/");
+    this->response.append("\r\n");
+
+    this->response.append("Content-Location: /error_page/");
+    this->response.append("\r\n");
+
+
+    this->response.append("\r\n");
+    this->response.append(body);
+
+    std::cout << this->response  << std::endl;
+	return ;
 }
 
 void Handler::allow_header(void)

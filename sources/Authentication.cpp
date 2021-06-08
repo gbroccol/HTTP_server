@@ -2,9 +2,9 @@
 
 Authentication::Authentication()
 {
-    addNewUser("gbroccol", "password");
-    addNewUser("ssnowbir", "password");
-    addNewUser("pvivian", "password");
+    addNewUser("gbroccol", "1");
+    addNewUser("ssnowbir", "1");
+    addNewUser("pvivian", "1");
 }
 
 Authentication::~Authentication() {}
