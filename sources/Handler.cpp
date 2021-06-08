@@ -733,7 +733,8 @@ int std_input = dup(0);
         int res = 0;
 		size_t offset = 0;
 
-        while((res = read(fd[0], buffer, INBUFSIZE)) > 0) {
+        while((res = read(fd[0], buffer, INBUFSIZE - 1)) > 0) {
+			buffer[res] = 0;
 			if (body->length() == 0) {
 				std::string temp(buffer);
 				offset = temp.find("\r\n\r\n");

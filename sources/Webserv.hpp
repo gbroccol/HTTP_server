@@ -31,7 +31,7 @@
 # include <exception>
 # include <ctime>
 
-# define INBUFSIZE 1024
+# define INBUFSIZE 4096
 # define LISTEN_QLEN 128
 # define INIT_SESS_ARR_SIZE 128
 
