@@ -53,7 +53,7 @@ public:
 private:
 
 	Session(void);
-	bool _signIn;
+    user    _user;
 };
 
 #endif
