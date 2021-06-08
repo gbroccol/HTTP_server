@@ -19,9 +19,11 @@ Session::Session(configServer config, Authentication * authentication)
 {
 	this->parseRequest = new ParseRequest;
     this->handler      = new Handler(config);
-    this->_signIn      = false;
+
+    this->_user.signIn = false;
+
     this->authentication = authentication;
-	fcntl(this->fd, F_SETFL, O_NONBLOCK);
+//	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 
@@ -75,14 +77,26 @@ void Session::handle_request(fd_set * writefds)
     this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
     if (parseRequest->isRequestReady()) 
     {
-        std::multimap <std::string, std::string>::iterator itCL = parseRequest->getData().headers->find("Authorization");
+        data dataRequest = parseRequest->getData();
+//        std::multimap <std::string, std::string>::iterator itCL = parseRequest->getData().headers->find("Authorization");
 
-        if (itCL != parseRequest->getData().headers->end())
+        if (dataRequest.path == "/home_page/index.html")
+            this->_user.signIn = false;
+
+        if (this->_user.signIn == false && dataRequest.formData->size() != 0 && dataRequest.path.find("authorize"))
         {
-            std::cout << "_signIn ON" << std::endl;
-            this->_signIn = true;
+            if (authentication->checkAuthenticationData(dataRequest.formData->find("login")->second, dataRequest.formData->find("password")->second))
+            {
+                this->_user.signIn = true;
+                this->_user.login = dataRequest.formData->find("login")->second;
+            }
+
+//            catch (std::string message)
+//            {
+//                std::cout << RED << message << std::endl;
+//            }
         }
-        this->wr_buf = this->handler->handle(parseRequest->getData(), this->env, this->_signIn);
+        this->wr_buf = this->handler->handle(parseRequest->getData(), this->env, this->_user);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
 

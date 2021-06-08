@@ -32,33 +32,37 @@ class ParseRequest
 
 		ParseRequest &			operator=( ParseRequest const & rhs );
 
-		bool					addToBuffer(std::string str); // change to void *
-
+		bool					addToBuffer(std::string str);
 		void					parseHTTPRequest();
-		void					parseStartingLine(std::string startLine);       // part 1
-		void					parseHeaders(std::string header);               // part 2
-		int 					parseBodyTE();                                  // part 3 transferEncoding BODY
-
-
+		/*
+		 * parse STARTING LINE
+		 */
+		void					parseStartingLine(std::string startLine);
+		/*
+		 * parse HEADERS
+		 */
+		void					parseHeaders(std::string header);
+		/*
+		 * parse BODY
+		 */
         void					checkIfBody();
-
+		int 					parseBodyChang();
+        int                     parseContentLength();
+        /*
+         * clear
+         */
 		void					clearData();
-
-
-
-
-//		std::string				getBuff();
-
+		/*
+		 * get
+		 */
         data                    getData() const;
 		bool					isRequestReady(void) const;
-
-
 
 	private:
 
 		std::string				_buff;
         size_t					_parsPart;
-		struct data				_data; // tmp_data
+		struct data				_data;
         size_t                  _packetPart;
 };
 

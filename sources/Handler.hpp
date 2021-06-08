@@ -35,7 +35,7 @@ private:
 
 	configServer	config;
 	char            **env;
-	bool            _signIn;
+	user            _userData;
 
 	std::vector<std::string> arrDir;
 	bool			isDir;
@@ -51,21 +51,31 @@ public:
     Handler(configServer const & config);
 	~Handler(void);
 
-	std::string const & handle(data const & request, char **env, bool _signIn);
+	std::string const & handle(data const & req, char **env, user & userData);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
     std::string subpath(void);
 
+    /* 401 */
     void handle_401(void);
+
+    /* HEAD */
     void handle_head(void);
+
+    /* PUT */
 	void handle_put(void);
 
+	/* POST */
 	void handle_post(void);
 	char ** create_env(void);
     char ** add_headers(int len, int headersNmb, char **result);
-
 	int launch_cgi(char **args, char ** env, std::string * body);
+	int updateFile(std::string & boundary);
+    int createNewFile(std::string fileName, std::string content, std::string fileExtension);
+
+	/* DELETE */
+    void handle_delete(void);
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);
@@ -84,17 +94,39 @@ int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
 void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
 						int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
 int isLocation(std::vector<location *> locations, std::string path);
-  
-  	/* libft */
+
+    /*
+     * ADD HEADERS
+     */
+
+    void addHeaderStatus(int status);
+    void addHeaderServer(void);
+    void addHeaderDate(void);
+    void addHeaderContentLanguage(void);
+    void addHeaderContentLocation(void);
+    void addHeaderContentLength(std::string size);
+    void addHeaderLocation(void);
+    void addHeaderContentType(void);
+    void addHeaderLastModified(void);
+
+  	/*
+  	 * libft
+  	 */
+
     int             ft_strlen(const char *str);
     void		    ft_free_array(char **to_free);
     char *          ft_strdup(const char *s);
 
+    /*
+     * extra
+     */
+
     void            getFilesOrDirFromRoot(std::string LocPath);
     std::string getLink(std::string path);
-	void makeAutoindexPage(std::string * body);
-	int checkFile(void);
-	void loadBodyFromFile(std::string * body);
+    void makeAutoindexPage(std::string * body);
+    int checkFile(void);
+    void loadBodyFromFile(std::string * body);
+
 };
 
 #endif

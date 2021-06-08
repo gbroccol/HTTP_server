@@ -2,23 +2,9 @@
 
 Authentication::Authentication()
 {
-//    _itUser = _credentials.end();
-    _credentials.insert(std::pair<std::string, std::string> ("login", "password"));
-
-    std::map<std::string, std::string>::iterator it;
-    it = _credentials.find("login");
-
-   // std::cout << PURPLE << " First user for testing is LOGIN - " << it->first << " PASSWORD - " << it->second << BW << std::endl;
-
-//    addNewUser("login", "password");
-//    addNewUser("gbroccol", "password");
-//
-//    std::cout << "checkAuthenticationData" << std::endl;
-//    checkAuthenticationData("login", "password");
-//    checkAuthenticationData("gbroccol", "password");
-//    checkAuthenticationData("gbroccol", "false");
-//    checkAuthenticationData("false", "password");
-//    checkAuthenticationData("false", "false");
+    addNewUser("gbroccol", "password");
+    addNewUser("ssnowbir", "password");
+    addNewUser("pvivian", "password");
 }
 
 Authentication::~Authentication() {}
@@ -39,8 +25,8 @@ void Authentication::addNewUser(std::string login, std::string password) // call
     }
 
     _credentials.insert(std::pair<std::string, std::string> (login, password));
-    std::map<std::string, std::string>::iterator it = _credentials.find(login);
-    std::cout << PURPLE << " New user for testing is LOGIN - " << it->first << " PASSWORD - " << it->second << BW << std::endl;
+//    std::map<std::string, std::string>::iterator it = _credentials.find(login);
+//    std::cout << PURPLE << " New user for testing is LOGIN - " << it->first << " PASSWORD - " << it->second << BW << std::endl;
 }
 
 bool Authentication::checkUserExist(std::string login)
@@ -58,21 +44,27 @@ bool Authentication::checkAuthenticationData(std::string login, std::string pass
     std::map<std::string, std::string>::iterator it;
     it = _credentials.find(login);
 
-    try {
+//    try {
         std::string _loginNotExists = "Login is not exists";
         std::string _passwordNotCorrect = "Password is not correct";
 
         if (it == _credentials.end())
-            throw _loginNotExists;
+        {
+//            throw _loginNotExists;
+            return false;
+        }
         if (it->second != password)
-            throw _passwordNotCorrect;
-    }
-    catch (std::string message)
-    {
+        {
+//            throw _passwordNotCorrect;
+            return false;
+        }
+//    }
+//    catch (std::string message)
+//    {
 //        std::cerr << message << '\n';
-        std::cout << RED << message << std::endl;
-        return false;
-    }
-    std::cout << GREEN << "TRUE - user exists" << std::endl;
+//        std::cout << RED << message << std::endl;
+//        return false;
+//    }
+//    std::cout << GREEN << "TRUE - user exists" << std::endl;
     return true;
 }
