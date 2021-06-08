@@ -6,7 +6,7 @@
 #    By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/05/05 16:47:32 by pvivian           #+#    #+#              #
-#    Updated: 2021/06/08 19:14:47 by pvivian          ###   ########.fr        #
+#    Updated: 2021/06/08 19:17:14 by pvivian          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ NAME =		webserv
 
 CC =		clang++
 
-FLAGS =		-Wall -Werror -Wextra -g -MMD  -I ./sources -std=c++98 -fsanitize=address
+FLAGS =		-Wall -Werror -Wextra -g -MMD  -I ./sources -std=c++98
 # -fsanitize=address
 # -std=c++98
 
