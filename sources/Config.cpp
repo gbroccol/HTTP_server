@@ -8,11 +8,6 @@ Config::Config()
 {
 }
 
-// Config::Config( const Config & src )
-// {
-// }
-
-
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
@@ -21,44 +16,20 @@ Config::~Config()
 {
 }
 
-
-/*
-** --------------------------------- OVERLOAD ---------------------------------
-*/
-
-// Config &				Config::operator=( Config const & rhs )
-// {
-// 	//if ( this != &rhs )
-// 	//{
-// 		//this->_value = rhs.getValue();
-// 	//}
-// 	return *this;
-// }
-
-// std::ostream &			operator<<( std::ostream & o, Config const & i )
-// {
-// 	//o << "Value = " << i.getValue();
-// 	return o;
-// }
-
-
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
-bool IsParenthesesOrDash(char c)
-{
-    switch(c)
-    {
-    case '\t':
-    case '\r':
-    case ' ':
-	case '\n':
-        return true;
-    default:
-        return false;
+bool                        IsParenthesesOrDash(char c) {
+    switch (c) {
+        case '\t':
+        case '\r':
+        case ' ':
+        case '\n':
+            return true;
+        default:
+            return false;
     }
 }
-
 void				Config::getFile(std::string file)
 {
 	std::string file_in_str;
@@ -71,7 +42,7 @@ void				Config::getFile(std::string file)
 			throw Config::FileNotOpenException();
 		while (getline(fconfig, tmp))
 			file_in_str += tmp;
-		file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
+        file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
 		while(file_in_str.length() > 0)
 			file_in_str =  parseStr(file_in_str);
 		fconfig.close();
@@ -123,6 +94,8 @@ std::string				Config::parseStr(std::string str)
             str.erase(0, pos + 1);
             if(checkMainValServ(servNode) == true)
             {
+                if(servNode->repeat_error_page == false) {
+                    servNode->error_page = "./content/error_page/default_error_page.html"; }
                 this->servers.push_back(servNode);
                 break ;
             }
@@ -130,25 +103,6 @@ std::string				Config::parseStr(std::string str)
                 throw Config::IncorrectConfigException();
         }
     }
-    // std::cout <<servers.size()<<std::endl;
-    // for(unsigned int i = 0; i < servers.size(); i++)
-    // {
-    // 	std::cout <<"configServer data["<< i<< "]: "<<std::endl;
-    // 	std::cout <<"                       error_page ["<< i<< "]: "<<servers[i]->error_page<<" flag: "<<servers[i]->repeat_error_page<<std::endl;
-    // 	std::cout <<"                       port       ["<< i<< "]: "<<servers[i]->port<<" flag: "<<servers[i]->repeat_port<<std::endl;
-    // 	std::cout <<"                       server_name["<< i<< "]: "<<servers[i]->server_name<<" flag: "<<servers[i]->repeat_server_name<<std::endl;
-    // 	std::cout <<servers[i]->locations.size()<<std::endl;
-    // 	for(unsigned int j = 0; j < servers[i]->locations.size(); j++)
-    // 	{
-    // 		std::cout <<std::setw(20) <<"location data["<< j<< "]: "<<std::endl;
-    // 		std::cout <<std::setw(40) <<"index ["<< j<< "]: "<<servers[i]->locations[j]->index<< " flag: "<<servers[i]->locations[j]->repeat_index<<std::endl;
-    // 		std::cout <<std::setw(40) <<"maxBody["<< j<< "]: "<<servers[i]->locations[j]->maxBody<<" flag: "<<servers[i]->locations[j]->repeat_maxBody<<std::endl;
-    // 		std::cout <<std::setw(40) <<"path["<< j<< "]: "<<servers[i]->locations[j]->path<<" flag: "<<servers[i]->locations[j]->repeat_path<<std::endl;
-    // 		std::cout <<std::setw(40) <<"root ["<< j<< "]: "<<servers[i]->locations[j]->root<<" flag: "<<servers[i]->locations[j]->repeat_root<<std::endl;
-    // 		for(unsigned int h = 0; h < servers[i]->locations[j]->method.size(); h++)
-    // 			std::cout <<std::setw(40) <<"method ["<< h<< "]: "<<servers[i]->locations[j]->method[h]<<" flag: "<<servers[i]->locations[j]->repeat_method<<std::endl;
-    // 	}
-    // }
     return (str);
 }
 
@@ -302,6 +256,13 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
         locNode->index.assign(tmp);
         locNode->repeat_index = true;
     }
+    else if(save == "cgi")
+    {
+        if(tmp.empty() || locNode->repeat_cgi == true || checkCgi(tmp) == false)
+            throw Config::IncorrectConfigException();
+        locNode->cgi.assign(tmp);
+        locNode->repeat_cgi = true;
+    }
     else if(save == "method")
     {
         if(tmp.empty() || checkTokens(save, tmp, METHOD) == false)
@@ -334,59 +295,21 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     }
 }
 
-void getPortsAndIP(configServer *servNode, std::string portsStr)
-{
-    int tmpPort;
-    std::string tmp;
-
-    for(size_t i = 0; i < portsStr.length(); i++)
-    {
-        if(portsStr[i] > '9' ||  portsStr[i] < '0')
-        {
-            if (portsStr[i] != ',' && portsStr[i] != ':')
-                throw Config::IncorrectConfigException();
-        }
-        if(portsStr[i] == ':')
-        {
-            if(!tmp.empty())
-            {
-                tmpPort = std::stoi(tmp);
-                if(tmpPort > 65535 || tmpPort < 0)
-                    throw Config::IncorrectConfigException();
-                servNode->port.push_back(tmpPort);
-                tmp.clear();
-            }
-            while(++i < portsStr.length())
-            {
-                tmp.push_back(portsStr[i]);
-            }
-            if(tmp.empty())
-                throw Config::IncorrectConfigException();
-            servNode->ip.assign(tmp);
-            continue;
-        }
-        if( portsStr[i] == ',')
-        {
-            tmpPort = std::stoi(tmp);
-            if(tmpPort > 65535 || tmpPort < 0)
-                throw Config::IncorrectConfigException();
-            servNode->port.push_back(tmpPort);
-            tmp.clear();
-            continue;
-        }
-        tmp.push_back(portsStr[i]);
-    }
-}
-
 void Config::serverTokenSearch(std::string save, std::string tmp, configServer *servNode)
 {
     if(save == "listen")
     {
+        if(tmp.empty() || servNode->repeat_port == true)
+            throw Config::IncorrectConfigException();
         getPortsAndIP(servNode, tmp);
+        if(servNode->port.size() > 1 && check_repeat_ports(servNode) == true)
+            throw Config::IncorrectConfigException();
         servNode->repeat_port = true;
     }
     else if(save == "server_name")
     {
+        if(tmp.empty() || servNode->repeat_server_name == true)
+            throw Config::IncorrectConfigException();
         servNode->server_name.assign(tmp);
         servNode->repeat_server_name = true;
     }
@@ -428,32 +351,15 @@ void					Config::initServNode(configServer *servNode)
     servNode->ip.clear();
 }
 
-bool				Config::checkMainValLoc(struct location *locNode)
-{
-    if(locNode->repeat_path == true && locNode->repeat_root == true && locNode->repeat_method == true)
-        return (true);
-    else
-        return (false);
-}
-
-bool				Config::checkMainValServ(struct configServer *servNode)
-{
-    if(servNode->repeat_error_page == true && !(servNode->ip.empty()) &&
-       servNode->repeat_port == true)
-        return (true);
-    else
-        return (false);
-}
-
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
 	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication"};
+	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication", "cgi"};
 	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
 
     if (config_part == SERVER)
     {
-        for(unsigned int i = 0; i < 4; i++)
+        for(unsigned int i = 0; i < ft_strlen(server_tokens); i++)
         {
             if(server_tokens[i] == str)
             {
@@ -465,14 +371,14 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
     }
     else if(config_part == METHOD)
     {
-        for(unsigned int i = 0; i < 4; i++)
+        for(unsigned int i = 0; i < ft_strlen(method_tokens); i++)
             if(method_tokens[i] == str)
                 return (true);
         return (false);
     }
     else
     {
-        for(unsigned int i = 0; i < 6; i++)
+        for(unsigned int i = 0; i < ft_strlen(location_tokens); i++)
         {
             if(location_tokens[i] == str)
             {
@@ -481,6 +387,159 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
             }
         }
         return (false);
+    }
+}
+/*
+** --------------------------------- HELP METODS ---------------------------------
+*/
+
+bool Config::check_repeat_ports(configServer *servNode)
+{
+    for(size_t i = 0; i < servNode->port.size(); i++)
+    {
+        for(size_t j = 0; j < servNode->port.size(); j++)
+        {
+            if(j != i && servNode->port[j] == servNode->port[i])
+                return (true);
+        }
+    }
+    return (false);
+}
+
+bool				Config::checkMainValLoc(struct location *locNode)
+{
+    if(locNode->repeat_path == true && locNode->repeat_root == true && locNode->repeat_method == true)
+        return (true);
+    else
+        return (false);
+}
+
+bool				Config::checkMainValServ(struct configServer *servNode)
+{
+    if(!(servNode->ip.empty()) && servNode->repeat_port == true)
+        return (true);
+    else
+        return (false);
+}
+
+bool Config::checkLockPath(std::string path)
+{
+    std::string tmp = "";
+    int index = path.find('*');
+    if(index > 0)
+    {
+        tmp = path.substr(index, path.length() - 1);
+        if(!tmp.empty() && tmp.length() > 1 &&  tmp[0] == '*' &&  tmp[1] != '.')
+            return(false);
+    }
+    return (true);
+}
+
+bool Config::checkErrorPage(std::string path)
+{
+    path = "." + path;
+    std::ifstream err_page(path);
+    std::string tmp = "";
+    int index = path.find('.', 1);
+    if(index > 0)
+    {
+        tmp = path.substr(index, path.length() - 1);
+        if(tmp.length() == 1 || !err_page.is_open())
+            return(false);
+    }
+    else if(index < 0)
+        return(false);
+    return (true);
+}
+
+bool Config::checkIndex(std::string root, std::string indexPath)
+{
+
+    std::string tmp = "";
+    if(root[root.length() - 1] == '/')
+        indexPath = '.' + root + indexPath;
+    else
+        indexPath =  '.' + root + '/' + indexPath;
+
+    std::ifstream fconfig(indexPath);
+
+    int index = 1;
+    if(index > 0)
+    {
+        tmp = indexPath.substr(index,indexPath.length() - 1);
+        if(tmp.length() == 1 || !fconfig.is_open())
+            return(false);
+    }
+    else if(index < 0)
+        return(false);
+    return (true);
+}
+
+bool Config::checkCgi(std::string cgiPath)
+{
+    std::string tmp = "";
+    std::ifstream fconfig(cgiPath);
+    int index = 1;
+    if(index > 0)
+    {
+        tmp = cgiPath.substr(index,cgiPath.length() - 1);
+        if(tmp.length() == 1 || !fconfig.is_open())
+            return(false);
+    }
+    else if(index < 0)
+        return(false);
+    return (true);
+}
+
+unsigned int                 Config::ft_strlen(std::string str[])
+{
+    int sum = 0;
+    for(int i = 0; !str[i].empty(); i++)
+        sum++;
+    return(sum);
+}
+
+void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
+{
+    int tmpPort;
+    std::string tmp;
+
+    for(size_t i = 0; i < portsStr.length(); i++)
+    {
+        if(portsStr[i] > '9' ||  portsStr[i] < '0')
+        {
+            if (portsStr[i] != ',' && portsStr[i] != ':')
+                throw Config::IncorrectConfigException();
+        }
+        if(portsStr[i] == ':')
+        {
+            if(!tmp.empty())
+            {
+                tmpPort = std::stoi(tmp);
+                if(tmpPort > 65535 || tmpPort < 0)
+                    throw Config::IncorrectConfigException();
+                servNode->port.push_back(tmpPort);
+                tmp.clear();
+            }
+            while(++i < portsStr.length())
+            {
+                tmp.push_back(portsStr[i]);
+            }
+            if(tmp.empty())
+                throw Config::IncorrectConfigException();
+            servNode->ip.assign(tmp);
+            continue;
+        }
+        if( portsStr[i] == ',')
+        {
+            tmpPort = std::stoi(tmp);
+            if(tmpPort > 65535 || tmpPort < 0)
+                throw Config::IncorrectConfigException();
+            servNode->port.push_back(tmpPort);
+            tmp.clear();
+            continue;
+        }
+        tmp.push_back(portsStr[i]);
     }
 }
 
