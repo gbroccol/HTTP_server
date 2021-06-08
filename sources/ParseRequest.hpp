@@ -3,13 +3,6 @@
 
 # include "Webserv.hpp"
 
-#define BW "\033[0;0m"
-#define RED "\033[0;31m"
-#define GREEN "\033[0;32m"
-#define BLUE "\033[0;34m"
-#define YELLOW "\033[0;33m"
-#define PURPLE "\033[0;35m"
-
 // _parsPart
 #define	PRE_PART 0
 #define	START_LINE_PART 1

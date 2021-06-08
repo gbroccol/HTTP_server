@@ -573,7 +573,7 @@ void Handler::handle_put(void)
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
-  this->response.append("\r\n");
+  	this->response.append("\r\n");
 
 	if (status_code == 201)
 		this->response.append(request.body);

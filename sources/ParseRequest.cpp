@@ -65,7 +65,7 @@ ParseRequest::~ParseRequest()
 
 		if (_data.status == REQUEST_READY)
         {
-            std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
+            // std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
         }
 
@@ -276,7 +276,7 @@ ParseRequest::~ParseRequest()
             std::multimap <std::string, std::string>::iterator itCT = _data.headers->find("Content-Type");
             if (itCT != _data.headers->end() && itCT->second == "application/x-www-form-urlencoded")
             {
-                std::cout << YELLOW << _data.body << BW << std::endl;
+                // std::cout << YELLOW << _data.body << BW << std::endl;
 
                 size_t pos = 0;
                 std::string tmp = _data.body;
