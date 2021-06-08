@@ -9,19 +9,21 @@ Handler::Handler(configServer const & config)
     this->_error401 = false;
 	return;
 }
+
 Handler::~Handler(void)
 {
+	this->response.clear();
 	return;
 }
 
-std::string const & Handler::handle(data const & req, bool _signIn) // убрать конфиг и переменные окружения в отдельниый инит
+std::string const & Handler::handle(data const & req, user & userData)
 {
 
-    this->response.clear();                             // ответ для клиента
+  this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
 
 	this->request = req;
-    this->_signIn = _signIn;
+  this->_userData = userData;
 
 	if (!isRequestCorrect())
     {
@@ -34,7 +36,10 @@ std::string const & Handler::handle(data const & req, bool _signIn) // убра�
 	if(config.locations[this->index_location]->autoIndex == ON)
         getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 
-    if (_error401)
+//	if (_userData.signIn == true)
+//        handle_delete();
+
+	if (_error401)
         handle_401();
 	else if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
@@ -42,18 +47,24 @@ std::string const & Handler::handle(data const & req, bool _signIn) // убра�
 		handle_post();
 	else if (request.method == "PUT")
 		handle_put();
+	else if (request.method == "DELETE")
+        handle_delete();
+
 
 	if (request.method != "POST")
 		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->path.clear();
 	this->location_path.clear();
+	this->arrDir.clear();
+	this->contentLength.clear();
+	this->lastModTime.clear();
 	return this->response;
 }
 
 int Handler::isRequestCorrect(void)
 {
-	std::string methods = "GET, HEAD, PUT, POST";
+	std::string methods = "GET, HEAD, PUT, POST, DELETE";
 	int status_code = 0;
 
 
@@ -93,10 +104,10 @@ void Handler::makePath(void)
 	DIR	*dir;
 
     this->_error401 = false;
-    if (config.locations[index_location]->authentication && _signIn == false)
+    if (config.locations[index_location]->authentication && _userData.signIn == false)
     {
-        this->path = "./content/home_page/authentication.html";
-        this->location_path = "/home_page/authentication.html";
+        this->path = "./content/home_page/index.html";
+        this->location_path = "/home_page/index.html";
         this->_error401 = true;
     }
     else
@@ -105,6 +116,7 @@ void Handler::makePath(void)
         this->path.append(config.locations[index_location]->root);
         this->path.append("/");
         this->path.append(subpath());
+//        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
         this->location_path.append(request.path);
     }
 
@@ -147,50 +159,37 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
     closedir(dir);
 }
 
+/*
+ * 401
+ */
+
 void Handler::handle_401(void)
 {
     std::string body;
+    body.clear();
+    loadBodyFromFile(&body);
 
     if (isDir && config.locations[this->index_location]->autoIndex == ON)
         makeAutoindexPage(&body);
     else if (checkFile() != 0)
         return;
 
-    this->response.append("401 Unauthorized\r\n");
-    this->response.append("Server: Webserv/1.1\r\n");
-
-    this->response.append("Date: ");
-    this->response.append(getPresentTime());
-    this->response.append("\r\n");
-
+    addHeaderStatus(401);
+    addHeaderServer();
+    addHeaderDate();
     this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
-
-    this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
-
-    this->response.append("Content-Location: ");
-    this->response.append(this->location_path);
+    addHeaderContentLanguage();
+    addHeaderContentLocation();
+    this->response.append("Content-Type: text/html\r\n");
+    addHeaderContentLength(std::to_string(body.length()));
+    addHeaderLastModified();
     this->response.append("\r\n");
-
-    this->response.append("Content-Type: ");
-    this->response.append("text/html");
-    this->response.append("\r\n");
-
-    this->response.append("Content-Length: ");
-    this->response.append(this->contentLength);
-    this->response.append("\r\n");
-
-    this->response.append("Last-Modified: ");
-    this->response.append(this->lastModTime);
-    this->response.append("\r\n");
-
-    this->response.append("\r\n");
-
-//    if (request.method == "GET") {
-        if (body.length() == 0)
-            loadBodyFromFile(&body);
-        this->response.append(body);
-//    }
+    this->response.append(body);
 }
+
+/*
+ * ----------------------------------------- HEAD --------------------------------------
+ */
 
 void Handler::handle_head(void)
 {
@@ -200,32 +199,15 @@ void Handler::handle_head(void)
 		makeAutoindexPage(&body);
 	else if (checkFile() != 0)
 		return;
-	
-	this->response.append("200 OK\r\n");
-	this->response.append("Server: Webserv/1.1\r\n");
-		
-	this->response.append("Date: ");
-	this->response.append(getPresentTime());
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Language: en\r\n"); //оставляем так или подтягиваем из файла?
-		
-	this->response.append("Content-Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Type: ");
-	this->response.append("text/html");
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Length: ");
-	this->response.append(this->contentLength);
-	this->response.append("\r\n");
 
-	this->response.append("Last-Modified: ");
-	this->response.append(this->lastModTime);
-	this->response.append("\r\n");
-
+    addHeaderStatus(200);
+    addHeaderServer();
+    addHeaderDate();
+    addHeaderContentLanguage();
+    addHeaderContentLocation();
+    addHeaderContentType();
+    addHeaderContentLength(this->contentLength);
+    addHeaderLastModified();
 	this->response.append("\r\n");
 	
 	if (request.method == "GET") {
@@ -235,9 +217,265 @@ void Handler::handle_head(void)
 	}
 }
 
+/*
+ * ----------------------------------------- POST --------------------------------------
+ */
+
+void Handler::handle_post(void)
+{
+    /*
+     *  Upload files
+     */
+    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
+    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
+    if (pos != std::string::npos && pos == 0)
+    {
+        pos = itCL->second.find("=", 0);
+        std::string boundary;
+        boundary.append(itCL->second, pos + 1, std::string::npos);
+
+        addHeaderStatus(updateFile(boundary));
+        addHeaderServer();
+        addHeaderDate();
+        addHeaderContentLanguage();
+        addHeaderContentLocation();
+        addHeaderContentLength("0");
+        addHeaderLocation();
+        this->response.append("\r\n");
+        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+        return;
+    }
+
+    if (this->request.formData->size() != 0) // регистрация
+    {
+        int status = 200;
+        std::string body;
+
+        loadBodyFromFile(&body);
+        addHeaderStatus(status); // другой статус если такого пользователя нет
+        addHeaderServer();
+        addHeaderDate();
+        addHeaderContentLanguage();
+        addHeaderContentLocation();
+        addHeaderContentLength(std::to_string(body.length()));
+        addHeaderLocation();
+        this->response.append("\r\n");
+        this->response.append(body);
+//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+        return;
+    }
+
+    char ** envPost = create_env();
+
+   	if (!(envPost))
+	{
+		error_message(500);
+       return ;
+	}
+
+	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+	if (!ofs.good())
+	{
+		error_message(500);
+		return;
+	}
+	ofs << request.body;
+	ofs.close();
+
+	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
+    std::string body;
+    if (launch_cgi(args, envPost, &body) == 1)
+    {
+        ft_free_array(envPost);
+        return;
+    }
+
+  this->response.append("200 OK\r\n");
+	this->response.append("Server: Webserv/1.1\r\n");
+		
+	this->response.append("Date: ");
+	this->response.append(getPresentTime());
+	this->response.append("\r\n");
+		
+	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
+		
+	this->response.append("Content-Location: ");
+	this->response.append(this->location_path);
+	this->response.append("\r\n");
+		
+	this->response.append("Transfer-Encoding: chunked\r\n");
+
+	this->response.append("Location: ");
+	this->response.append(this->location_path);
+	this->response.append("\r\n");
+
+	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+
+	this->response.append(body);
+   	ft_free_array(envPost);
+}
+
+int Handler::updateFile(std::string & boundary)
+{
+    int status = 200;
+    size_t pos;
+
+    std::string type;
+    std::string name;
+    std::string fileName;
+    std::string mime;
+    std::string content;
+    /*
+     * пропустить boundary
+     */
+    request.body.erase(0, boundary.length() + 2 + 2);
+    /*
+     * прочитать хедоры
+     */
+    int separate = 0;
+    std::string header;
+    while ((pos = request.body.find("\r\n", 0)) != std::string::npos)
+    {
+        if (pos == 0)
+        {
+            request.body.erase(0, 2);
+            break;
+        }
+        separate = request.body.find(":", 0);
+        header = request.body.substr(0, separate);
+        if (header == "Content-Disposition")
+        {
+            request.body.erase(0, separate + 2);
+            /* form-data */
+            separate = request.body.find(";", 0);
+            type = request.body.substr(0, separate);
+            request.body.erase(0, separate + 2);
+            /* name=\"photo\" */
+            if (request.body.find("name", 0) == 0)
+            {
+                separate = request.body.find(";", 0);
+                name = request.body.substr(6, separate - 1 - 6);
+                request.body.erase(0, separate + 2);
+            }
+            if ((separate = request.body.find("filename", 0)) == 0)
+            {
+                separate = request.body.find("\r\n", 0);
+                fileName = request.body.substr(10, separate - 1 - 10);
+                request.body.erase(0, separate + 2);
+            }
+        }
+        else if (header == "Content-Type")
+        {
+            separate = request.body.find("\r\n", 0);
+            mime = request.body.substr(12 + 2, separate - 12 - 2);
+            request.body.erase(0, separate + 2);
+        }
+    }
+    /*
+     * прочитать содержимое файла
+     */
+    if ((pos = request.body.find(boundary, 0)) != std::string::npos)
+    {
+        content = request.body.substr(0, pos - 2);
+        request.body.erase(0, pos - 2);
+        request.body.clear();
+
+        status = createNewFile("avatar", content, "png");
+    }
+    return status;
+}
+
+int Handler::createNewFile(std::string fileName, std::string content, std::string fileExtension)
+{
+
+    if (fileName.length() == 0 && fileExtension.length() == 0 )
+        return 1;
+
+    std::string path = "./content/users/";
+    path += _userData.login;
+    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+
+    path += "/";
+    path += "avatar.png";
+
+
+    std::ofstream outfile (path);
+    outfile << content << std::endl;
+    outfile.close();
+
+    return 200;
+
+
+//    if (fileName.length() == 0)
+//        fileName = "default";
+//
+//    std::string path = "./content/users/";
+//    path += _userData.login;
+//    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+//
+//    std::string newFileName = path + "/" + fileName + "." + fileExtension;
+//
+//    std::ofstream outfile (newFileName);
+//    outfile << content << std::endl;
+//    outfile.close();
+//    return 200;
+}
+
+/*
+ * ----------------------------------------- PUT --------------------------------------
+ */
+
+/*
+ * ---------------------------------------- DELETE --------------------------------------
+ */
+
+void Handler::handle_delete(void)
+{
+    int     status = 200;
+    bool    deleteAccess = OFF;
+
+    std::string truePath = "./content/users/";
+    truePath += _userData.login;
+    truePath += "/";
+
+    size_t pos = this->path.find(truePath, 0);
+
+    if (_userData.signIn == true && pos == 0)
+        deleteAccess = ON;
+    else
+        status = 403; // Forbidden - do not have access to delete this file
+
+    if (deleteAccess == OFF)
+        error_message(status);
+    else
+    {
+        if (remove(this->path.c_str()) != 0 ) // this->path
+            error_message(404);
+
+        std::string body = "<html>\n<body>\n<h1>File deleted.</h1>\n</body>\n</html>";
+
+//        if (isDir && config.locations[this->index_location]->autoIndex == ON)
+//            makeAutoindexPage(&body);
+//        else if (checkFile() != 0)
+//            return;
+
+        addHeaderStatus(status);
+        addHeaderServer();
+        addHeaderDate();
+        addHeaderContentLanguage();
+        addHeaderContentLocation();
+        this->response.append("Content-Type: text/html\r\n");
+        addHeaderContentLength(std::to_string(body.length()));
+        addHeaderLocation();
+        addHeaderLastModified();
+        this->response.append("\r\n");
+        this->response.append(body);
+    }
+}
+
 void Handler::makeAutoindexPage(std::string * body)
 {
-	
 	body->append("<html>");
 	for (int i = 1; i < (int)arrDir.size(); i++) {
 		    body->append(getLink(arrDir[i]));
@@ -283,6 +521,7 @@ void Handler::loadBodyFromFile(std::string * body)
 	ss << ifs.rdbuf();
 	
 	body->append(ss.str());
+	ss.clear();
 	ifs.close();
 }
 
@@ -334,144 +573,115 @@ void Handler::handle_put(void)
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
-    this->response.append("\r\n");
+  	this->response.append("\r\n");
 
 	if (status_code == 201)
 		this->response.append(request.body);
 }
 
-void Handler::handle_post(void)
+
+// void Handler::handle_post(void)
+// {
+//     char ** envPost = create_env();
+
+//    	if (!(envPost))
+// 	{
+// 		error_message(500);
+//        return ;
+// 	}
+
+// 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+// 	if (!ofs.good())
+// 	{
+// 		error_message(500);
+// 		return;
+// 	}
+// 	ofs << request.body;
+// 	ofs.close();
+
+// 	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+//     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
+//     std::string body;
+//     if (launch_cgi(args, envPost, &body) == 1)
+//     {
+//         ft_free_array(envPost);
+//         return;
+//     }
+
+//     this->response.append("200 OK\r\n");
+// 	this->response.append("Server: Webserv/1.1\r\n");
+		
+// 	this->response.append("Date: ");
+// 	this->response.append(getPresentTime());
+// 	this->response.append("\r\n");
+		
+// 	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
+		
+// 	this->response.append("Content-Location: ");
+// 	this->response.append(this->location_path);
+// 	this->response.append("\r\n");
+		
+// 	this->response.append("Transfer-Encoding: chunked\r\n");
+
+// 	this->response.append("Location: ");
+// 	this->response.append(this->location_path);
+// 	this->response.append("\r\n");
+
+// 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+
+// 	this->response.append(body);
+//    	ft_free_array(envPost);
+// }
+
+
+void         Handler::add_headers(std::vector<std::string> * headers)
 {
-    char ** envPost = create_env();
-
-   	if (!(envPost))
-	{
-		error_message(500);
-       return ;
-	}
-
-	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
-	if (!ofs.good())
-	{
-		error_message(500);
-		return;
-	}
-	ofs << request.body;
-	ofs.close();
-
-	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
-    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
-    std::string body;
-    if (launch_cgi(args, envPost, &body) == 1)
-    {
-        ft_free_array(envPost);
-        return;
-    }
-
-	// size_t offset = body.find("\r\n\r\n");
-	// if (offset == std::string::npos)
-	// 	offset = 0;
-	// offset += 4;
-
-    this->response.append("200 OK\r\n");
-	this->response.append("Server: Webserv/1.1\r\n");
-		
-	this->response.append("Date: ");
-	this->response.append(getPresentTime());
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-	this->response.append("Content-Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-		
-	// this->response.append("Content-Length: ");
-	// this->response.append(lltostr(body.length() - offset), 10);
-	// this->response.append("\r\n");
-
-	this->response.append("Transfer-Encoding: chunked\r\n");
-
-	this->response.append("Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-
-	// this->response.append(body, 0, offset);
-
-	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-
-	// this->response.append(body, offset, body.length() - offset);
-	this->response.append(body);
-
-
-	// std::ofstream resp("RESPONSE", std::ios_base::trunc);
-	// if (!resp.good())
-	// {
-	// 	error_message(500);
-	// 	return;
-	// }
-	// resp << response;
-	// resp.close();
-
-
-   	ft_free_array(envPost);
-}
-
-char **         Handler::add_headers(int headersNmb, char **result)
-{
-    std::vector<std::string> headers;
 	std::string contentType = request.headers->find("Content-Type")->second;
-	std::string userAgent = request.headers->find("User-Agent")->second;
 
-	headers.push_back("AUTH_TYPE=Anonymous");
-	headers.push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
-	headers.push_back("CONTENT_TYPE=" + contentType);
-	headers.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	headers.push_back("PATH_INFO=" + request.path);
-	headers.push_back("PATH_TRANSLATED=" + this->path);
-	headers.push_back("QUERY_STRING=");
-	headers.push_back("REMOTE_ADDR=");
-	headers.push_back("REMOTE_IDENT=");
-	headers.push_back("REMOTE_USER=");
-    headers.push_back("REQUEST_METHOD=POST");
-	headers.push_back("REQUEST_URI=" + request.path);
-	headers.push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// headers.push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
-	headers.push_back("SERVER_NAME=" + config.server_name);
-	headers.push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
-    headers.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	headers.push_back("SERVER_SOFTWARE=Webserv/1.1");
-	headers.push_back("HTTP_user-agent=" + userAgent);
-	headers.push_back("HTTP_accept-encoding=gzip");
-	headers.push_back("HTTP_content-type=test/file");
-	headers.push_back("HTTP_host=localhost:8080");
-	headers.push_back("HTTP_transfer-encoding=chunked");
-	// if (request.headers->find("X-Secret-Header-For-Test") != request.headers->end())
-		headers.push_back("HTTP_x-secret-header-for-test=1");
+	headers->push_back("AUTH_TYPE=Anonymous");
+	headers->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
+	headers->push_back("CONTENT_TYPE=" + contentType);
+	headers->push_back("GATEWAY_INTERFACE=CGI/1.1");
+	headers->push_back("PATH_INFO=" + request.path);
+	headers->push_back("PATH_TRANSLATED=" + this->path);
+	headers->push_back("QUERY_STRING=");
+	headers->push_back("REMOTE_ADDR=");
+	headers->push_back("REMOTE_IDENT=");
+	headers->push_back("REMOTE_USER=");
+    headers->push_back("REQUEST_METHOD=" + request.method);
+	headers->push_back("REQUEST_URI=" + request.path);
+	headers->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
+	// headers->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	headers->push_back("SERVER_NAME=" + config.server_name);
+	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
+    headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
+	headers->push_back("SERVER_SOFTWARE=Webserv/1.1");
 
-
-	int j = 0;
-    for (int i = 0; i < headersNmb && j < (int)headers.size(); i++, j++)
-    {
-        if (!(result[i] = ft_strdup(headers[j].c_str())))
-        {
-            ft_free_array(result);
-            return (NULL);
-        }
-    }
-	return result;
+	std::multimap<std::string, std::string>::iterator it = request.headers->begin();
+	for (; it != request.headers->end(); it++)
+		headers->push_back("HTTP_" + it->first + "=" + it->second);
 }
 
 char **         Handler::create_env(void)
 {
     char **result;
-    int headersNmb = 23;
+	std::vector<std::string> headers;
+	int headersNmb;
 
+	add_headers(&headers);
+    headersNmb = headers.size();
 
 	if (!(result = (char **)calloc(headersNmb + 1, sizeof(char*))))
         return NULL;
 
-    add_headers(headersNmb, result);
+    for (int i = 0; i < headersNmb; i++)
+    {
+        if (!(result[i] = ft_strdup(headers[i].c_str())))
+        {
+            ft_free_array(result);
+            return (NULL);
+        }
+    }
     return result;
 }
 
@@ -523,11 +733,11 @@ int std_input = dup(0);
         int res = 0;
 		size_t offset = 0;
 
-        while((res = read(fd[0], buffer, INBUFSIZE)) > 0) {
+        while((res = read(fd[0], buffer, INBUFSIZE - 1)) > 0) {
+			buffer[res] = 0;
 			if (body->length() == 0) {
 				std::string temp(buffer);
 				offset = temp.find("\r\n\r\n");
-				// offset += 4;
 				body->append(temp, 0, offset);
 				body->append("\r\n\r\n");
 				offset += 4;
@@ -543,7 +753,6 @@ int std_input = dup(0);
 				body->append(buffer, 0, res);
 				body->append("\r\n");
 			}
-				// body->append(buffer, 0, res);
 		}
 		body->append("0\r\n\r\n");
         if (res < 0)
@@ -589,6 +798,9 @@ void Handler::error_message(int const & status_code)
 		case 400:
 			this->response.append("400 Bad Request\r\n");
 			break;
+	    case 403:
+            this->response.append("403 Forbidden\r\n");
+            break;
 		case 404:
 			this->response.append("404 Not found\r\n");
 			break;
@@ -635,8 +847,9 @@ std::string Handler::subpath(void)
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
-   while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
-       i++;
+    if (loc_path != "/close" || loc_path != "/download") // delete
+       while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
+           i++;
     return (request.path.substr(i));
 }
 
@@ -763,6 +976,86 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 }
 
 /*
+ * ------------------------- Add headers ----------------------------
+ */
+
+void Handler::addHeaderStatus(int status)
+{
+    switch (status) {
+        case 200:
+            this->response.append("200 OK\r\n");
+            break;
+        case 401:
+            this->response.append("401 Unauthorized\r\n");
+            break;
+        case (404):
+            this->response.append("404 Not Found\r\n");
+            break;
+    }
+}
+void Handler::addHeaderServer() { this->response.append("Server: Webserv/1.1\r\n"); }
+void Handler::addHeaderDate()
+{
+    this->response.append("Date: ");
+    this->response.append(getPresentTime());
+    this->response.append("\r\n");
+}
+void Handler::addHeaderContentLanguage() { this->response.append("Content-Language: en\r\n"); }
+void Handler::addHeaderContentLocation()
+{
+    this->response.append("Content-Location: ");
+    this->response.append(this->location_path);
+    this->response.append("\r\n");
+}
+void Handler::addHeaderContentLength(std::string size)
+{
+    this->response.append("Content-Length: ");
+    this->response.append(size);
+    this->response.append("\r\n");
+}
+void Handler::addHeaderLocation(void)
+{
+    this->response.append("Location: ");
+    this->response.append(this->location_path);
+    this->response.append("\r\n");
+}
+
+void Handler::addHeaderContentType(void) // hardcode
+{
+//    this->response.append("Content-Type: ");
+//    if (this->request.path.length() > 0)
+//    {
+//        size_t pos = this->request.path.find(".", 1);
+//        std::string fileExtension = this->request.path.substr(pos, std::string::npos);
+//        if (fileExtension == "png")
+//            this->response.append("image/png");
+//        else if (fileExtension == "jpeg")
+//            this->response.append("image/jpeg");
+//        else
+//            this->response.append("text/html");
+//    }
+//    else
+//        this->response.append("text/html");
+
+    this->response.append("Content-Type: ");
+
+    if (this->request.path.find(".png", 0) != std::string::npos)
+        this->response.append("image/png");
+    if (this->request.path.find(".jpeg", 0) != std::string::npos)
+        this->response.append("image/jpeg");
+    else
+        this->response.append("text/html");
+    this->response.append("\r\n");
+}
+
+void Handler::addHeaderLastModified(void)
+{
+    this->response.append("Last-Modified: ");
+    this->response.append(this->lastModTime);
+    this->response.append("\r\n");
+}
+
+/*
  * ------------------------------ libft ------------------------------
  */
 
@@ -781,13 +1074,13 @@ void		    Handler::ft_free_array(char **to_free)
     char	**tmp;
 
     tmp = to_free;
-//    while (*tmp != NULL)
-//    {
-//        free(*tmp);
-//        tmp++;
-//    }
-//    free(to_free);
-//    to_free = NULL;
+   while (*tmp != NULL)
+   {
+       free(*tmp);
+       tmp++;
+   }
+   free(to_free);
+   to_free = NULL;
 }
 
 char *          Handler::ft_strdup(const char *s)

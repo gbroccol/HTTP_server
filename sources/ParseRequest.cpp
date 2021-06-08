@@ -6,8 +6,9 @@
 
 ParseRequest::ParseRequest()
 {
-    _data.nmb = 0;
-    _data.headers = new std::multimap<std::string, std::string>;
+    _data.nmb      = 0;
+    _data.headers  = new std::multimap<std::string, std::string>;
+    _data.formData = new std::multimap<std::string, std::string>;
 	clearData();
 }
 
@@ -55,28 +56,17 @@ ParseRequest::~ParseRequest()
 //            std::cout << BW;
 
 	    if (_data.status == REQUEST_READY)
-            clearData();
+	       clearData();
 
         _buff += str;
 //		std::cout << GREEN << _buff << BW << std::endl << std::endl;
 
-
-//		if (_parsPart == BODY_PART || _buff.find("\r\n", 0) != std::string::npos)
-            this->parseHTTPRequest();
+        this->parseHTTPRequest();
 
 		if (_data.status == REQUEST_READY)
         {
+            // std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
-
-//            std::multimap <std::string, std::string>::iterator printB = _data.headers->begin();
-//            std::multimap <std::string, std::string>::iterator printEND = _data.headers->end();
-//
-//            while (printB != printEND)
-//            {
-//                std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
-//
-//                printB++;
-//            }
         }
 
 
@@ -85,21 +75,7 @@ ParseRequest::~ParseRequest()
         return false; // буфер пустой
 	}
 
-	void					ParseRequest::checkIfBody()
-    {
-        std::multimap <std::string, std::string>::iterator itCL = _data.headers->find("Content-Length");
-        std::multimap <std::string, std::string>::iterator itTE = _data.headers->find("Transfer-Encoding");
 
-        if (itCL != _data.headers->end()) {// I find Content-Length -> there is body part
-            _parsPart = BODY_PART;
-        }
-        else if (itTE != _data.headers->end()) {
-            _data.transferEncoding = true;
-            _parsPart = BODY_PART;
-        }
-        else
-            _data.status = REQUEST_READY;
-    }
 
 	void					ParseRequest::parseHTTPRequest() // <CRLF><CRLF> == "\r\n\r\n"
 	{
@@ -121,15 +97,35 @@ ParseRequest::~ParseRequest()
 			tmp.insert(0, _buff, 0, pos);
 			_buff.erase(0, pos + 2);
 
-			if (_parsPart == PRE_PART)
-                parseStartingLine(tmp.c_str());
-			else if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
+			if (_parsPart == START_LINE_PART || _parsPart == HEADERS_PART)
 				parseHeaders(tmp);
+            else if (_parsPart == PRE_PART)
+                parseStartingLine(tmp.c_str());
 		}
-        while  (_parsPart == BODY_PART && _data.status != REQUEST_READY)
+
+		int status = 0;
+
+        while  (_parsPart == BODY_PART && _data.status != REQUEST_READY && !status)
         {
-            if (_data.transferEncoding && parseBodyTE())
-                break;
+            switch (_data.bodyEncryption) {
+
+                case TRANSFER_ENCODING_CHANG:
+                    while (_data.status != REQUEST_READY && !status)
+                        status = parseBodyChang();
+                    break;
+                case TRANSFER_ENCODING_COMPRESS:
+                    break;
+                case TRANSFER_ENCODING_DEFLATE:
+                    break;
+                case TRANSFER_ENCODING_GZIP:
+                    break;
+                case TRANSFER_ENCODING_IDENTYTY:
+                    break;
+                case CONTENT_LENGTH:
+                    while (_data.status != REQUEST_READY && !status)
+                        status = parseContentLength();
+                    break;
+            }
         }
 	}
 
@@ -152,6 +148,9 @@ ParseRequest::~ParseRequest()
 		{
 			_data.path.insert(0, head, 0, pos);
 			head.erase(0, pos + 1);
+
+//            if (_data.path.find("/close/space.html", 0) != std::string::npos)
+//                _data.path = "/close/space.html";
 		}
 
 		pos = head.size(); // error
@@ -194,7 +193,37 @@ ParseRequest::~ParseRequest()
 //        }
 	}
 
-	int				    	ParseRequest::parseBodyTE()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
+    void					ParseRequest::checkIfBody()
+    {
+        std::multimap <std::string, std::string>::iterator itCL = _data.headers->find("Content-Length");
+
+        std::multimap <std::string, std::string>::iterator itTE = _data.headers->find("Transfer-Encoding");
+
+        if (itCL != _data.headers->end())
+        {
+            _data.bodyEncryption = CONTENT_LENGTH;
+            _data.bodyLen = stoi(itCL->second, 0, 10);
+            _parsPart = BODY_PART;
+        }
+        else if (itTE != _data.headers->end()) //
+        {
+            if (itTE->second == "chunked")
+                _data.bodyEncryption = TRANSFER_ENCODING_CHANG;
+            else if (itTE->second == "compress")
+                _data.bodyEncryption = TRANSFER_ENCODING_COMPRESS;
+            else if (itTE->second == "deflate")
+                _data.bodyEncryption = TRANSFER_ENCODING_DEFLATE;
+            else if (itTE->second == "gzip")
+                _data.bodyEncryption = TRANSFER_ENCODING_GZIP;
+            else if (itTE->second == "identity")
+                _data.bodyEncryption = TRANSFER_ENCODING_IDENTYTY;
+            _parsPart = BODY_PART;
+        }
+        else
+            _data.status = REQUEST_READY;
+    }
+
+	int				    	ParseRequest::parseBodyChang()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
 	{
 	    /*
 	     * <длина блока в HEX><CRLF>
@@ -236,6 +265,53 @@ ParseRequest::~ParseRequest()
         return 0;
 	}
 
+	int                     ParseRequest::parseContentLength()
+    {
+        if ((int)_buff.length() >= _data.bodyLen)
+        {
+            _data.body.append(_buff, 0, _data.bodyLen); // _data.bodyLen
+            _buff.erase(0, _data.bodyLen);
+            _data.status = REQUEST_READY;
+
+            std::multimap <std::string, std::string>::iterator itCT = _data.headers->find("Content-Type");
+            if (itCT != _data.headers->end() && itCT->second == "application/x-www-form-urlencoded")
+            {
+                // std::cout << YELLOW << _data.body << BW << std::endl;
+
+                size_t pos = 0;
+                std::string tmp = _data.body;
+                std::string key;
+                std::string value;
+
+                while (tmp.length() > 0)
+                {
+                    key.clear();
+                    value.clear();
+
+                    pos = tmp.find("=", 0);
+                    key.insert(0, tmp, 0, pos);
+                    tmp = tmp.erase(0, pos + 1);
+
+                    if ((pos = tmp.find("&", 0)) != std::string::npos)
+                    {
+                        value.insert(0, tmp, 0, pos);
+                        tmp =tmp.erase(0, pos + 1);
+                    }
+                    else
+                    {
+                        value.insert(0, tmp, 0, tmp.length());
+                        tmp.clear();
+                    }
+                    std::cout << BLUE << key << ": " << value << BW << std::endl;
+                    _data.formData->insert(std::make_pair(key, value));
+                }
+            }
+        }
+        else
+            return 1;
+        return 0;
+    }
+
 	void					ParseRequest::clearData()
 	{
         _parsPart = PRE_PART;
@@ -252,7 +328,7 @@ ParseRequest::~ParseRequest()
 		/*
 		 * headers
 		 */
-        _data.transferEncoding = false;
+        _data.bodyEncryption = -1;
 	}
 
 /*

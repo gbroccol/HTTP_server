@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/07 14:34:30 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/06/08 13:11:37 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ Server::Server(void)
 
 Server::~Server(void)
 {
+	delete this->_authentication;
 	return;
 }
 

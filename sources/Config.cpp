@@ -45,6 +45,7 @@ void				Config::getFile(std::string file)
         file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
 		while(file_in_str.length() > 0)
 			file_in_str =  parseStr(file_in_str);
+		fconfig.close();
 	}
 	else
 		throw Config::FileIsNotCorrectException();
@@ -105,6 +106,61 @@ std::string				Config::parseStr(std::string str)
     return (str);
 }
 
+bool checkLockPath(std::string path)
+{
+    std::string tmp = "";
+    int index = path.find('*');
+    if(index > 0)
+    {
+        tmp = path.substr(index, path.length() - 1);
+        if(!tmp.empty() && tmp.length() > 1 &&  tmp[0] == '*' &&  tmp[1] != '.')
+            return(false);
+    }
+    return (true);
+}
+
+bool checkErrorPage(std::string path)
+{
+
+    // std::ifstream fconfig(path);
+    std::ifstream err_page("./content/error_page/error.html");
+    std::string tmp = "";
+    int index = path.find('.');
+    if(index > 0)
+    {
+        tmp = path.substr(index, path.length() - 1);
+        if(tmp.length() == 1 || !err_page.is_open())
+            return(false);
+    }
+	err_page.close();
+    if(index < 0)
+        return(false);
+    return (true);
+}
+
+bool checkIndex(std::string root, std::string indexPath)
+{
+
+    std::string tmp = "";
+    if(root[root.length() - 1] == '/')
+        indexPath = '.' + root + indexPath;
+    else
+        indexPath =  '.' + root + '/' + indexPath;
+
+    std::ifstream fconfig(indexPath);
+
+    int index = 1;
+    if(index > 0)
+    {
+        tmp = indexPath.substr(index,indexPath.length() - 1);
+        if(tmp.length() == 1 || !fconfig.is_open())
+            return(false);
+    }
+	fconfig.close();
+    if(index < 0)
+        return(false);
+    return (true);
+}
 
 std::string				Config::parseLocation(std::string str,  configServer *servNode)
 {
