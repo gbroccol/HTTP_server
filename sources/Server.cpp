@@ -12,6 +12,7 @@
 
 #include "Server.hpp"
 
+
 Server::Server(void)
 {
     this->_authentication = new Authentication;
@@ -42,7 +43,14 @@ void Server::init(const configServer & config)
             throw std::runtime_error("Invalid server address");
         addr.sin_port = htons(config.port[i]);
         if(bind(sock[i], (struct sockaddr*) &addr, sizeof(addr)) == -1)
-            throw std::runtime_error("Could not bind socket"); //// проверить ошибку (занят ли этот порт)
+        {
+            if (errno == EADDRINUSE)
+            {
+                std::cout<<"Address already in use"<<std::endl;
+                continue;
+            }
+            throw std::runtime_error("Could not bind socket");
+        }
 
         listen(sock[i], LISTEN_QLEN);
         this->listenSockets.push_back(sock[i]);

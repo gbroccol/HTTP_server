@@ -17,6 +17,7 @@
 # include <time.h> //strptime, strftime
 # include <sys/socket.h> // socket, accept, listen, send, recv, bind, connect, inet_addr, setsockopt, getsockname
 # include <dirent.h> // opendir, readdir, closedir
+#include <errno.h>
 
 # include <iostream>
 # include <fstream> // нет в сабджекте
