@@ -265,14 +265,6 @@ void Handler::handle_post(void)
         return;
     }
 
-    char ** envPost = create_env();
-
-   	if (!(envPost))
-	{
-		error_message(500);
-       return ;
-	}
-
 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 	if (!ofs.good())
 	{
@@ -281,17 +273,36 @@ void Handler::handle_post(void)
 	}
 	ofs << request.body;
 	ofs.close();
+   
+	std::string body;
+	std::string lengthHeader;
 
-	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
-    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
-    std::string body;
-    if (launch_cgi(args, envPost, &body) == 1)
-    {
-        ft_free_array(envPost);
-        return;
-    }
+	if (config.locations[index_location]->cgi.size() != 0)
+	{
+		char ** envPost = create_env();
+		if (!(envPost))
+		{
+			error_message(500);
+		return;
+		}
 
-  this->response.append("200 OK\r\n");
+		char *args[3] = {(char *)config.locations[index_location]->cgi.c_str(), (char *)path.c_str(), NULL};
+		if (launch_cgi(args, envPost, &body) == 1)
+		{
+			ft_free_array(envPost);
+			return;
+		}
+		ft_free_array(envPost);
+		lengthHeader = "Transfer-Encoding: chunked\r\n";
+	}
+	else
+	{
+		body.append("\r\n");
+		body.append(request.body);
+		lengthHeader = "Content-Length: " + lltostr(request.body.length(), 10) + "\r\n";
+	}
+	
+  	this->response.append("200 OK\r\n");
 	this->response.append("Server: Webserv/1.1\r\n");
 		
 	this->response.append("Date: ");
@@ -304,7 +315,7 @@ void Handler::handle_post(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
-	this->response.append("Transfer-Encoding: chunked\r\n");
+	this->response.append(lengthHeader);
 
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
@@ -313,7 +324,6 @@ void Handler::handle_post(void)
 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->response.append(body);
-   	ft_free_array(envPost);
 }
 
 int Handler::updateFile(std::string & boundary)
@@ -579,61 +589,6 @@ void Handler::handle_put(void)
 		this->response.append(request.body);
 }
 
-
-// void Handler::handle_post(void)
-// {
-//     char ** envPost = create_env();
-
-//    	if (!(envPost))
-// 	{
-// 		error_message(500);
-//        return ;
-// 	}
-
-// 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
-// 	if (!ofs.good())
-// 	{
-// 		error_message(500);
-// 		return;
-// 	}
-// 	ofs << request.body;
-// 	ofs.close();
-
-// 	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
-//     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
-//     std::string body;
-//     if (launch_cgi(args, envPost, &body) == 1)
-//     {
-//         ft_free_array(envPost);
-//         return;
-//     }
-
-//     this->response.append("200 OK\r\n");
-// 	this->response.append("Server: Webserv/1.1\r\n");
-		
-// 	this->response.append("Date: ");
-// 	this->response.append(getPresentTime());
-// 	this->response.append("\r\n");
-		
-// 	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-// 	this->response.append("Content-Location: ");
-// 	this->response.append(this->location_path);
-// 	this->response.append("\r\n");
-		
-// 	this->response.append("Transfer-Encoding: chunked\r\n");
-
-// 	this->response.append("Location: ");
-// 	this->response.append(this->location_path);
-// 	this->response.append("\r\n");
-
-// 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-
-// 	this->response.append(body);
-//    	ft_free_array(envPost);
-// }
-
-
 void         Handler::add_headers(std::vector<std::string> * headers)
 {
 	std::string contentType = request.headers->find("Content-Type")->second;
@@ -650,8 +605,7 @@ void         Handler::add_headers(std::vector<std::string> * headers)
 	headers->push_back("REMOTE_USER=");
     headers->push_back("REQUEST_METHOD=" + request.method);
 	headers->push_back("REQUEST_URI=" + request.path);
-	headers->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// headers->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	headers->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi);
 	headers->push_back("SERVER_NAME=" + config.server_name);
 	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
     headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -674,6 +628,7 @@ char **         Handler::create_env(void)
 	if (!(result = (char **)calloc(headersNmb + 1, sizeof(char*))))
         return NULL;
 
+	result[headersNmb] = 0;
     for (int i = 0; i < headersNmb; i++)
     {
         if (!(result[i] = ft_strdup(headers[i].c_str())))
@@ -688,7 +643,7 @@ char **         Handler::create_env(void)
 
 int Handler::launch_cgi(char **args, char **env, std::string * body)
 {
-int std_input = dup(0);
+	int std_input = dup(0);
     int status = 0;
     int fd[2];
     pid_t pid;
@@ -733,7 +688,7 @@ int std_input = dup(0);
         int res = 0;
 		size_t offset = 0;
 
-        while((res = read(fd[0], buffer, INBUFSIZE - 1)) > 0) {
+        while((res = read(fd[0], buffer, INBUFSIZE -1)) > 0) {
 			buffer[res] = 0;
 			if (body->length() == 0) {
 				std::string temp(buffer);
