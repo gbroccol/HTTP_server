@@ -36,9 +36,6 @@ std::string const & Handler::handle(data const & req, user & userData)
 	if(config.locations[this->index_location]->autoIndex == ON)
         getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 
-//	if (_userData.signIn == true)
-//        handle_delete();
-
 	if (_error401)
         handle_401();
 	else if (request.method == "HEAD" || request.method == "GET")
@@ -118,6 +115,10 @@ void Handler::makePath(void)
         this->path.append(subpath());
 //        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
         this->location_path.append(request.path);
+
+        size_t pos = this->path.find("//", 0);
+        if (pos != std::string::npos)
+            this->path.erase(pos, 1);
     }
 
 	dir = opendir(path.c_str());
@@ -131,7 +132,7 @@ void Handler::makePath(void)
 			this->location_path.append(config.locations[index_location]->index);          // путь до странички БЕЗ ДИРРЕКТОРИИ
 		}
 		else
-			this->isDir = true;
+			this->isDir = true; // ???
         closedir(dir);
     }
 }
@@ -174,7 +175,7 @@ void Handler::handle_401(void)
     else if (checkFile() != 0)
         return;
 
-    addHeaderStatus(401);
+    addHeaderStatus(511);
     addHeaderServer();
     addHeaderDate();
     this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
@@ -183,7 +184,13 @@ void Handler::handle_401(void)
     this->response.append("Content-Type: text/html\r\n");
     addHeaderContentLength(std::to_string(body.length()));
     addHeaderLastModified();
+
+    this->response.append("Content-Disposition: inline\r\n");
+
     this->response.append("\r\n");
+
+    std::cout << this->response << std::endl;
+
     this->response.append(body);
 }
 
@@ -261,7 +268,6 @@ void Handler::handle_post(void)
         addHeaderLocation();
         this->response.append("\r\n");
         this->response.append(body);
-//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
         return;
     }
 
@@ -291,24 +297,16 @@ void Handler::handle_post(void)
         return;
     }
 
-  this->response.append("200 OK\r\n");
-	this->response.append("Server: Webserv/1.1\r\n");
-		
-	this->response.append("Date: ");
-	this->response.append(getPresentTime());
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-	this->response.append("Content-Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-		
-	this->response.append("Transfer-Encoding: chunked\r\n");
-
-	this->response.append("Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
+    addHeaderStatus(200);
+    addHeaderServer();
+    addHeaderDate();
+    addHeaderContentLanguage();
+    addHeaderContentLocation();
+    this->response.append("Transfer-Encoding: chunked\r\n");
+    this->response.append("Location: ");
+    this->response.append(this->location_path);
+    this->response.append("\r\n");
+    this->response.append("\r\n");
 
 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
@@ -426,6 +424,40 @@ int Handler::createNewFile(std::string fileName, std::string content, std::strin
  * ----------------------------------------- PUT --------------------------------------
  */
 
+void Handler::handle_put(void)
+{
+    int fd;
+    int status_code = 204;
+
+    fd = open(this->path.c_str(), O_RDWR);
+    if (fd < 0)
+        status_code = 201;
+    else
+        close(fd);
+
+    std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+    if (!ofs.good())
+        return error_message(500);
+
+    ofs << request.body;
+    ofs.close();
+
+    addHeaderStatus(status_code);
+    addHeaderServer();
+    addHeaderDate();
+    addHeaderContentLanguage();
+    addHeaderContentLocation();
+    this->response.append("Content-Type: ");
+    this->response.append("text/plain"); //нужно подтянуть из хедера запроса, если он есть
+    this->response.append("\r\n");
+    addHeaderContentLength(lltostr(request.body.size(), 10));
+    addHeaderLocation();
+    this->response.append("\r\n");
+
+    if (status_code == 201)
+        this->response.append(request.body);
+}
+
 /*
  * ---------------------------------------- DELETE --------------------------------------
  */
@@ -444,14 +476,15 @@ void Handler::handle_delete(void)
     if (_userData.signIn == true && pos == 0)
         deleteAccess = ON;
     else
-        status = 403; // Forbidden - do not have access to delete this file
+        status = 403;
 
     if (deleteAccess == OFF)
         error_message(status);
     else
     {
         if (remove(this->path.c_str()) != 0 ) // this->path
-            error_message(404);
+            return error_message(404);
+
 
         std::string body = "<html>\n<body>\n<h1>File deleted.</h1>\n</body>\n</html>";
 
@@ -473,6 +506,17 @@ void Handler::handle_delete(void)
         this->response.append(body);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 void Handler::makeAutoindexPage(std::string * body)
 {
@@ -500,7 +544,7 @@ int Handler::checkFile(void)
 	
 	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
 	{
-		if (errno == ENOENT || errno == EFAULT || errno == ENOTDIR) //  (int)errno == 20)
+		if (errno == ENOENT || errno == EFAULT || errno == ENOTDIR)
 			error_message(404);
 		else
 			error_message(500);
@@ -535,115 +579,6 @@ void Handler::loadBodyFromFile(std::string * body, std::string path)
     ss.clear();
     ifs.close();
 }
-
-void Handler::handle_put(void)
-{
-	int fd;
-	std::string status = "204 No Content\r\n";
-	int status_code = 204;
-	
-	fd = open(this->path.c_str(), O_RDWR);
-	if (fd < 0)
-	{
-		status = "201 Created\r\n";
-		status_code = 201;
-	}
-	else
-		close(fd);
-	
-	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
-	if (!ofs.good())
-	{
-		error_message(500);
-		return;
-	}
-	ofs << request.body;
-	ofs.close();
-	
-	this->response.append(status);
-	this->response.append("Server: Webserv/1.1\r\n");
-		
-	this->response.append("Date: ");
-	this->response.append(getPresentTime());
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-	this->response.append("Content-Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Type: ");
-	 this->response.append("text/plain"); //нужно подтянуть из хедера запроса, если он есть
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Length: ");
-	this->response.append(lltostr(request.body.size(), 10)); //нужно подтянуть из хедера запроса, если он есть
-	this->response.append("\r\n");
-
-	this->response.append("Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-  	this->response.append("\r\n");
-
-	if (status_code == 201)
-		this->response.append(request.body);
-}
-
-
-// void Handler::handle_post(void)
-// {
-//     char ** envPost = create_env();
-
-//    	if (!(envPost))
-// 	{
-// 		error_message(500);
-//        return ;
-// 	}
-
-// 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
-// 	if (!ofs.good())
-// 	{
-// 		error_message(500);
-// 		return;
-// 	}
-// 	ofs << request.body;
-// 	ofs.close();
-
-// 	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
-//     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
-//     std::string body;
-//     if (launch_cgi(args, envPost, &body) == 1)
-//     {
-//         ft_free_array(envPost);
-//         return;
-//     }
-
-//     this->response.append("200 OK\r\n");
-// 	this->response.append("Server: Webserv/1.1\r\n");
-		
-// 	this->response.append("Date: ");
-// 	this->response.append(getPresentTime());
-// 	this->response.append("\r\n");
-		
-// 	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-// 	this->response.append("Content-Location: ");
-// 	this->response.append(this->location_path);
-// 	this->response.append("\r\n");
-		
-// 	this->response.append("Transfer-Encoding: chunked\r\n");
-
-// 	this->response.append("Location: ");
-// 	this->response.append(this->location_path);
-// 	this->response.append("\r\n");
-
-// 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-
-// 	this->response.append(body);
-//    	ft_free_array(envPost);
-// }
-
 
 void         Handler::add_headers(std::vector<std::string> * headers)
 {
@@ -695,7 +630,6 @@ char **         Handler::create_env(void)
     }
     return result;
 }
-
 
 int Handler::launch_cgi(char **args, char **env, std::string * body)
 {
@@ -803,9 +737,6 @@ std::string Handler::getLastModificationTime(time_t const & time)
 
 void Handler::error_message(int const & status_code)
 {
-//    <h1>404</h1>
-//    <h2>UH OH! You're lost.</h2>
-
     std::string message;
 
 	switch(status_code)
@@ -854,9 +785,6 @@ void Handler::error_message(int const & status_code)
 
         body.erase(pos, 23);
         body.insert(pos, errorStatus);
-
-//        std::cout << body << std::endl;
-
     }
 
     addHeaderContentLength(std::to_string(body.length()));
@@ -866,7 +794,6 @@ void Handler::error_message(int const & status_code)
 
     this->response.append("Content-Location: /error_page/");
     this->response.append("\r\n");
-
 
     this->response.append("\r\n");
     this->response.append(body);
@@ -1034,11 +961,20 @@ void Handler::addHeaderStatus(int status)
         case 200:
             this->response.append("200 OK\r\n");
             break;
+        case 201:
+            this->response.append("201 Created\r\n");
+            break;
+        case 204:
+            this->response.append("204 No Content\r\n");
+            break;
         case 401:
             this->response.append("401 Unauthorized\r\n");
             break;
         case (404):
             this->response.append("404 Not Found\r\n");
+            break;
+        case (511):
+            this->response.append("511 Network Authentication Required\r\n");
             break;
     }
 }

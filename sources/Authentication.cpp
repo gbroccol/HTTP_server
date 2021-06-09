@@ -3,8 +3,6 @@
 Authentication::Authentication()
 {
     addNewUser("gbroccol", "1");
-    addNewUser("ssnowbir", "1");
-    addNewUser("pvivian", "1");
 }
 
 Authentication::~Authentication() {}

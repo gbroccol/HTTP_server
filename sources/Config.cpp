@@ -449,7 +449,7 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
 	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
 	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication"};
-	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
+	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD", "DELETE"};
 
     if (config_part == SERVER)
     {
@@ -465,7 +465,7 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
     }
     else if(config_part == METHOD)
     {
-        for(unsigned int i = 0; i < 4; i++)
+        for(unsigned int i = 0; i < 5; i++)
             if(method_tokens[i] == str)
                 return (true);
         return (false);
