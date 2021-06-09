@@ -23,7 +23,6 @@ Session::Session(configServer config, Authentication * authentication)
     this->_user.signIn = false;
 
     this->authentication = authentication;
-	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 

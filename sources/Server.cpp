@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/08 13:11:37 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/06/09 14:09:45 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);
 	sess->state = fsm_start;
-
+	fcntl(sess->fd, F_SETFL, O_NONBLOCK);
 	return sess;
 }
 

@@ -117,7 +117,8 @@ void Cluster::closeSession(int sd)
 	// if (this->sessions[sd]->state == fsm_finish)
 	// 	this->sessions[sd]->commit(this->res);
 	close(sd);
-	free(this->sessions[sd]);
+	delete this->sessions[sd];
+	// free(this->sessions[sd]);
 	this->sessions[sd] = NULL;
 }
 
