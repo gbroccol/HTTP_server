@@ -17,6 +17,7 @@
 # include <time.h> //strptime, strftime
 # include <sys/socket.h> // socket, accept, listen, send, recv, bind, connect, inet_addr, setsockopt, getsockname
 # include <dirent.h> // opendir, readdir, closedir
+#include <errno.h>
 
 # include <iostream>
 # include <fstream> // нет в сабджекте
@@ -31,7 +32,7 @@
 # include <exception>
 # include <ctime>
 
-# define INBUFSIZE 1024
+# define INBUFSIZE 4096
 # define LISTEN_QLEN 128
 # define INIT_SESS_ARR_SIZE 128
 

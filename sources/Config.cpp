@@ -8,11 +8,6 @@ Config::Config()
 {
 }
 
-// Config::Config( const Config & src )
-// {
-// }
-
-
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
@@ -21,44 +16,20 @@ Config::~Config()
 {
 }
 
-
-/*
-** --------------------------------- OVERLOAD ---------------------------------
-*/
-
-// Config &				Config::operator=( Config const & rhs )
-// {
-// 	//if ( this != &rhs )
-// 	//{
-// 		//this->_value = rhs.getValue();
-// 	//}
-// 	return *this;
-// }
-
-// std::ostream &			operator<<( std::ostream & o, Config const & i )
-// {
-// 	//o << "Value = " << i.getValue();
-// 	return o;
-// }
-
-
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
-bool IsParenthesesOrDash(char c)
-{
-    switch(c)
-    {
-    case '\t':
-    case '\r':
-    case ' ':
-	case '\n':
-        return true;
-    default:
-        return false;
+bool                        IsParenthesesOrDash(char c) {
+    switch (c) {
+        case '\t':
+        case '\r':
+        case ' ':
+        case '\n':
+            return true;
+        default:
+            return false;
     }
 }
-
 void				Config::getFile(std::string file)
 {
 	std::string file_in_str;
@@ -71,7 +42,7 @@ void				Config::getFile(std::string file)
 			throw Config::FileNotOpenException();
 		while (getline(fconfig, tmp))
 			file_in_str += tmp;
-		file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
+        file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
 		while(file_in_str.length() > 0)
 			file_in_str =  parseStr(file_in_str);
 		fconfig.close();
@@ -123,6 +94,8 @@ std::string				Config::parseStr(std::string str)
             str.erase(0, pos + 1);
             if(checkMainValServ(servNode) == true)
             {
+                if(servNode->repeat_error_page == false) {
+                    servNode->error_page = "./content/error_page/default_error_page.html"; }
                 this->servers.push_back(servNode);
                 break ;
             }
@@ -130,25 +103,6 @@ std::string				Config::parseStr(std::string str)
                 throw Config::IncorrectConfigException();
         }
     }
-    // std::cout <<servers.size()<<std::endl;
-    // for(unsigned int i = 0; i < servers.size(); i++)
-    // {
-    // 	std::cout <<"configServer data["<< i<< "]: "<<std::endl;
-    // 	std::cout <<"                       error_page ["<< i<< "]: "<<servers[i]->error_page<<" flag: "<<servers[i]->repeat_error_page<<std::endl;
-    // 	std::cout <<"                       port       ["<< i<< "]: "<<servers[i]->port<<" flag: "<<servers[i]->repeat_port<<std::endl;
-    // 	std::cout <<"                       server_name["<< i<< "]: "<<servers[i]->server_name<<" flag: "<<servers[i]->repeat_server_name<<std::endl;
-    // 	std::cout <<servers[i]->locations.size()<<std::endl;
-    // 	for(unsigned int j = 0; j < servers[i]->locations.size(); j++)
-    // 	{
-    // 		std::cout <<std::setw(20) <<"location data["<< j<< "]: "<<std::endl;
-    // 		std::cout <<std::setw(40) <<"index ["<< j<< "]: "<<servers[i]->locations[j]->index<< " flag: "<<servers[i]->locations[j]->repeat_index<<std::endl;
-    // 		std::cout <<std::setw(40) <<"maxBody["<< j<< "]: "<<servers[i]->locations[j]->maxBody<<" flag: "<<servers[i]->locations[j]->repeat_maxBody<<std::endl;
-    // 		std::cout <<std::setw(40) <<"path["<< j<< "]: "<<servers[i]->locations[j]->path<<" flag: "<<servers[i]->locations[j]->repeat_path<<std::endl;
-    // 		std::cout <<std::setw(40) <<"root ["<< j<< "]: "<<servers[i]->locations[j]->root<<" flag: "<<servers[i]->locations[j]->repeat_root<<std::endl;
-    // 		for(unsigned int h = 0; h < servers[i]->locations[j]->method.size(); h++)
-    // 			std::cout <<std::setw(40) <<"method ["<< h<< "]: "<<servers[i]->locations[j]->method[h]<<" flag: "<<servers[i]->locations[j]->repeat_method<<std::endl;
-    // 	}
-    // }
     return (str);
 }
 
@@ -167,9 +121,7 @@ bool checkLockPath(std::string path)
 
 bool checkErrorPage(std::string path)
 {
-
-    // std::ifstream fconfig(path);
-    std::ifstream err_page("./content/error_page/error.html");
+    std::ifstream err_page(path);
     std::string tmp = "";
     int index = path.find('.');
     if(index > 0)
@@ -283,7 +235,7 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     {
         if(locNode->repeat_maxBody == true)
             throw Config::IncorrectConfigException();
-        locNode->maxBody = std::stoi(tmp); //check char?
+        locNode->maxBody = std::stoi(tmp);
         if(locNode->maxBody > 1000000 || locNode->maxBody < 0)
             throw Config::IncorrectConfigException();
         locNode->repeat_maxBody = true;
@@ -301,6 +253,20 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
             throw Config::IncorrectConfigException();
         locNode->index.assign(tmp);
         locNode->repeat_index = true;
+    }
+    else if(save == "redirect")
+    {
+        if(tmp.empty() || locNode->repeat_redirect == true || checkIndex(locNode->root,tmp) == false)
+            throw Config::IncorrectConfigException();
+        locNode->redirect.assign(tmp);
+        locNode->repeat_redirect = true;
+    }
+    else if(save == "cgi")
+    {
+        if(tmp.empty() || locNode->repeat_cgi == true || checkCgi(tmp) == false)
+            throw Config::IncorrectConfigException();
+        locNode->cgi.assign(tmp);
+        locNode->repeat_cgi = true;
     }
     else if(save == "method")
     {
@@ -334,7 +300,216 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     }
 }
 
-void getPortsAndIP(configServer *servNode, std::string portsStr)
+void Config::serverTokenSearch(std::string save, std::string tmp, configServer *servNode)
+{
+    if(save == "listen")
+    {
+        if(tmp.empty() || servNode->repeat_port == true)
+            throw Config::IncorrectConfigException();
+        getPortsAndIP(servNode, tmp);
+        if(servNode->port.size() > 1 && check_repeat_ports(servNode) == true)
+            throw Config::IncorrectConfigException();
+        servNode->repeat_port = true;
+    }
+    else if(save == "server_name")
+    {
+        if(tmp.empty() || servNode->repeat_server_name == true)
+            throw Config::IncorrectConfigException();
+        servNode->server_name.assign(tmp);
+        servNode->repeat_server_name = true;
+    }
+    else if(save == "error_page")
+    {
+        if(tmp.empty() || tmp[0] != '/' || servNode->repeat_error_page == true || checkErrorPage(tmp) == false)
+            throw Config::IncorrectConfigException();
+        servNode->error_page.assign(tmp);
+        servNode->repeat_error_page = true;
+    }
+}
+
+void					Config::initLocNode(location *locNode)
+{
+    locNode->index = "";
+    locNode->maxBody = 0;
+    locNode->path = "";
+    locNode->method.clear();
+    locNode->repeat_method = false;
+    locNode->repeat_index = false;
+    locNode->repeat_maxBody = false;
+    locNode->repeat_path = false;
+    locNode->repeat_root = false;
+    locNode->root = "";
+    locNode->autoIndex = -1;
+    locNode->repeat_autoIndex = false;
+    locNode->authentication = false;
+    locNode->repeat_authentication = false;
+    locNode->redirect.clear();
+    locNode->repeat_redirect = false;
+}
+
+void					Config::initServNode(configServer *servNode)
+{
+    servNode->error_page = "";
+    servNode->port.clear();
+    servNode->server_name = "";
+    servNode->repeat_error_page = false;
+    servNode->repeat_port = false;
+    servNode->repeat_server_name = false;
+    servNode->ip.clear();
+}
+
+bool				Config::checkTokens(std::string &save, std::string str, int config_part)
+{
+	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
+	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication", "cgi", "redirect"};
+	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD", "DELETE"};
+
+    if (config_part == SERVER)
+    {
+        for(unsigned int i = 0; i < ft_strlen(server_tokens); i++)
+        {
+            if(server_tokens[i] == str)
+            {
+                save = server_tokens[i];
+                return (true);
+            }
+        }
+        return (false);
+    }
+    else if(config_part == METHOD)
+    {
+        for(unsigned int i = 0; i < ft_strlen(method_tokens); i++)
+            if(method_tokens[i] == str)
+                return (true);
+        return (false);
+    }
+    else
+    {
+        for(unsigned int i = 0; i < ft_strlen(location_tokens); i++)
+        {
+            if(location_tokens[i] == str)
+            {
+                save = location_tokens[i];
+                return (true);
+            }
+        }
+        return (false);
+    }
+}
+/*
+** --------------------------------- HELP METODS ---------------------------------
+*/
+
+bool Config::check_repeat_ports(configServer *servNode)
+{
+    for(size_t i = 0; i < servNode->port.size(); i++)
+    {
+        for(size_t j = 0; j < servNode->port.size(); j++)
+        {
+            if(j != i && servNode->port[j] == servNode->port[i])
+                return (true);
+        }
+    }
+    return (false);
+}
+
+bool				Config::checkMainValLoc(struct location *locNode)
+{
+    if(locNode->repeat_path == true && locNode->repeat_root == true && locNode->repeat_method == true)
+        return (true);
+    else
+        return (false);
+}
+
+bool				Config::checkMainValServ(struct configServer *servNode)
+{
+    if(!(servNode->ip.empty()) && servNode->repeat_port == true)
+        return (true);
+    else
+        return (false);
+}
+
+bool Config::checkLockPath(std::string path)
+{
+    std::string tmp = "";
+    int index = path.find('*');
+    if(index > 0)
+    {
+        tmp = path.substr(index, path.length() - 1);
+        if(!tmp.empty() && tmp.length() > 1 &&  tmp[0] == '*' &&  tmp[1] != '.')
+            return(false);
+    }
+    return (true);
+}
+
+bool Config::checkErrorPage(std::string path)
+{
+    path = "." + path;
+    std::ifstream err_page(path);
+    std::string tmp = "";
+    int index = path.find('.', 1);
+    if(index > 0)
+    {
+        tmp = path.substr(index, path.length() - 1);
+        if(tmp.length() == 1 || !err_page.is_open())
+            return(false);
+    }
+    else if(index < 0)
+        return(false);
+    err_page.close();
+    return (true);
+}
+
+bool Config::checkIndex(std::string root, std::string indexPath)
+{
+
+    std::string tmp = "";
+    if(root[root.length() - 1] == '/')
+        indexPath = '.' + root + indexPath;
+    else
+        indexPath =  '.' + root + '/' + indexPath;
+
+    std::ifstream fconfig(indexPath);
+
+    int index = 1;
+    if(index > 0)
+    {
+        tmp = indexPath.substr(index,indexPath.length() - 1);
+        if(tmp.length() == 1 || !fconfig.is_open())
+            return(false);
+    }
+    else if(index < 0)
+        return(false);
+    fconfig.close();
+    return (true);
+}
+
+bool Config::checkCgi(std::string cgiPath)
+{
+    std::string tmp = "";
+    std::ifstream fconfig(cgiPath);
+    int index = 1;
+    if(index > 0)
+    {
+        tmp = cgiPath.substr(index,cgiPath.length() - 1);
+        if(tmp.length() == 1 || !fconfig.is_open())
+            return(false);
+    }
+    else if(index < 0)
+        return(false);
+    fconfig.close();
+    return (true);
+}
+
+unsigned int                 Config::ft_strlen(std::string str[])
+{
+    int sum = 0;
+    for(int i = 0; !str[i].empty(); i++)
+        sum++;
+    return(sum);
+}
+
+void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
 {
     int tmpPort;
     std::string tmp;
@@ -375,112 +550,6 @@ void getPortsAndIP(configServer *servNode, std::string portsStr)
             continue;
         }
         tmp.push_back(portsStr[i]);
-    }
-}
-
-void Config::serverTokenSearch(std::string save, std::string tmp, configServer *servNode)
-{
-    if(save == "listen")
-    {
-        getPortsAndIP(servNode, tmp);
-        servNode->repeat_port = true;
-    }
-    else if(save == "server_name")
-    {
-        servNode->server_name.assign(tmp);
-        servNode->repeat_server_name = true;
-    }
-    else if(save == "error_page")
-    {
-        if(tmp.empty() || tmp[0] != '/' || servNode->repeat_error_page == true || checkErrorPage(tmp) == false)
-            throw Config::IncorrectConfigException();
-        servNode->error_page.assign(tmp);
-        servNode->repeat_error_page = true;
-    }
-}
-
-void					Config::initLocNode(location *locNode)
-{
-    locNode->index = "";
-    locNode->maxBody = 0;
-    locNode->path = "";
-    locNode->method.clear();
-    locNode->repeat_method = false;
-    locNode->repeat_index = false;
-    locNode->repeat_maxBody = false;
-    locNode->repeat_path = false;
-    locNode->repeat_root = false;
-    locNode->root = "";
-    locNode->autoIndex = -1;
-    locNode->repeat_autoIndex = false;
-    locNode->authentication = false;
-    locNode->repeat_authentication = false;
-}
-
-void					Config::initServNode(configServer *servNode)
-{
-    servNode->error_page = "";
-    servNode->port.clear();
-    servNode->server_name = "";
-    servNode->repeat_error_page = false;
-    servNode->repeat_port = false;
-    servNode->repeat_server_name = false;
-    servNode->ip.clear();
-}
-
-bool				Config::checkMainValLoc(struct location *locNode)
-{
-    if(locNode->repeat_path == true && locNode->repeat_root == true && locNode->repeat_method == true)
-        return (true);
-    else
-        return (false);
-}
-
-bool				Config::checkMainValServ(struct configServer *servNode)
-{
-    if(servNode->repeat_error_page == true && !(servNode->ip.empty()) &&
-       servNode->repeat_port == true)
-        return (true);
-    else
-        return (false);
-}
-
-bool				Config::checkTokens(std::string &save, std::string str, int config_part)
-{
-	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication"};
-	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD", "DELETE"};
-
-    if (config_part == SERVER)
-    {
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            if(server_tokens[i] == str)
-            {
-                save = server_tokens[i];
-                return (true);
-            }
-        }
-        return (false);
-    }
-    else if(config_part == METHOD)
-    {
-        for(unsigned int i = 0; i < 5; i++)
-            if(method_tokens[i] == str)
-                return (true);
-        return (false);
-    }
-    else
-    {
-        for(unsigned int i = 0; i < 6; i++)
-        {
-            if(location_tokens[i] == str)
-            {
-                save = location_tokens[i];
-                return (true);
-            }
-        }
-        return (false);
     }
 }
 
