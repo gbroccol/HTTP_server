@@ -309,7 +309,7 @@ void Handler::handle_post(void)
 		}
 
 		char *args[3] = {(char *)config.locations[index_location]->cgi.c_str(), (char *)path.c_str(), NULL};
-		if (launch_cgi(args, envPost, &body) == 1)
+		if (launchCgi(args, envPost, &body) == 1)
 		{
 			ft_free_array(envPost);
 			return;
@@ -611,27 +611,27 @@ void Handler::handle_put(void)
 		this->response.append(request.body);
 }
 
-void         Handler::add_headers(std::vector<std::string> * headers)
+void         Handler::add_env(std::vector<std::string> * envs)
 {
 	std::string contentType = request.headers->find("Content-Type")->second;
 
-	headers->push_back("AUTH_TYPE=Anonymous");
-	headers->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
-	headers->push_back("CONTENT_TYPE=" + contentType);
-	headers->push_back("GATEWAY_INTERFACE=CGI/1.1");
-	headers->push_back("PATH_INFO=" + request.path);
-	headers->push_back("PATH_TRANSLATED=" + this->path);
-	headers->push_back("QUERY_STRING=");
-	headers->push_back("REMOTE_ADDR=");
-	headers->push_back("REMOTE_IDENT=");
-	headers->push_back("REMOTE_USER=");
-    headers->push_back("REQUEST_METHOD=" + request.method);
-	headers->push_back("REQUEST_URI=" + request.path);
-	headers->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi);
-	headers->push_back("SERVER_NAME=" + config.server_name);
-	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
-    headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
-	headers->push_back("SERVER_SOFTWARE=Webserv/1.1");
+	envs->push_back("AUTH_TYPE=Anonymous");
+	envs->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
+	envs->push_back("CONTENT_TYPE=" + contentType);
+	envs->push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envs->push_back("PATH_INFO=" + request.path);
+	envs->push_back("PATH_TRANSLATED=" + this->path);
+	envs->push_back("QUERY_STRING=");
+	envs->push_back("REMOTE_ADDR=");
+	envs->push_back("REMOTE_IDENT=");
+	envs->push_back("REMOTE_USER=");
+    envs->push_back("REQUEST_METHOD=" + request.method);
+	envs->push_back("REQUEST_URI=" + request.path);
+	envs->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi);
+	envs->push_back("SERVER_NAME=" + config.server_name);
+	envs->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
+    envs->push_back("SERVER_PROTOCOL=HTTP/1.1");
+	envs->push_back("SERVER_SOFTWARE=Webserv/1.1");
 
 	std::multimap<std::string, std::string>::iterator it = request.headers->begin();
 	for (; it != request.headers->end(); it++)
@@ -644,7 +644,7 @@ char **	Handler::create_env(void)
 	std::vector<std::string> envs;
 	int envNum;
 
-	add_headers(&envs);
+	add_env(&envs);
     envNum = envs.size();
 
 	if (!(env = (char **)calloc(envNum + 1, sizeof(char*))))
