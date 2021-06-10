@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Session.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/10 12:16:46 by pvivian          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SESSION_HPP
 # define SESSION_HPP
 
@@ -47,7 +35,9 @@ public:
 	int do_read(void);
 	void commit(FILE *f);
 	void handle_request(fd_set * writefds);
+	void handle_cgi(fd_set * writefds);
 	bool isRequestLeft(void);
+	bool isCgi(void) const;
 
 
 private:

@@ -30,8 +30,13 @@ void Cluster::run(void)
 {
 	int i;
 	int sr, ssr, maxfd;
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
 
-	
+	// fcntl(1, F_SETFL, O_NONBLOCK);
+
+
 	for(;;) {
 		FD_ZERO(&readfds);                  // зачистить сет для чтения
 		FD_ZERO(&writefds);                 // зачистить сет для записи
@@ -46,22 +51,24 @@ void Cluster::run(void)
 			}
 		}
 
-		sr = select(maxfd+1, &readfds, &writefds, NULL, NULL);
+		sr = select(maxfd+1, &readfds, &writefds, NULL, &timeout);
 		if (sr == -1)
-			throw std::runtime_error("Select error");
+		    throw std::runtime_error("Select error");
 		for (size_t i = 0; i < this->listenSockets.size(); i++) 
 			if (FD_ISSET(this->listenSockets[i], &readfds))
 				accept_client(i);
 		for (size_t i = 0; i < sessions.size(); i++) 
 		{
 			if (sessions[i]) {
-				if (FD_ISSET(i, &readfds)) {
-					ssr = sessions[i]->do_read();
-					if (ssr == 1 || sessions[i]->isRequestLeft()) {
-						sessions[i]->handle_request(&writefds);
-					}
-					else if (!ssr)
-						closeSession(i);
+				if (sessions[i]->isCgi())
+					sessions[i]->handle_cgi(&writefds);
+				else if (FD_ISSET(i, &readfds)) {
+						ssr = sessions[i]->do_read();
+						if (ssr == 1 || sessions[i]->isRequestLeft()) {
+							sessions[i]->handle_request(&writefds);
+						}
+						else if (!ssr)
+							closeSession(i);
 				}
 				if (FD_ISSET(i, &writefds)) {
 					ssr = sessions[i]->send_message();
