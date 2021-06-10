@@ -295,26 +295,36 @@ void Handler::handle_post(void)
 	}
 	ofs << request.body;
 	ofs.close();
+   
+	std::string body;
+	std::string lengthHeader;
 
-
-    char ** envPost = create_env();
-   	if (!(envPost))
+	if (config.locations[index_location]->cgi.size() != 0)
 	{
-		error_message(500);
-    	return ;
+		char ** envPost = create_env();
+		if (!(envPost))
+		{
+			error_message(500);
+		return;
+		}
+
+		char *args[3] = {(char *)config.locations[index_location]->cgi.c_str(), (char *)path.c_str(), NULL};
+		if (launch_cgi(args, envPost, &body) == 1)
+		{
+			ft_free_array(envPost);
+			return;
+		}
+		ft_free_array(envPost);
+		lengthHeader = "Transfer-Encoding: chunked\r\n";
+	}
+	else
+	{
+		body.append("\r\n");
+		body.append(request.body);
+		lengthHeader = "Content-Length: " + lltostr(request.body.length(), 10) + "\r\n";
 	}
 
-	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL}; //  подтянуть из конфига
-    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
-    std::string body;
-    if (launchCgi(args, envPost, &body) == 1)
-    {
-        ft_free_array(envPost);
-        return;
-    }
-	ft_free_array(envPost);
-
-  	this->response.append("200 OK\r\n");
+  this->response.append("200 OK\r\n");
 	this->response.append("Server: Webserv/1.1\r\n");
 		
 	this->response.append("Date: ");
@@ -327,7 +337,7 @@ void Handler::handle_post(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 		
-	this->response.append("Transfer-Encoding: chunked\r\n");
+	this->response.append(lengthHeader);
 
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
@@ -601,29 +611,27 @@ void Handler::handle_put(void)
 		this->response.append(request.body);
 }
 
-
-void	Handler::add_env(std::vector<std::string> * envs)
+void         Handler::add_headers(std::vector<std::string> * headers)
 {
 	std::string contentType = request.headers->find("Content-Type")->second;
 
-	envs->push_back("AUTH_TYPE=Anonymous");
-	envs->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
-	envs->push_back("CONTENT_TYPE=" + contentType);
-	envs->push_back("GATEWAY_INTERFACE=CGI/1.1");
-	envs->push_back("PATH_INFO=" + request.path);
-	envs->push_back("PATH_TRANSLATED=" + this->path);
-	envs->push_back("QUERY_STRING=");
-	envs->push_back("REMOTE_ADDR=");
-	envs->push_back("REMOTE_IDENT=");
-	envs->push_back("REMOTE_USER=");
-    envs->push_back("REQUEST_METHOD=" + request.method);
-	envs->push_back("REQUEST_URI=" + request.path);
-	envs->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// envs->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
-	envs->push_back("SERVER_NAME=" + config.server_name);
-	envs->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
-    envs->push_back("SERVER_PROTOCOL=HTTP/1.1");
-	envs->push_back("SERVER_SOFTWARE=Webserv/1.1");
+	headers->push_back("AUTH_TYPE=Anonymous");
+	headers->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
+	headers->push_back("CONTENT_TYPE=" + contentType);
+	headers->push_back("GATEWAY_INTERFACE=CGI/1.1");
+	headers->push_back("PATH_INFO=" + request.path);
+	headers->push_back("PATH_TRANSLATED=" + this->path);
+	headers->push_back("QUERY_STRING=");
+	headers->push_back("REMOTE_ADDR=");
+	headers->push_back("REMOTE_IDENT=");
+	headers->push_back("REMOTE_USER=");
+    headers->push_back("REQUEST_METHOD=" + request.method);
+	headers->push_back("REQUEST_URI=" + request.path);
+	headers->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi);
+	headers->push_back("SERVER_NAME=" + config.server_name);
+	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
+    headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
+	headers->push_back("SERVER_SOFTWARE=Webserv/1.1");
 
 	std::multimap<std::string, std::string>::iterator it = request.headers->begin();
 	for (; it != request.headers->end(); it++)
@@ -636,7 +644,7 @@ char **	Handler::create_env(void)
 	std::vector<std::string> envs;
 	int envNum;
 
-	add_env(&envs);
+	add_headers(&envs);
     envNum = envs.size();
 
 	if (!(env = (char **)calloc(envNum + 1, sizeof(char*))))

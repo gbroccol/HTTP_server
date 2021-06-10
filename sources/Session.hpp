@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Session.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/10 17:06:15 by pvivian          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SESSION_HPP
 # define SESSION_HPP
 
@@ -41,7 +29,7 @@ private:
 
 public:
 
-   Session(configServer config, Authentication * authentication);
+   Session(configServer config, Authentication * authentication, int fd);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);

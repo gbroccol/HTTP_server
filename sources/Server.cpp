@@ -1,16 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/10 13:34:03 by pvivian          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
+
 
 Server::Server(void)
 {
@@ -43,7 +32,14 @@ void Server::init(const configServer & config)
             throw std::runtime_error("Invalid server address");
         addr.sin_port = htons(config.port[i]);
         if(bind(sock[i], (struct sockaddr*) &addr, sizeof(addr)) == -1)
-            throw std::runtime_error("Could not bind socket"); //// проверить ошибку (занят ли этот порт)
+        {
+            if (errno == EADDRINUSE)
+            {
+                std::cout<<"Address already in use"<<std::endl;
+                continue;
+            }
+            throw std::runtime_error("Could not bind socket");
+        }
 
         listen(sock[i], LISTEN_QLEN);
         this->listenSockets.push_back(sock[i]);
@@ -61,14 +57,10 @@ void Server::init(const configServer & config)
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 {
-	Session *sess = new Session(this->config, this->_authentication);
-	sess->fd = fd;
+	Session *sess = new Session(this->config, this->_authentication, fd);
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);
 	sess->state = fsm_start;
-
-	fcntl(sess->fd, F_SETFL, O_NONBLOCK);
-
 	return sess;
 }
 
