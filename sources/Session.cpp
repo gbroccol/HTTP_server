@@ -15,14 +15,14 @@
 
 Session::Session(void) { return; } // private
 
-Session::Session(configServer config, Authentication * authentication)
+Session::Session(configServer config, Authentication * authentication, int fd)
 {
 	this->parseRequest = new ParseRequest;
     this->handler      = new Handler(config);
-
     this->_user.signIn = false;
-
     this->authentication = authentication;
+	this->fd = fd;
+	// fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 

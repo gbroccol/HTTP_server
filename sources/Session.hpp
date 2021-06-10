@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/07 15:43:20 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/06/10 12:16:46 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ private:
 
 public:
 
-   Session(configServer config, Authentication * authentication);
+   Session(configServer config, Authentication * authentication, int fd);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);

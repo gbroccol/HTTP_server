@@ -51,6 +51,7 @@ std::string const & Handler::handle(data const & req, user & userData)
         handle_delete();
 
 
+	// fcntl(1, F_SETFL, O_NONBLOCK);
 	if (request.method != "POST")
 		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
@@ -688,7 +689,7 @@ int Handler::launch_cgi(char **args, char **env, std::string * body)
         int res = 0;
 		size_t offset = 0;
 
-        while((res = read(fd[0], buffer, INBUFSIZE -1)) > 0) {
+        while((res = read(fd[0], buffer, INBUFSIZE - 1)) > 0) {
 			buffer[res] = 0;
 			if (body->length() == 0) {
 				std::string temp(buffer);
