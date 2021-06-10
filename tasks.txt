@@ -2,8 +2,6 @@
 - remove unnecessary variables and functions
 
 НАСТЯ
-- HTTP redirection (for example, from users/ to home_page) ?
-- all errors
 - leaks
 + 401 code -> 511
 + error pages
@@ -12,12 +10,15 @@
 + logout
 + login
 + tests
++ sign in
 
 ЛЕНА
 + different configs (default, for tester etc.)
 + CGI in config
 + check if the same port is not used in config
 - server name
+- define an HTTP redirection (add to config)
+- HTTP redirection (for example, from users/ to home_page)
 
 КАТЯ
 - CGI working with php-cgi/python
