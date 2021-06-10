@@ -10,8 +10,6 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
 	<style>
-
-		/*@import "compass/css3";*/
 		*, *:before, *:after {
 			box-sizing: border-box;
 		}
@@ -84,7 +82,6 @@
 			left: 13px;
 			color: rgba(255, 255, 255, .5);
 			transition: all 0.25s ease;
-			/* -webkit-backface-visibility: hidden; */
 			pointer-events: none;
 			font-size: 22px;
 		}
@@ -162,83 +159,40 @@
 			display: block;
 			width: 100%;
 		}
-		.forgot {
-			margin-top: -20px;
-			text-align: right;
-		}
-
 	</style>
 
 </head>
 <body>
 
-<!--<form>-->
-<!--	<p><input name="login">-->
-<!--		<input type="password" name="pass"></p>-->
-<!--	<p><input type="submit"></p>-->
-<!--</form>-->
-
-	<!-- <div class="container"> -->
-		
-		<!-- <h1 class="animate__animated animate__fadeInLeftBig"> Hello world! </h1> -->
-
 		<div class="form">
-      
 			<ul class="tab-group">
 			  <li class="tab active"><a href="#signup">Sign Up</a></li>
 			  <li class="tab"><a href="#login">Log In</a></li>
 			</ul>
-			
 			<div class="tab-content">
 			  <div id="signup">   
 				<h1>Sign Up for Free</h1>
-				
-				<form action="/" method="post">
-
-				<div class="top-row">
-				  <div class="field-wrap">
-					<label>
-					  First Name<span class="req">*</span>
-					</label>
-					<input type="text" required autocomplete="off" />
-				  </div>
-			  
-				  <div class="field-wrap">
-					<label>
-					  Last Name<span class="req">*</span>
-					</label>
-					<input type="text"required autocomplete="off"/>
-				  </div>
-				</div>
-	  
-				<div class="field-wrap">
-				  <label>
-					Email Address<span class="req">*</span>
-				  </label>
-				  <input type="email"required autocomplete="off"/>
-				</div>
-				
-				<div class="field-wrap">
-				  <label>
-					Set A Password<span class="req">*</span>
-				  </label>
-				  <input type="password"required autocomplete="off"/>
-				</div>
-				
-				<button type="submit" class="button button-block"/>Get Started</button>
-				
-				</form>
+				  <form action="../close/space.html" method="post">
+					  <div class="field-wrap">
+						  <label>
+							  Login <span class="req">*</span>
+						  </label>
+						  <input type="loginSignUp" name="loginSignUp" required autocomplete="off">
+					  </div>
+					  <div class="field-wrap">
+						  <label>
+							  Password<span class="req">*</span>
+						  </label>
+						  <input type="passwordSignUp" name="passwordSignUp" required autocomplete="off">
+					  </div>
+					  <input class="button button-block" type="submit">
+				  </form>
 			  </div>
 
-
-
-<!--				<form method="POST" enctype="application/x-www-form-urlencoded" action="authorize">-->
-
-<!--				action="../close/space.html"-->
 				<div id="login">
 				<h1>Welcome Back!</h1>
 				  <form action="../close/space.html" method="post">
-					  <div class="field-wrap">
+					<div class="field-wrap">
 						  <label>
 							  Login <span class="req">*</span>
 						  </label>
@@ -253,6 +207,7 @@
 					  <input class="button button-block" type="submit">
 				  </form>
 			  </div>
+
 			</div><!-- tab-content -->
 		</div> <!-- /form -->
 </body>

@@ -48,7 +48,7 @@ public:
 	void commit(FILE *f);
 	void handle_request(fd_set * writefds);
 	bool isRequestLeft(void);
-
+    void checkAuthentication(void);
 
 private:
 

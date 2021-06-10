@@ -2,26 +2,26 @@
 - remove unnecessary variables and functions
 
 НАСТЯ
-- добавить функции для хедоров https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types 
-- DELETE (use telnet or curl)
 - leaks
-- error pages
-- 401 code
-- HTTP redirection (for example, from users/ to home_page) ?
++ 401 code -> 511
++ error pages
++ добавить функции для хедоров https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
++ DELETE (use telnet or curl)
++ logout
++ login
++ tests
++ sign in
 
 ЛЕНА
-- different configs (default, for tester etc.)
++ different configs (default, for tester etc.)
++ CGI in config
++ check if the same port is not used in config
 - server name
-- CGI in config 
-- check if the same port is not used in config
+- define an HTTP redirection (add to config)
+- HTTP redirection (for example, from users/ to home_page)
 
 КАТЯ
 - CGI working with php-cgi/python
 - memory management
 - read from cgi - through select
 - check fd leaks
-
-EXTRA
-- logout НАСТЯ
-- login
-- tests
