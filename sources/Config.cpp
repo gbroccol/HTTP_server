@@ -237,7 +237,7 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     {
         if(locNode->repeat_maxBody == true)
             throw Config::IncorrectConfigException();
-        locNode->maxBody = std::stoi(tmp); //check char?
+        locNode->maxBody = std::stoi(tmp);
         if(locNode->maxBody > 1000000 || locNode->maxBody < 0)
             throw Config::IncorrectConfigException();
         locNode->repeat_maxBody = true;
