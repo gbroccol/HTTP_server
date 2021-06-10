@@ -52,7 +52,7 @@ std::string const & Handler::handle(data const & req, user & userData)
 
 
 	if (request.method != "POST")
-		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->path.clear();
 	this->location_path.clear();
@@ -145,11 +145,16 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
 	this->arrDir.clear();
 
     if( LocPath[ LocPath.length() - 1] == '/')
-        indexPath = '.' + config.locations[index_location]->path + LocPath;
+        indexPath = '.' + LocPath;
     else
-        indexPath =  '.' +  config.locations[index_location]->path + '/' + LocPath + '/';
+        indexPath =  '.' +  LocPath + '/';
+//    if( LocPath[ LocPath.length() - 1] == '/')
+//        indexPath = '.' + config.locations[index_location]->path + LocPath;
+//    else
+//        indexPath =  '.' +  config.locations[index_location]->path + '/' + LocPath + '/';
    if((dir  = opendir(indexPath.c_str())) == nullptr)
-		;													// error?
+		std::cout << RED<< "ERROR OPEN DIR"<< BW<<std::endl;
+
     while((dirStruct = readdir(dir)) != nullptr)
     {
         this->arrDir.push_back(dirStruct->d_name);
@@ -282,7 +287,7 @@ void Handler::handle_post(void)
 	ofs << request.body;
 	ofs.close();
 
-	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+	char *args[3] = {(char*)"./cgi/cgi_tester", (char *)path.c_str(), NULL};
     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
     std::string body;
     if (launch_cgi(args, envPost, &body) == 1)
@@ -310,7 +315,7 @@ void Handler::handle_post(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 
-	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->response.append(body);
    	ft_free_array(envPost);
