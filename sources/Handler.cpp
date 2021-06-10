@@ -5,8 +5,11 @@ Handler::Handler(void){ return; } // private
 Handler::Handler(configServer const & config)
 {
     this->config = config;
+	this->isCgiReading = false;
 	this->isDir = false;
     this->_error401 = false;
+	this->tmp = (char *)"./sources/tmp.txt";
+	this->read_res = 0;
 	return;
 }
 
@@ -18,29 +21,29 @@ Handler::~Handler(void)
 
 std::string const & Handler::handle(data const & req, user & userData)
 {
+	this->response.clear();                             // ответ для клиента
 
-  this->response.clear();                             // ответ для клиента
 	this->response.append("HTTP/1.1 ");
 
 	this->request = req;
-  this->_userData = userData;
+	this->_userData = userData;
 
 	if (!isRequestCorrect())
-    {
-        std::cout << this->response << std::endl; //for debug
+	{
+		std::cout << this->response << std::endl; //for debug
 		return this->response;
-    }
+	}
 
 	makePath();
 
 	if(config.locations[this->index_location]->autoIndex == ON)
-        getFilesOrDirFromRoot(config.locations[this->index_location]->root);
+		getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 
-//	if (_userData.signIn == true)
-//        handle_delete();
+	//	if (_userData.signIn == true)
+	//        handle_delete();
 
 	if (_error401)
-        handle_401();
+		handle_401();
 	else if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
@@ -48,10 +51,10 @@ std::string const & Handler::handle(data const & req, user & userData)
 	else if (request.method == "PUT")
 		handle_put();
 	else if (request.method == "DELETE")
-        handle_delete();
+		handle_delete();
 
 
-	if (request.method != "POST")
+	if (request.method == "PUT" || request.method == "DELETE")
 		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->path.clear();
@@ -59,6 +62,23 @@ std::string const & Handler::handle(data const & req, user & userData)
 	this->arrDir.clear();
 	this->contentLength.clear();
 	this->lastModTime.clear();
+	return this->response;
+}
+
+std::string const & Handler::handle(void)
+{
+	std::string body;
+	int status;
+
+	this->response.clear(); 
+	status = readCgi(&body);
+	if (status == 1)
+	{
+		this->response.append("HTTP/1.1 ");
+		error_message(500);
+	}
+	else
+		this->response.append(body);
 	return this->response;
 }
 
@@ -70,8 +90,8 @@ int Handler::isRequestCorrect(void)
 
 	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
-//	else if (request.version != "HTTP/1.1")
-//		status_code = 505;
+	else if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0")
+		status_code = 505;
 	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
 	 	status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
@@ -209,6 +229,8 @@ void Handler::handle_head(void)
     addHeaderContentLength(this->contentLength);
     addHeaderLastModified();
 	this->response.append("\r\n");
+
+	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
 	
 	if (request.method == "GET") {
 		if (body.length() == 0)
@@ -265,14 +287,6 @@ void Handler::handle_post(void)
         return;
     }
 
-    char ** envPost = create_env();
-
-   	if (!(envPost))
-	{
-		error_message(500);
-       return ;
-	}
-
 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 	if (!ofs.good())
 	{
@@ -282,16 +296,25 @@ void Handler::handle_post(void)
 	ofs << request.body;
 	ofs.close();
 
-	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
+
+    char ** envPost = create_env();
+   	if (!(envPost))
+	{
+		error_message(500);
+    	return ;
+	}
+
+	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL}; //  подтянуть из конфига
     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
     std::string body;
-    if (launch_cgi(args, envPost, &body) == 1)
+    if (launchCgi(args, envPost, &body) == 1)
     {
         ft_free_array(envPost);
         return;
     }
+	ft_free_array(envPost);
 
-  this->response.append("200 OK\r\n");
+  	this->response.append("200 OK\r\n");
 	this->response.append("Server: Webserv/1.1\r\n");
 		
 	this->response.append("Date: ");
@@ -313,7 +336,6 @@ void Handler::handle_post(void)
 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->response.append(body);
-   	ft_free_array(envPost);
 }
 
 int Handler::updateFile(std::string & boundary)
@@ -580,139 +602,78 @@ void Handler::handle_put(void)
 }
 
 
-// void Handler::handle_post(void)
-// {
-//     char ** envPost = create_env();
-
-//    	if (!(envPost))
-// 	{
-// 		error_message(500);
-//        return ;
-// 	}
-
-// 	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
-// 	if (!ofs.good())
-// 	{
-// 		error_message(500);
-// 		return;
-// 	}
-// 	ofs << request.body;
-// 	ofs.close();
-
-// 	char *args[3] = {(char*)"./content/cgi_tester", (char *)path.c_str(), NULL};
-//     // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
-//     std::string body;
-//     if (launch_cgi(args, envPost, &body) == 1)
-//     {
-//         ft_free_array(envPost);
-//         return;
-//     }
-
-//     this->response.append("200 OK\r\n");
-// 	this->response.append("Server: Webserv/1.1\r\n");
-		
-// 	this->response.append("Date: ");
-// 	this->response.append(getPresentTime());
-// 	this->response.append("\r\n");
-		
-// 	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-// 	this->response.append("Content-Location: ");
-// 	this->response.append(this->location_path);
-// 	this->response.append("\r\n");
-		
-// 	this->response.append("Transfer-Encoding: chunked\r\n");
-
-// 	this->response.append("Location: ");
-// 	this->response.append(this->location_path);
-// 	this->response.append("\r\n");
-
-// 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-
-// 	this->response.append(body);
-//    	ft_free_array(envPost);
-// }
-
-
-void         Handler::add_headers(std::vector<std::string> * headers)
+void	Handler::add_env(std::vector<std::string> * envs)
 {
 	std::string contentType = request.headers->find("Content-Type")->second;
 
-	headers->push_back("AUTH_TYPE=Anonymous");
-	headers->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
-	headers->push_back("CONTENT_TYPE=" + contentType);
-	headers->push_back("GATEWAY_INTERFACE=CGI/1.1");
-	headers->push_back("PATH_INFO=" + request.path);
-	headers->push_back("PATH_TRANSLATED=" + this->path);
-	headers->push_back("QUERY_STRING=");
-	headers->push_back("REMOTE_ADDR=");
-	headers->push_back("REMOTE_IDENT=");
-	headers->push_back("REMOTE_USER=");
-    headers->push_back("REQUEST_METHOD=" + request.method);
-	headers->push_back("REQUEST_URI=" + request.path);
-	headers->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// headers->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
-	headers->push_back("SERVER_NAME=" + config.server_name);
-	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
-    headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
-	headers->push_back("SERVER_SOFTWARE=Webserv/1.1");
+	envs->push_back("AUTH_TYPE=Anonymous");
+	envs->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
+	envs->push_back("CONTENT_TYPE=" + contentType);
+	envs->push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envs->push_back("PATH_INFO=" + request.path);
+	envs->push_back("PATH_TRANSLATED=" + this->path);
+	envs->push_back("QUERY_STRING=");
+	envs->push_back("REMOTE_ADDR=");
+	envs->push_back("REMOTE_IDENT=");
+	envs->push_back("REMOTE_USER=");
+    envs->push_back("REQUEST_METHOD=" + request.method);
+	envs->push_back("REQUEST_URI=" + request.path);
+	envs->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
+	// envs->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	envs->push_back("SERVER_NAME=" + config.server_name);
+	envs->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
+    envs->push_back("SERVER_PROTOCOL=HTTP/1.1");
+	envs->push_back("SERVER_SOFTWARE=Webserv/1.1");
 
 	std::multimap<std::string, std::string>::iterator it = request.headers->begin();
 	for (; it != request.headers->end(); it++)
-		headers->push_back("HTTP_" + it->first + "=" + it->second);
+		envs->push_back("HTTP_" + it->first + "=" + it->second);
 }
 
-char **         Handler::create_env(void)
+char **	Handler::create_env(void)
 {
-    char **result;
-	std::vector<std::string> headers;
-	int headersNmb;
+    char **env;
+	std::vector<std::string> envs;
+	int envNum;
 
-	add_headers(&headers);
-    headersNmb = headers.size();
+	add_env(&envs);
+    envNum = envs.size();
 
-	if (!(result = (char **)calloc(headersNmb + 1, sizeof(char*))))
+	if (!(env = (char **)calloc(envNum + 1, sizeof(char*))))
         return NULL;
+	env[envNum] = NULL;
 
-    for (int i = 0; i < headersNmb; i++)
+    for (int i = 0; i < envNum; i++)
     {
-        if (!(result[i] = ft_strdup(headers[i].c_str())))
+        if (!(env[i] = ft_strdup(envs[i].c_str())))
         {
-            ft_free_array(result);
+            ft_free_array(env);
             return (NULL);
         }
     }
-    return result;
+    return env;
 }
 
-
-int Handler::launch_cgi(char **args, char **env, std::string * body)
+int Handler::launchCgi(char **args, char **env, std::string * body)
 {
-int std_input = dup(0);
     int status = 0;
-    int fd[2];
-    pid_t pid;
+    int std_input = dup(0);
+    int std_output = dup(1);
+    pid_t 			pid;
 
-	errno = 0;
-
-    if (pipe(fd) != 0)
-    {
-        error_message(500);
-        status = 1;
-        return status;
-    }
     pid = fork();
     if (pid == 0) // дочерний процесс
     {
-       	dup2(fd[1], 1); // fd to write
 		int in = open(this->path.c_str(), O_RDWR);
-		// int out = open("file.txt", O_RDWR | O_CREAT | O_TRUNC, 0666);
-		// dup2(out, 1);
-        close(fd[0]);
+		int out = open(this->tmp, O_RDWR | O_CREAT | O_TRUNC, 0666);
+		dup2(out, 1);
 		dup2(in, 0);
         if (execve(args[0], args, env) == -1)
         {
-			std::cerr << RED << strerror(errno) << BW << std::endl;
+            close(in);
+            close(out);
+            dup2(std_input, 0);
+            dup2(std_output, 1);
             status = 1;
             exit(status);
         }
@@ -720,51 +681,69 @@ int std_input = dup(0);
     else if (pid < 0)
     {
         error_message(500);
-        close(fd[0]);
-        close(fd[1]);
         status = 1;
     }
     else
     {
-        dup2(fd[0], 0);
-        close(fd[1]);
+        int stat;
+        waitpid(pid, &stat, WUNTRACED); // check exit status
+		while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
+			waitpid(pid, &stat, WUNTRACED);
 
-		char buffer[INBUFSIZE];
-        int res = 0;
-		size_t offset = 0;
+		status = readCgi(body);
+        if (status == 1)
+			error_message(500);
+    }
+    return status;
+}
 
-        while((res = read(fd[0], buffer, INBUFSIZE)) > 0) {
-			if (body->length() == 0) {
-				std::string temp(buffer);
-				offset = temp.find("\r\n\r\n");
-				body->append(temp, 0, offset);
-				body->append("\r\n\r\n");
-				offset += 4;
+int Handler::readCgi(std::string * body)
+{
+	char buffer[INBUFSIZE];
+	size_t offset = 0;
+	int status = 0;
+	int res = 0;
+
+	int in = open(this->tmp, O_RDONLY); // check if open
+
+	lseek(in, read_res, SEEK_SET);
+    if ((res = read(in, buffer, INBUFSIZE)) > 0) {
+		if (!isCgiReading) {
+			std::string temp(buffer);
+			offset = temp.find("\r\n\r\n");
+			body->append(temp, 0, offset);
+			body->append("\r\n\r\n");
+			offset += 4;
+			if (res - offset > 0) {
 				body->append(lltostr(res - offset, 16));
 				body->append("\r\n");
 				body->append(temp, offset, res - offset);
 				body->append("\r\n");
 			}
-			else
-			{
-				body->append(lltostr(res, 16));
-				body->append("\r\n");
-				body->append(buffer, 0, res);
-				body->append("\r\n");
-			}
+			isCgiReading = true;
 		}
-		body->append("0\r\n\r\n");
-        if (res < 0)
-        {
-        	kill(pid, SIGKILL);
-        	status = 1;
-        }
-        if (status == 1)
-			error_message(500);
-		dup2(std_input, 0);
-        close(fd[0]);
+		else
+		{
+			body->append(lltostr(res, 16));
+			body->append("\r\n");
+			body->append(buffer, 0, res);
+			body->append("\r\n");
+		}
+        read_res += res;
+		close(in);
+	}
+	else {
+        if (res == 0)
+            body->append("0\r\n\r\n");
+        else 
+            status = 1;
+        isCgiReading = false;
+		lseek(in, 0, SEEK_SET);
+		close(in);
+		remove(this->tmp);
+		read_res = 0;
     }
-    return status;
+	return status;
 }
 
 std::string Handler::getPresentTime(void)
@@ -805,7 +784,7 @@ void Handler::error_message(int const & status_code)
 			break;
 		case 405:
 			this->response.append("405 Method Not Allowed\r\n");
-			allow_header();
+			addHeaderAllow();
 			break;
 		case 413:
 			this->response.append("413 Payload Too Large\r\n");
@@ -815,7 +794,7 @@ void Handler::error_message(int const & status_code)
 			break;
 		case 501:
 			this->response.append("501 Not Implemented\r\n");
-			allow_header();
+			addHeaderAllow();
 			break;
 		case 505:
 			this->response.append("505 HTTP Version Not Supported\r\n");
@@ -823,21 +802,6 @@ void Handler::error_message(int const & status_code)
 	}
     this->response.append("Content-Length: 0\r\n\r\n");
 	return;
-}
-
-void Handler::allow_header(void)
-{
-	location * loc = config.locations[index_location];
-	size_t size = loc->method.size();
-	
-	this->response.append("Allow: ");
-	for (size_t i = 0; i < size; i++)
-	{
-		this->response.append(loc->method[i].c_str());
-		if (i != size - 1)
-			this->response.append(", ");
-	}
-	this->response.append("\r\n");
 }
 
 // Additional functions
@@ -974,6 +938,11 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 	return(theBestLocation);
 }
 
+bool	Handler::isReadingCgi(void) const
+{
+	return this->isCgiReading;
+}
+
 /*
  * ------------------------- Add headers ----------------------------
  */
@@ -1052,6 +1021,21 @@ void Handler::addHeaderLastModified(void)
     this->response.append("Last-Modified: ");
     this->response.append(this->lastModTime);
     this->response.append("\r\n");
+}
+
+void Handler::addHeaderAllow(void)
+{
+	location * loc = config.locations[index_location];
+	size_t size = loc->method.size();
+	
+	this->response.append("Allow: ");
+	for (size_t i = 0; i < size; i++)
+	{
+		this->response.append(loc->method[i].c_str());
+		if (i != size - 1)
+			this->response.append(", ");
+	}
+	this->response.append("\r\n");
 }
 
 /*

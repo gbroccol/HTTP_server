@@ -19,11 +19,9 @@ Session::Session(configServer config, Authentication * authentication)
 {
 	this->parseRequest = new ParseRequest;
     this->handler      = new Handler(config);
-
     this->_user.signIn = false;
-
     this->authentication = authentication;
-//	fcntl(this->fd, F_SETFL, O_NONBLOCK);
+	// fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 
@@ -105,10 +103,20 @@ void Session::handle_request(fd_set * writefds)
         this->wr_buf = this->handler->handle(parseRequest->getData(), this->_user);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
+}
 
+void Session::handle_cgi(fd_set * writefds)
+{
+		this->wr_buf = this->handler->handle();
+		FD_SET(this->fd, writefds);
 }
 
 bool Session::isRequestLeft(void)
 {
 	return this->request_left;
+}
+
+bool Session::isCgi(void) const
+{
+	return this->handler->isReadingCgi();
 }

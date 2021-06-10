@@ -6,7 +6,7 @@
 /*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/07 15:43:20 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/06/10 17:06:15 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,9 @@ public:
 	int do_read(void);
 	void commit(FILE *f);
 	void handle_request(fd_set * writefds);
+	void handle_cgi(fd_set * writefds);
 	bool isRequestLeft(void);
+	bool isCgi(void) const;
 
 
 private:
