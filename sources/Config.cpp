@@ -256,7 +256,7 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     }
     else if(save == "redirect")
     {
-        if(tmp.empty() || locNode->repeat_redirect == true || checkCgi(tmp) == false)
+        if(tmp.empty() || locNode->repeat_redirect == true || checkRedirect(tmp) == false)
             throw Config::IncorrectConfigException();
         locNode->redirect.assign(tmp);
         locNode->repeat_redirect = true;
@@ -483,6 +483,13 @@ bool Config::checkIndex(std::string root, std::string indexPath)
     else if(index < 0)
         return(false);
     fconfig.close();
+    return (true);
+}
+
+bool Config::checkRedirect(std::string redirectPath)
+{
+    if(redirectPath.empty())
+        return (false);
     return (true);
 }
 

@@ -17,8 +17,8 @@
 + CGI in config
 + check if the same port is not used in config
 - server name
-- define an HTTP redirection (add to config)
-- HTTP redirection (for example, from users/ to home_page)
++ define an HTTP redirection (add to config)
++ HTTP redirection (for example, from users/ to home_page)
 
 КАТЯ
 - CGI working with php-cgi/python

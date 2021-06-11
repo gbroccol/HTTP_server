@@ -213,18 +213,18 @@ void Handler::handle_head(void)
 	else if (checkFile() != 0)
 		return;
 
-//    if (config.locations[index_location]->repeat_redirect == true)
-//        status_code = 301;
-//    else if (config.locations[index_location]->repeat_redirect == true)
-//        status_code = 308;
+    if (config.locations[index_location]->repeat_redirect == true)
+        status_code = 301;
+    else if (config.locations[index_location]->repeat_redirect == true)
+        status_code = 308;
 
     addHeaderStatus(status_code);
     addHeaderServer();
     addHeaderDate();
     addHeaderContentLanguage();
     addHeaderContentLocation();
-//    if (status_code == 301 || status_code == 308)
-//    addHeaderLocation();
+    if (status_code == 301 || status_code == 308)
+        addHeaderLocation();
     addHeaderContentType();
     addHeaderContentLength(this->contentLength);
     addHeaderLastModified();
@@ -1025,9 +1025,9 @@ void Handler::addHeaderLocation(void)
 {
     this->response.append("Location: ");
 
-//    if (config.locations[index_location]->repeat_redirect == true)
-//        this->response.append("/website2/home_page/index.html");
-//    else
+    if (config.locations[index_location]->repeat_redirect == true)
+        this->response.append(config.locations[index_location]->redirect);
+    else
         this->response.append(this->location_path);
     this->response.append("\r\n");
 }
