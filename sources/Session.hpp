@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Session.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/04 18:29:00 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/07 15:43:20 by pvivian          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef SESSION_HPP
 # define SESSION_HPP
 
@@ -41,13 +29,15 @@ private:
 
 public:
 
-   Session(configServer config, Authentication * authentication);
+   Session(configServer config, Authentication * authentication, int fd);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);
 	void commit(FILE *f);
 	void handle_request(fd_set * writefds);
+	void handle_cgi(fd_set * writefds);
 	bool isRequestLeft(void);
+	int  getCgiFd(void) const;
     void checkAuthentication(void);
 
 private:
