@@ -52,9 +52,6 @@ ParseRequest::~ParseRequest()
 
 	bool					ParseRequest::addToBuffer(std::string str)
 	{
-//        if (_data.nmb == 16)
-//            std::cout << BW;
-
 	    if (_data.status == REQUEST_READY)
 	       clearData();
 
@@ -65,7 +62,14 @@ ParseRequest::~ParseRequest()
 
 		if (_data.status == REQUEST_READY)
         {
-            // std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
+		    if (_data.method.length() == 0)
+            {
+                _data.status = REQUEST_PARSE;
+                if (_buff.length() != 0)
+                    return true; // запустить парсинг снова
+                return false; // буфер пустой
+            }
+		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
         }
 
@@ -302,7 +306,7 @@ ParseRequest::~ParseRequest()
                         value.insert(0, tmp, 0, tmp.length());
                         tmp.clear();
                     }
-                    std::cout << BLUE << key << ": " << value << BW << std::endl;
+//                    std::cout << BLUE << key << ": " << value << BW << std::endl;
                     _data.formData->insert(std::make_pair(key, value));
                 }
             }
@@ -329,6 +333,7 @@ ParseRequest::~ParseRequest()
 		 * headers
 		 */
         _data.bodyEncryption = -1;
+        _data.formData->clear();
 	}
 
 /*

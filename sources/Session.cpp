@@ -66,42 +66,48 @@ int Session::do_read(void)
 	return 1;
 }
 
-void Session::commit(FILE *f)
-{
-	// неразрешенные функции
-	unsigned int ip = this->from_ip;
-	fprintf(f, "From %d.%d.%d.%d:%d\n",
-			(ip>>24 & 0xff), (ip>>16 & 0xff), (ip>>8 & 0xff), (ip & 0xff),
-			this->from_port);
-	fflush(f);
-	
-}
+//void Session::commit(FILE *f)
+//{
+//	// неразрешенные функции
+//	unsigned int ip = this->from_ip;
+//	fprintf(f, "From %d.%d.%d.%d:%d\n",
+//			(ip>>24 & 0xff), (ip>>16 & 0xff), (ip>>8 & 0xff), (ip & 0xff),
+//			this->from_port);
+//	fflush(f);
+//
+//}
 
-void Session::handle_request(fd_set * writefds)
+void Session::checkAuthentication(void)
 {
+    data dataRequest = parseRequest->getData();
 
-    this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
-    if (parseRequest->isRequestReady()) 
+    if (dataRequest.path == "/home_page/index.html" || dataRequest.path == "/")
+        this->_user.signIn = false;
+
+    if (dataRequest.formData->size() != 0) // есть данные для обработки их формы
     {
-        data dataRequest = parseRequest->getData();
-//        std::multimap <std::string, std::string>::iterator itCL = parseRequest->getData().headers->find("Authorization");
-
-        if (dataRequest.path == "/home_page/index.html")
-            this->_user.signIn = false;
-
-        if (this->_user.signIn == false && dataRequest.formData->size() != 0 && dataRequest.path.find("authorize"))
+        if (this->_user.signIn == false) // && dataRequest.path.find("authorize"))
         {
             if (authentication->checkAuthenticationData(dataRequest.formData->find("login")->second, dataRequest.formData->find("password")->second))
             {
                 this->_user.signIn = true;
                 this->_user.login = dataRequest.formData->find("login")->second;
             }
-
-//            catch (std::string message)
-//            {
-//                std::cout << RED << message << std::endl;
-//            }
+            else if (authentication->addNewUser(dataRequest.formData->find("loginSignUp")->second, dataRequest.formData->find("passwordSignUp")->second))
+            {
+                this->_user.signIn = true;
+                this->_user.login = dataRequest.formData->find("loginSignUp")->second;
+            }
         }
+    }
+}
+
+void Session::handle_request(fd_set * writefds)
+{
+    this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
+    if (parseRequest->isRequestReady()) 
+    {
+        checkAuthentication();
         this->wr_buf = this->handler->handle(parseRequest->getData(), this->_user);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }

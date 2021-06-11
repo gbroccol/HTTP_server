@@ -121,9 +121,7 @@ bool checkLockPath(std::string path)
 
 bool checkErrorPage(std::string path)
 {
-
-    // std::ifstream fconfig(path);
-    std::ifstream err_page("./content/error_page/error.html");
+    std::ifstream err_page(path);
     std::string tmp = "";
     int index = path.find('.');
     if(index > 0)
@@ -237,7 +235,7 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     {
         if(locNode->repeat_maxBody == true)
             throw Config::IncorrectConfigException();
-        locNode->maxBody = std::stoi(tmp); //check char?
+        locNode->maxBody = std::stoi(tmp);
         if(locNode->maxBody > 1000000 || locNode->maxBody < 0)
             throw Config::IncorrectConfigException();
         locNode->repeat_maxBody = true;
@@ -255,6 +253,13 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
             throw Config::IncorrectConfigException();
         locNode->index.assign(tmp);
         locNode->repeat_index = true;
+    }
+    else if(save == "redirect")
+    {
+        if(tmp.empty() || locNode->repeat_redirect == true || checkRedirect(tmp) == false)
+            throw Config::IncorrectConfigException();
+        locNode->redirect.assign(tmp);
+        locNode->repeat_redirect = true;
     }
     else if(save == "cgi")
     {
@@ -339,6 +344,10 @@ void					Config::initLocNode(location *locNode)
     locNode->repeat_autoIndex = false;
     locNode->authentication = false;
     locNode->repeat_authentication = false;
+    locNode->redirect.clear();
+    locNode->repeat_redirect = false;
+    locNode->cgi.clear();
+    locNode->repeat_cgi = false;
 }
 
 void					Config::initServNode(configServer *servNode)
@@ -355,8 +364,8 @@ void					Config::initServNode(configServer *servNode)
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
 	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication", "cgi"};
-	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD"};
+	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication", "cgi", "redirect"};
+	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD", "DELETE"};
 
     if (config_part == SERVER)
     {
@@ -450,6 +459,7 @@ bool Config::checkErrorPage(std::string path)
     }
     else if(index < 0)
         return(false);
+    err_page.close();
     return (true);
 }
 
@@ -473,6 +483,14 @@ bool Config::checkIndex(std::string root, std::string indexPath)
     }
     else if(index < 0)
         return(false);
+    fconfig.close();
+    return (true);
+}
+
+bool Config::checkRedirect(std::string redirectPath)
+{
+    if(redirectPath.empty())
+        return (false);
     return (true);
 }
 
@@ -489,6 +507,7 @@ bool Config::checkCgi(std::string cgiPath)
     }
     else if(index < 0)
         return(false);
+    fconfig.close();
     return (true);
 }
 

@@ -38,7 +38,7 @@ public:
 	void handle_cgi(fd_set * writefds);
 	bool isRequestLeft(void);
 	int  getCgiFd(void) const;
-
+    void checkAuthentication(void);
 
 private:
 

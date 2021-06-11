@@ -131,7 +131,8 @@ int isLocation(std::vector<location *> locations, std::string path);
     void makeAutoindexPage(std::string * body);
     int checkFile(void);
     void loadBodyFromFile(std::string * body);
-	int		getCgiFd(void) const;
+    void loadBodyFromFile(std::string * body, std::string path);
+     int		getCgiFd(void) const;
 
 };
 

@@ -40,9 +40,6 @@ std::string const & Handler::handle(data const & req, user & userData)
 	if(config.locations[this->index_location]->autoIndex == ON)
 		getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 
-	//	if (_userData.signIn == true)
-	//        handle_delete();
-
 	if (_error401)
 		handle_401();
 	else if (request.method == "HEAD" || request.method == "GET")
@@ -53,7 +50,6 @@ std::string const & Handler::handle(data const & req, user & userData)
 		handle_put();
 	else if (request.method == "DELETE")
 		handle_delete();
-
 
 	if (request.method == "PUT" || request.method == "DELETE")
 		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
@@ -83,17 +79,16 @@ std::string const & Handler::handle(void)
 	return this->response;
 }
 
-int Handler::isRequestCorrect(void)
+int Handler::isRequestCorrect(void)  // errors
 {
 	std::string methods = "GET, HEAD, PUT, POST, DELETE";
 	int status_code = 0;
-
 
 	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
 	else if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0")
 		status_code = 505;
-	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
+    else if ((index_location = isLocation(config.locations, request.path)) < 0)
 	 	status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
@@ -139,6 +134,10 @@ void Handler::makePath(void)
         this->path.append(subpath());
 //        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
         this->location_path.append(request.path);
+
+        size_t pos = this->path.find("//", 0);
+        if (pos != std::string::npos)
+            this->path.erase(pos, 1);
     }
 
 	dir = opendir(path.c_str());
@@ -152,7 +151,7 @@ void Handler::makePath(void)
 			this->location_path.append(config.locations[index_location]->index);          // путь до странички БЕЗ ДИРРЕКТОРИИ
 		}
 		else
-			this->isDir = true;
+			this->isDir = true; // ???
         closedir(dir);
     }
 }
@@ -166,11 +165,16 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
 	this->arrDir.clear();
 
     if( LocPath[ LocPath.length() - 1] == '/')
-        indexPath = '.' + config.locations[index_location]->path + LocPath;
+        indexPath = '.' + LocPath;
     else
-        indexPath =  '.' +  config.locations[index_location]->path + '/' + LocPath + '/';
+        indexPath =  '.' +  LocPath + '/';
+//    if( LocPath[ LocPath.length() - 1] == '/')
+//        indexPath = '.' + config.locations[index_location]->path + LocPath;
+//    else
+//        indexPath =  '.' +  config.locations[index_location]->path + '/' + LocPath + '/';
    if((dir  = opendir(indexPath.c_str())) == nullptr)
-		;													// error?
+		std::cout << RED<< "ERROR OPEN DIR"<< BW<<std::endl;
+
     while((dirStruct = readdir(dir)) != nullptr)
     {
         this->arrDir.push_back(dirStruct->d_name);
@@ -195,7 +199,7 @@ void Handler::handle_401(void)
     else if (checkFile() != 0)
         return;
 
-    addHeaderStatus(401);
+    addHeaderStatus(511);
     addHeaderServer();
     addHeaderDate();
     this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
@@ -204,7 +208,13 @@ void Handler::handle_401(void)
     this->response.append("Content-Type: text/html\r\n");
     addHeaderContentLength(std::to_string(body.length()));
     addHeaderLastModified();
+
+    this->response.append("Content-Disposition: inline\r\n");
+
     this->response.append("\r\n");
+
+    std::cout << this->response << std::endl;
+
     this->response.append(body);
 }
 
@@ -215,20 +225,29 @@ void Handler::handle_401(void)
 void Handler::handle_head(void)
 {
 	std::string body;
+	int status_code = 200;
 
 	if (isDir && config.locations[this->index_location]->autoIndex == ON)
 		makeAutoindexPage(&body);
 	else if (checkFile() != 0)
 		return;
 
-    addHeaderStatus(200);
+    if (config.locations[index_location]->repeat_redirect == true)
+        status_code = 301;
+    else if (config.locations[index_location]->repeat_redirect == true)
+        status_code = 308;
+
+    addHeaderStatus(status_code);
     addHeaderServer();
     addHeaderDate();
     addHeaderContentLanguage();
     addHeaderContentLocation();
+    if (status_code == 301 || status_code == 308)
+        addHeaderLocation();
     addHeaderContentType();
     addHeaderContentLength(this->contentLength);
     addHeaderLastModified();
+
 	this->response.append("\r\n");
 
 	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
@@ -284,7 +303,6 @@ void Handler::handle_post(void)
         addHeaderLocation();
         this->response.append("\r\n");
         this->response.append(body);
-//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
         return;
     }
 
@@ -325,18 +343,11 @@ void Handler::handle_post(void)
 		lengthHeader = "Content-Length: " + lltostr(request.body.length(), 10) + "\r\n";
 	}
 
-  this->response.append("200 OK\r\n");
-	this->response.append("Server: Webserv/1.1\r\n");
-		
-	this->response.append("Date: ");
-	this->response.append(getPresentTime());
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-	this->response.append("Content-Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
+    addHeaderStatus(200);
+    addHeaderServer();
+    addHeaderDate();
+    addHeaderContentLanguage();
+    addHeaderContentLocation();
 		
 	this->response.append(lengthHeader);
 
@@ -344,7 +355,7 @@ void Handler::handle_post(void)
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
 
-	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->response.append(body);
 }
@@ -459,6 +470,40 @@ int Handler::createNewFile(std::string fileName, std::string content, std::strin
  * ----------------------------------------- PUT --------------------------------------
  */
 
+void Handler::handle_put(void)
+{
+    int fd;
+    int status_code = 204;
+
+    fd = open(this->path.c_str(), O_RDWR);
+    if (fd < 0)
+        status_code = 201;
+    else
+        close(fd);
+
+    std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+    if (!ofs.good())
+        return error_message(500);
+
+    ofs << request.body;
+    ofs.close();
+
+    addHeaderStatus(status_code);
+    addHeaderServer();
+    addHeaderDate();
+    addHeaderContentLanguage();
+    addHeaderContentLocation();
+    this->response.append("Content-Type: ");
+    this->response.append("text/plain"); //нужно подтянуть из хедера запроса, если он есть
+    this->response.append("\r\n");
+    addHeaderContentLength(lltostr(request.body.size(), 10));
+    addHeaderLocation();
+    this->response.append("\r\n");
+
+    if (status_code == 201)
+        this->response.append(request.body);
+}
+
 /*
  * ---------------------------------------- DELETE --------------------------------------
  */
@@ -477,14 +522,15 @@ void Handler::handle_delete(void)
     if (_userData.signIn == true && pos == 0)
         deleteAccess = ON;
     else
-        status = 403; // Forbidden - do not have access to delete this file
+        status = 403;
 
     if (deleteAccess == OFF)
         error_message(status);
     else
     {
         if (remove(this->path.c_str()) != 0 ) // this->path
-            error_message(404);
+            return error_message(404);
+
 
         std::string body = "<html>\n<body>\n<h1>File deleted.</h1>\n</body>\n</html>";
 
@@ -506,6 +552,17 @@ void Handler::handle_delete(void)
         this->response.append(body);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 void Handler::makeAutoindexPage(std::string * body)
 {
@@ -533,7 +590,7 @@ int Handler::checkFile(void)
 	
 	if ( (fd = open(this->path.c_str(), O_RDONLY)) == -1)
 	{
-		if (errno == ENOENT || errno == EFAULT)
+		if (errno == ENOENT || errno == EFAULT || errno == ENOTDIR)
 			error_message(404);
 		else 
 			error_message(500);
@@ -558,58 +615,15 @@ void Handler::loadBodyFromFile(std::string * body)
 	ifs.close();
 }
 
-void Handler::handle_put(void)
+void Handler::loadBodyFromFile(std::string * body, std::string path)
 {
-	int fd;
-	std::string status = "204 No Content\r\n";
-	int status_code = 204;
-	
-	fd = open(this->path.c_str(), O_RDWR);
-	if (fd < 0)
-	{
-		status = "201 Created\r\n";
-		status_code = 201;
-	}
-	else
-		close(fd);
-	
-	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
-	if (!ofs.good())
-	{
-		error_message(500);
-		return;
-	}
-	ofs << request.body;
-	ofs.close();
-	
-	this->response.append(status);
-	this->response.append("Server: Webserv/1.1\r\n");
-		
-	this->response.append("Date: ");
-	this->response.append(getPresentTime());
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Language: en\r\n"); //нужно подтянуть из хедера запроса, если он есть
-		
-	this->response.append("Content-Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Type: ");
-	 this->response.append("text/plain"); //нужно подтянуть из хедера запроса, если он есть
-	this->response.append("\r\n");
-		
-	this->response.append("Content-Length: ");
-	this->response.append(lltostr(request.body.size(), 10)); //нужно подтянуть из хедера запроса, если он есть
-	this->response.append("\r\n");
+    std::ifstream ifs(path.c_str());
+    std::stringstream ss;
+    ss << ifs.rdbuf();
 
-	this->response.append("Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
-  	this->response.append("\r\n");
-
-	if (status_code == 201)
-		this->response.append(request.body);
+    body->append(ss.str());
+    ss.clear();
+    ifs.close();
 }
 
 void         Handler::add_env(std::vector<std::string> * envs)
@@ -783,37 +797,71 @@ std::string Handler::getLastModificationTime(time_t const & time)
 
 void Handler::error_message(int const & status_code)
 {
+    std::string message;
+
 	switch(status_code)
 	{
 		case 400:
-			this->response.append("400 Bad Request\r\n");
+            message = "Bad Request";
 			break;
 	    case 403:
-            this->response.append("403 Forbidden\r\n");
+            message = "Forbidden";
             break;
 		case 404:
-			this->response.append("404 Not found\r\n");
+            message = "Not found";
 			break;
 		case 405:
-			this->response.append("405 Method Not Allowed\r\n");
-			addHeaderAllow();
+            message = "Method Not Allowed";
+			      addHeaderAllow();
 			break;
 		case 413:
-			this->response.append("413 Payload Too Large\r\n");
+            message = "Payload Too Large";
 			break;
 		case 500:
-			this->response.append("500 Internal Server Error\r\n");
+            message = "Internal Server Error";
 			break;
 		case 501:
-			this->response.append("501 Not Implemented\r\n");
+            message = "Not Implemented";
 			addHeaderAllow();
 			break;
 		case 505:
-			this->response.append("505 HTTP Version Not Supported\r\n");
+            message = "HTTP Version Not Supported";
 			break;
 	}
-    this->response.append("Content-Length: 0\r\n\r\n");
-	return;
+    this->response.append(std::to_string(status_code));
+    this->response.append(" ");
+    this->response.append(message);
+    this->response.append("\r\n");
+
+    std::string body;
+    std::string errorPagePath = "." + config.error_page;
+//    "./content/website1/error_page/error.html"
+    loadBodyFromFile(&body, errorPagePath); // path to error page from config
+
+    size_t pos = body.find("<?php errorStatus(); ?>", 0);
+    if (pos != std::string::npos)
+    {
+        std::string errorStatus = "<h1></h1><h2></h2>";
+        errorStatus.insert(13, message);
+        errorStatus.insert(4, std::to_string(status_code));
+
+        body.erase(pos, 23);
+        body.insert(pos, errorStatus);
+    }
+
+    addHeaderContentLength(std::to_string(body.length()));
+
+    this->response.append("Location: /error_page/");
+    this->response.append("\r\n");
+
+    this->response.append("Content-Location: /error_page/");
+    this->response.append("\r\n");
+
+    this->response.append("\r\n");
+    this->response.append(body);
+
+    std::cout << this->response  << std::endl;
+	return ;
 }
 
 // Additional functions
@@ -965,11 +1013,26 @@ void Handler::addHeaderStatus(int status)
         case 200:
             this->response.append("200 OK\r\n");
             break;
+        case 201:
+            this->response.append("201 Created\r\n");
+            break;
+        case 204:
+            this->response.append("204 No Content\r\n");
+            break;
+        case 301:
+            this->response.append("301 Moved Permanently\r\n");
+            break;
+        case 308:
+            this->response.append("308 Permanent Redirect\r\n");
+            break;
         case 401:
             this->response.append("401 Unauthorized\r\n");
             break;
-        case (404):
+        case 404:
             this->response.append("404 Not Found\r\n");
+            break;
+        case 511:
+            this->response.append("511 Network Authentication Required\r\n");
             break;
     }
 }
@@ -996,7 +1059,11 @@ void Handler::addHeaderContentLength(std::string size)
 void Handler::addHeaderLocation(void)
 {
     this->response.append("Location: ");
-    this->response.append(this->location_path);
+
+    if (config.locations[index_location]->repeat_redirect == true)
+        this->response.append(config.locations[index_location]->redirect);
+    else
+        this->response.append(this->location_path);
     this->response.append("\r\n");
 }
 

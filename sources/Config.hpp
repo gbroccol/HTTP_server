@@ -38,6 +38,9 @@
         bool 					repeat_autoIndex;
         bool                    authentication;
         bool 					repeat_authentication;
+        std::string 			redirect;
+        bool 					repeat_redirect;
+
 	};
 
 struct 	configServer
@@ -83,6 +86,7 @@ public:
     void                        getPortsAndIP(configServer *servNode, std::string portsStr);
     bool                        check_repeat_ports(configServer *servNode);
     bool                        checkCgi(std::string cgiPath);
+    bool                        checkRedirect(std::string redirectPath);
 
     configServer        		*getconfigServer(int index) const;
     size_t						getSize(void) const;
