@@ -28,10 +28,12 @@ void Cluster::init(const Config & config)
 
 void Cluster::run(void)
 {
-	int i;
-	int sr, ssr, maxfd;
+	int i, sr, ssr, maxfd;
+	int cgiFd;
 
-	
+	// fcntl(1, F_SETFL, O_NONBLOCK);
+
+
 	for(;;) {
 		FD_ZERO(&readfds);                  // зачистить сет для чтения
 		FD_ZERO(&writefds);                 // зачистить сет для записи
@@ -43,19 +45,27 @@ void Cluster::run(void)
 				FD_SET(i, &readfds);
 				if(i > maxfd)
 					maxfd = i;
+				if ((cgiFd = sessions[i]->getCgiFd()) > 0)
+				{
+					FD_SET(cgiFd, &readfds);
+					if(cgiFd > maxfd)
+						maxfd = cgiFd;
+				}
 			}
 		}
 
 		sr = select(maxfd+1, &readfds, &writefds, NULL, NULL);
 		if (sr == -1)
-			throw std::runtime_error("Select error");
+		    throw std::runtime_error("Select error");
 		for (size_t i = 0; i < this->listenSockets.size(); i++) 
 			if (FD_ISSET(this->listenSockets[i], &readfds))
 				accept_client(i);
 		for (size_t i = 0; i < sessions.size(); i++) 
 		{
 			if (sessions[i]) {
-				if (FD_ISSET(i, &readfds)) {
+				if (sessions[i]->getCgiFd() > 0 && FD_ISSET(sessions[i]->getCgiFd(), &readfds))
+					sessions[i]->handle_cgi(&writefds);
+				else if (FD_ISSET(i, &readfds)) {
 					ssr = sessions[i]->do_read();
 					if (ssr == 1 || sessions[i]->isRequestLeft()) {
 						sessions[i]->handle_request(&writefds);
@@ -117,7 +127,8 @@ void Cluster::closeSession(int sd)
 	// if (this->sessions[sd]->state == fsm_finish)
 	// 	this->sessions[sd]->commit(this->res);
 	close(sd);
-	free(this->sessions[sd]);
+	delete this->sessions[sd];
+	// free(this->sessions[sd]);
 	this->sessions[sd] = NULL;
 }
 
