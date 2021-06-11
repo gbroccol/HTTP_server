@@ -562,6 +562,9 @@ void Handler::loadBodyFromFile(std::string * body, std::string path)
 void         Handler::add_env(std::vector<std::string> * envs)
 {
 	std::string contentType = request.headers->find("Content-Type")->second;
+	std::string user;
+	if (_userData->signIn)
+	    user = _userData.login;
 
 	envs->push_back("AUTH_TYPE=Anonymous");
     envs->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
@@ -572,7 +575,7 @@ void         Handler::add_env(std::vector<std::string> * envs)
     envs->push_back("QUERY_STRING="); // ?...
     envs->push_back("REMOTE_ADDR=");
     envs->push_back("REMOTE_IDENT=");
-    envs->push_back("REMOTE_USER=");
+    envs->push_back("REMOTE_USER=" + user);
     envs->push_back("REQUEST_METHOD=" + request.method);
     envs->push_back("REQUEST_URI=" + request.path);
     envs->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi_name);
@@ -814,7 +817,7 @@ std::string Handler::subpath(void)
 {
     size_t i = 0;
     std::string loc_path = config.locations[index_location]->path;
-    if (loc_path != "/close" || loc_path != "/download") // delete
+    if (loc_path != "/close" || loc_path != "/download") // hardcode
        while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
            i++;
     return (request.path.substr(i));
