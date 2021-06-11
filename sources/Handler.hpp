@@ -17,8 +17,8 @@
 # include "Webserv.hpp"
 # include "Config.hpp"
 
-#define ON true
-#define OFF false
+# define ON true
+# define OFF false
 
 class Handler
 {
@@ -28,6 +28,11 @@ private:
 
 	std::string 	response;
 	data 			request;
+
+	bool			isCgiReading;
+	int             read_res;
+	std::string		tmp;
+	int				cgiFd;
 
 	int 			index_location;
 	std::string		path;
@@ -47,10 +52,11 @@ private:
 public:
 
 
-    Handler(configServer const & config);
+    Handler(configServer const & config, int fd);
 	~Handler(void);
 
 	std::string const & handle(data const & request, user & userData);
+	std::string const & handle(void);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
@@ -68,8 +74,9 @@ public:
 	/* POST */
 	void handle_post(void);
 	char ** create_env(void);
-  void add_headers(std::vector<std::string> * headers);
-	int launch_cgi(char **args, char ** env, std::string * body);
+  	void add_env(std::vector<std::string> * envs);
+	int launchCgi(char **args, char ** env, std::string * body);
+	int readCgi(std::string * body);
 	int updateFile(std::string & boundary);
     int createNewFile(std::string fileName, std::string content, std::string fileExtension);
 
@@ -80,9 +87,6 @@ public:
 	std::string getLastModificationTime(time_t const & time);
 	
 	void error_message(int const & status_code);
-	void allow_header(void);
-
-	std::string lltostr(long long number, int base);
 
 int isFiles(std::string path, std::string locPath);
 int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
@@ -107,6 +111,7 @@ int isLocation(std::vector<location *> locations, std::string path);
     void addHeaderLocation(void);
     void addHeaderContentType(void);
     void addHeaderLastModified(void);
+	void addHeaderAllow(void);
 
   	/*
   	 * libft
@@ -115,17 +120,19 @@ int isLocation(std::vector<location *> locations, std::string path);
     int             ft_strlen(const char *str);
     void		    ft_free_array(char **to_free);
     char *          ft_strdup(const char *s);
+	std::string lltostr(long long number, int base);
 
     /*
      * extra
      */
 
-    void            getFilesOrDirFromRoot(std::string LocPath);
+    void	getFilesOrDirFromRoot(std::string LocPath);
     std::string getLink(std::string path);
     void makeAutoindexPage(std::string * body);
     int checkFile(void);
     void loadBodyFromFile(std::string * body);
     void loadBodyFromFile(std::string * body, std::string path);
+     int		getCgiFd(void) const;
 
 };
 

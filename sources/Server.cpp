@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/05 17:37:19 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/08 13:11:37 by pvivian          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 
 
@@ -69,12 +57,10 @@ void Server::init(const configServer & config)
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 {
-	Session *sess = new Session(this->config, this->_authentication);
-	sess->fd = fd;
+	Session *sess = new Session(this->config, this->_authentication, fd);
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);
 	sess->state = fsm_start;
-
 	return sess;
 }
 

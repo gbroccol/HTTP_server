@@ -338,6 +338,7 @@ void					Config::initLocNode(location *locNode)
     locNode->repeat_maxBody = false;
     locNode->repeat_path = false;
     locNode->repeat_root = false;
+	locNode->repeat_cgi  = false;
     locNode->root = "";
     locNode->autoIndex = -1;
     locNode->repeat_autoIndex = false;

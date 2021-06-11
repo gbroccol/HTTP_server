@@ -9,3 +9,4 @@ main2.cpp
 .idea/
 CMakeLists.txt
 RESPONSE
+config/ubutu.conf
