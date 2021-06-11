@@ -256,7 +256,7 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     }
     else if(save == "redirect")
     {
-        if(tmp.empty() || locNode->repeat_redirect == true || checkIndex(locNode->root,tmp) == false)
+        if(tmp.empty() || locNode->repeat_redirect == true || checkCgi(tmp) == false)
             throw Config::IncorrectConfigException();
         locNode->redirect.assign(tmp);
         locNode->repeat_redirect = true;
@@ -345,6 +345,8 @@ void					Config::initLocNode(location *locNode)
     locNode->repeat_authentication = false;
     locNode->redirect.clear();
     locNode->repeat_redirect = false;
+    locNode->cgi.clear();
+    locNode->repeat_cgi = false;
 }
 
 void					Config::initServNode(configServer *servNode)

@@ -60,17 +60,16 @@ std::string const & Handler::handle(data const & req, user & userData)
 	return this->response;
 }
 
-int Handler::isRequestCorrect(void)
+int Handler::isRequestCorrect(void)  // errors
 {
 	std::string methods = "GET, HEAD, PUT, POST, DELETE";
 	int status_code = 0;
-
 
 	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
 //	else if (request.version != "HTTP/1.1")
 //		status_code = 505;
-	 else if ((index_location = isLocation(config.locations, request.path)) < 0)
+    else if ((index_location = isLocation(config.locations, request.path)) < 0)
 	 	status_code = 404;
 	else if (methods.find(request.method) == std::string::npos)
 		status_code = 501;
@@ -207,20 +206,29 @@ void Handler::handle_401(void)
 void Handler::handle_head(void)
 {
 	std::string body;
+	int status_code = 200;
 
 	if (isDir && config.locations[this->index_location]->autoIndex == ON)
 		makeAutoindexPage(&body);
 	else if (checkFile() != 0)
 		return;
 
-    addHeaderStatus(200);
+//    if (config.locations[index_location]->repeat_redirect == true)
+//        status_code = 301;
+//    else if (config.locations[index_location]->repeat_redirect == true)
+//        status_code = 308;
+
+    addHeaderStatus(status_code);
     addHeaderServer();
     addHeaderDate();
     addHeaderContentLanguage();
     addHeaderContentLocation();
+//    if (status_code == 301 || status_code == 308)
+//    addHeaderLocation();
     addHeaderContentType();
     addHeaderContentLength(this->contentLength);
     addHeaderLastModified();
+
 	this->response.append("\r\n");
 	
 	if (request.method == "GET") {
@@ -781,7 +789,9 @@ void Handler::error_message(int const & status_code)
     this->response.append("\r\n");
 
     std::string body;
-    loadBodyFromFile(&body, "./content/error_page/error.html"); // path to error page from config
+    std::string errorPagePath = "." + config.error_page;
+//    "./content/website1/error_page/error.html"
+    loadBodyFromFile(&body, errorPagePath); // path to error page from config
 
     size_t pos = body.find("<?php errorStatus(); ?>", 0);
     if (pos != std::string::npos)
@@ -974,13 +984,19 @@ void Handler::addHeaderStatus(int status)
         case 204:
             this->response.append("204 No Content\r\n");
             break;
+        case 301:
+            this->response.append("301 Moved Permanently\r\n");
+            break;
+        case 308:
+            this->response.append("308 Permanent Redirect\r\n");
+            break;
         case 401:
             this->response.append("401 Unauthorized\r\n");
             break;
-        case (404):
+        case 404:
             this->response.append("404 Not Found\r\n");
             break;
-        case (511):
+        case 511:
             this->response.append("511 Network Authentication Required\r\n");
             break;
     }
@@ -1008,7 +1024,11 @@ void Handler::addHeaderContentLength(std::string size)
 void Handler::addHeaderLocation(void)
 {
     this->response.append("Location: ");
-    this->response.append(this->location_path);
+
+//    if (config.locations[index_location]->repeat_redirect == true)
+//        this->response.append("/website2/home_page/index.html");
+//    else
+        this->response.append(this->location_path);
     this->response.append("\r\n");
 }
 
