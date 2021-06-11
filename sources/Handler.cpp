@@ -225,25 +225,25 @@ void Handler::handle_post(void)
     /*
      *  Upload files
      */
-//    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
-//    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
-//    if (pos != std::string::npos && pos == 0)
-//    {
-//        pos = itCL->second.find("=", 0);
-//        std::string boundary;
-//        boundary.append(itCL->second, pos + 1, std::string::npos);
-//
-//        addHeaderStatus(updateFile(boundary));
-//        addHeaderServer();
-//        addHeaderDate();
-//        addHeaderContentLanguage();
-//        addHeaderContentLocation();
-//        addHeaderContentLength("0");
-//        addHeaderLocation();
-//        this->response.append("\r\n");
-//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-//        return;
-//    }
+    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
+    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
+    if (pos != std::string::npos && pos == 0)
+    {
+        pos = itCL->second.find("=", 0);
+        std::string boundary;
+        boundary.append(itCL->second, pos + 1, std::string::npos);
+
+        addHeaderStatus(updateFile(boundary));
+        addHeaderServer();
+        addHeaderDate();
+        addHeaderContentLanguage();
+        addHeaderContentLocation();
+        addHeaderContentLength("0");
+        addHeaderLocation();
+        this->response.append("\r\n");
+        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+        return;
+    }
 
     if (this->request.formData->size() != 0) // регистрация
     {
@@ -287,7 +287,7 @@ void Handler::handle_post(void)
             return error_message(500);
 
         const char *pathToCGI = config.locations[index_location]->cgi.c_str();
-        char *args[3] = { (char *)pathToCGI, (char *)path.c_str(), NULL};
+        char *args[3] = { (char *)pathToCGI, (char *)pathBodyFile.c_str(), NULL};
 
 		if (launchCgi(args, envPost, &body) == 1)
             return ft_free_array(envPost);
