@@ -27,6 +27,7 @@
 		std::string 			index;
 		bool 					repeat_index;
         std::string 			cgi;
+        std::string 			cgi_name;
         bool 					repeat_cgi;
 		std::string 			root;
 		bool 					repeat_root;
