@@ -31,7 +31,8 @@ private:
 
 	bool			isCgiReading;
 	int             read_res;
-	char *			tmp;
+	std::string		tmp;
+	int				cgiFd;
 
 	int 			index_location;
 	std::string		path;
@@ -51,7 +52,7 @@ private:
 public:
 
 
-    Handler(configServer const & config);
+    Handler(configServer const & config, int fd);
 	~Handler(void);
 
 	std::string const & handle(data const & request, user & userData);
@@ -130,7 +131,7 @@ int isLocation(std::vector<location *> locations, std::string path);
     void makeAutoindexPage(std::string * body);
     int checkFile(void);
     void loadBodyFromFile(std::string * body);
-	bool	isReadingCgi(void) const;
+	int		getCgiFd(void) const;
 
 };
 

@@ -2,13 +2,14 @@
 
 Handler::Handler(void){ return; } // private
 
-Handler::Handler(configServer const & config)
+Handler::Handler(configServer const & config, int sessionFd)
 {
     this->config = config;
 	this->isCgiReading = false;
 	this->isDir = false;
     this->_error401 = false;
-	this->tmp = (char *)"./sources/tmp.txt";
+	this->tmp = "./cgi/temp/" + lltostr(sessionFd, 10) + ".txt";
+	this->cgiFd = -1;
 	this->read_res = 0;
 	return;
 }
@@ -534,7 +535,7 @@ int Handler::checkFile(void)
 	{
 		if (errno == ENOENT || errno == EFAULT)
 			error_message(404);
-		else
+		else 
 			error_message(500);
 		return 1;
 	}
@@ -673,7 +674,7 @@ int Handler::launchCgi(char **args, char **env, std::string * body)
     if (pid == 0) // дочерний процесс
     {
 		int in = open(this->path.c_str(), O_RDWR);
-		int out = open(this->tmp, O_RDWR | O_CREAT | O_TRUNC, 0666);
+		int out = open(this->tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
 		dup2(out, 1);
 		dup2(in, 0);
         if (execve(args[0], args, env) == -1)
@@ -712,10 +713,11 @@ int Handler::readCgi(std::string * body)
 	int status = 0;
 	int res = 0;
 
-	int in = open(this->tmp, O_RDONLY); // check if open
+	if (!isCgiReading)
+		cgiFd = open(this->tmp.c_str(), O_RDONLY); // check if open
 
-	lseek(in, read_res, SEEK_SET);
-    if ((res = read(in, buffer, INBUFSIZE)) > 0) {
+    if ((res = read(cgiFd, buffer, INBUFSIZE - 1)) > 0) {
+		buffer[res] = 0;
 		if (!isCgiReading) {
 			std::string temp(buffer);
 			offset = temp.find("\r\n\r\n");
@@ -738,18 +740,20 @@ int Handler::readCgi(std::string * body)
 			body->append("\r\n");
 		}
         read_res += res;
-		close(in);
 	}
 	else {
         if (res == 0)
             body->append("0\r\n\r\n");
-        else 
+        else
+		{
             status = 1;
+			error_message(500);
+		}
         isCgiReading = false;
-		lseek(in, 0, SEEK_SET);
-		close(in);
-		remove(this->tmp);
+		close(cgiFd);
+		remove(this->tmp.c_str());
 		read_res = 0;
+		cgiFd = -1;
     }
 	return status;
 }
@@ -946,9 +950,9 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 	return(theBestLocation);
 }
 
-bool	Handler::isReadingCgi(void) const
+int		Handler::getCgiFd(void) const
 {
-	return this->isCgiReading;
+	return this->cgiFd;
 }
 
 /*

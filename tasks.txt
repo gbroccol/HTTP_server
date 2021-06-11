@@ -17,8 +17,8 @@
 
 КАТЯ
 - CGI working with php-cgi/python
-- memory management
-- read from cgi - through select
++ memory management
++ read from cgi - through select
 - check fd leaks
 
 EXTRA
