@@ -22,7 +22,7 @@ Session::Session(configServer config, Authentication * authentication, int fd)
   	this->_user.signIn = false;
   	this->authentication = authentication;
 	this->fd = fd;
-	fcntl(this->fd, F_SETFL, O_NONBLOCK);
+//	fcntl(this->fd, F_SETFL, O_NONBLOCK);
 	return; 
 }
 
@@ -35,7 +35,8 @@ Session::~Session(void)
 
 int Session::send_message(void)
 {
-	if ((send(this->fd, wr_buf.c_str(), wr_buf.length(), MSG_NOSIGNAL)) < 0)
+//	if ((send(this->fd, wr_buf.c_str(), wr_buf.length(), MSG_NOSIGNAL)) < 0)
+    if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
 		this->state = fsm_error;
 		wr_buf.clear();

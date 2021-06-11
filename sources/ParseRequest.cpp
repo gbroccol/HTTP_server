@@ -69,7 +69,7 @@ ParseRequest::~ParseRequest()
                     return true; // запустить парсинг снова
                 return false; // буфер пустой
             }
-		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
+//		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
         }
 

@@ -7,10 +7,8 @@ Handler::Handler(configServer const & config, int sessionFd)
     this->config = config;
 	this->isCgiReading = false;
 	this->isDir = false;
-    this->_error401 = false;
 	this->tmp = "./cgi/temp/" + lltostr(sessionFd, 10) + ".txt";
 	this->cgiFd = -1;
-	this->read_res = 0;
 	return;
 }
 
@@ -50,8 +48,8 @@ std::string const & Handler::handle(data const & req, user & userData)
 	else if (request.method == "DELETE")
 		handle_delete();
 
-	if (request.method == "PUT" || request.method == "DELETE")
-		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//	if (request.method == "PUT" || request.method == "DELETE")
+//		std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
 
 	this->path.clear();
 	this->location_path.clear();
@@ -688,7 +686,6 @@ int Handler::readCgi(std::string * body)
 			body->append(buffer, 0, res);
 			body->append("\r\n");
 		}
-        read_res += res;
 	}
 	else {
         if (res == 0)
@@ -701,7 +698,6 @@ int Handler::readCgi(std::string * body)
         isCgiReading = false;
 		close(cgiFd);
 		remove(this->tmp.c_str());
-		read_res = 0;
 		cgiFd = -1;
     }
 	return status;
@@ -737,48 +733,42 @@ void Handler::error_message(int const & status_code)
 	switch(status_code)
 	{
 		case 400:
-            message = "Bad Request";
+            this->response.append("400 Bad Request\r\n");
 			break;
 		case 401:
-            message = "Unauthorized";
+            this->response.append("401 Unauthorized\r\n");
+            this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
+            this->response.append("Content-Disposition: inline\r\n");
             break;
 	    case 403:
-            message = "Forbidden";
+            this->response.append("403 Forbidden\r\n");
             break;
 		case 404:
-            message = "Not found";
+            this->response.append("404 Not found\r\n");
 			break;
 		case 405:
-            message = "Method Not Allowed";
+            this->response.append("405 Method Not Allowed\r\n");
             addHeaderAllow();
 			break;
 		case 413:
-            message = "Payload Too Large";
+            this->response.append("413 Payload Too Large\r\n");
 			break;
 		case 500:
-            message = "Internal Server Error";
+            this->response.append("500 Internal Server Error\r\n");
 			break;
 		case 501:
-            message = "Not Implemented";
+            this->response.append("501 Not Implemented\r\n");
 			addHeaderAllow();
 			break;
 		case 505:
-            message = "HTTP Version Not Supported";
+            this->response.append("505 HTTP Version Not Supported\r\n");
 			break;
         case 511:
-            message = "Network Authentication Required";
+            this->response.append("511 Network Authentication Required\r\n");
+            this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
+            this->response.append("Content-Disposition: inline\r\n");
             break;
 	}
-    this->response.append(std::to_string(status_code));
-    this->response.append(" ");
-    this->response.append(message);
-    this->response.append("\r\n");
-
-    if (status_code == 401 || status_code == 511)
-    {
-        this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
-        this->response.append("Content-Disposition: inline\r\n");
-    }
 
     std::string body;
     std::string errorPagePath = "." + config.error_page;

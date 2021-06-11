@@ -30,7 +30,6 @@ private:
 	data 			request;
 
 	bool			isCgiReading;
-	int             read_res;
 	std::string		tmp;
 	int				cgiFd;
 
@@ -46,8 +45,6 @@ private:
 
 	std::string		lastModTime;
 	std::string		contentLength;
-
-	bool            _error401;
 
 public:
 
