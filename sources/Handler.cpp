@@ -404,7 +404,7 @@ int Handler::createNewFile(std::string fileName, std::string content, std::strin
     if (fileName.length() == 0 && fileExtension.length() == 0 )
         return 1;
 
-    std::string path = "./content/users/";
+    std::string path = "./content/website1/users/";                         // hardcode
     path += _userData.login;
     mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
@@ -604,7 +604,7 @@ void         Handler::add_headers(std::vector<std::string> * headers)
 	headers->push_back("GATEWAY_INTERFACE=CGI/1.1");
 	headers->push_back("PATH_INFO=" + request.path);
 	headers->push_back("PATH_TRANSLATED=" + this->path);
-	headers->push_back("QUERY_STRING=");
+	headers->push_back("QUERY_STRING="); // ?...
 	headers->push_back("REMOTE_ADDR=");
 	headers->push_back("REMOTE_IDENT=");
 	headers->push_back("REMOTE_USER=");
