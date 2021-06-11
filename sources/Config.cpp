@@ -266,6 +266,10 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
         if(tmp.empty() || locNode->repeat_cgi == true || checkCgi(tmp) == false)
             throw Config::IncorrectConfigException();
         locNode->cgi.assign(tmp);
+
+        size_t  pos = locNode->cgi.rfind("/", std::string::npos); // "cgi_tester";
+        locNode->cgi_name = locNode->cgi.substr(pos + 1, locNode->cgi.length());
+
         locNode->repeat_cgi = true;
     }
     else if(save == "method")
@@ -347,6 +351,7 @@ void					Config::initLocNode(location *locNode)
     locNode->repeat_redirect = false;
     locNode->cgi.clear();
     locNode->repeat_cgi = false;
+    locNode->cgi_name.clear();
 }
 
 void					Config::initServNode(configServer *servNode)

@@ -36,9 +36,7 @@ std::string const & Handler::handle(data const & req, user & userData)
 	if(config.locations[this->index_location]->autoIndex == ON)
         getFilesOrDirFromRoot(config.locations[this->index_location]->root);
 
-	if (_error401)
-        handle_401();
-	else if (request.method == "HEAD" || request.method == "GET")
+	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
 		handle_post();
@@ -77,6 +75,8 @@ int Handler::isRequestCorrect(void)  // errors
         status_code = 405;
 	else if (config.locations[index_location]->maxBody > 0 && (int)request.body.length() > config.locations[index_location]->maxBody)
 		status_code = 413;
+	else if (config.locations[index_location]->authentication && _userData.signIn == false)
+        status_code = 511;
 
 	if (status_code != 0)
 	{
@@ -100,26 +100,16 @@ void Handler::makePath(void)
 {
 	DIR	*dir;
 
-    this->_error401 = false;
-    if (config.locations[index_location]->authentication && _userData.signIn == false)
-    {
-        this->path = "./content/home_page/index.html";
-        this->location_path = "/home_page/index.html";
-        this->_error401 = true;
-    }
-    else
-    {
-        this->path = ".";
-        this->path.append(config.locations[index_location]->root);
-        this->path.append("/");
-        this->path.append(subpath());
+	this->path = ".";
+	this->path.append(config.locations[index_location]->root);
+    this->path.append("/");
+    this->path.append(subpath());
 //        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
-        this->location_path.append(request.path);
+    this->location_path.append(request.path);
 
-        size_t pos = this->path.find("//", 0);
-        if (pos != std::string::npos)
-            this->path.erase(pos, 1);
-    }
+    size_t pos = this->path.find("//", 0);
+    if (pos != std::string::npos)
+        this->path.erase(pos, 1);
 
 	dir = opendir(path.c_str());
 
@@ -163,40 +153,6 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
             getLink(dirStruct->d_name);
     }
     closedir(dir);
-}
-
-/*
- * 401
- */
-
-void Handler::handle_401(void)
-{
-    std::string body;
-    body.clear();
-    loadBodyFromFile(&body);
-
-    if (isDir && config.locations[this->index_location]->autoIndex == ON)
-        makeAutoindexPage(&body);
-    else if (checkFile() != 0)
-        return;
-
-    addHeaderStatus(511);
-    addHeaderServer();
-    addHeaderDate();
-    this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
-    addHeaderContentLanguage();
-    addHeaderContentLocation();
-    this->response.append("Content-Type: text/html\r\n");
-    addHeaderContentLength(std::to_string(body.length()));
-    addHeaderLastModified();
-
-    this->response.append("Content-Disposition: inline\r\n");
-
-    this->response.append("\r\n");
-
-    std::cout << this->response << std::endl;
-
-    this->response.append(body);
 }
 
 /*
@@ -247,25 +203,25 @@ void Handler::handle_post(void)
     /*
      *  Upload files
      */
-    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
-    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
-    if (pos != std::string::npos && pos == 0)
-    {
-        pos = itCL->second.find("=", 0);
-        std::string boundary;
-        boundary.append(itCL->second, pos + 1, std::string::npos);
-
-        addHeaderStatus(updateFile(boundary));
-        addHeaderServer();
-        addHeaderDate();
-        addHeaderContentLanguage();
-        addHeaderContentLocation();
-        addHeaderContentLength("0");
-        addHeaderLocation();
-        this->response.append("\r\n");
-        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-        return;
-    }
+//    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
+//    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
+//    if (pos != std::string::npos && pos == 0)
+//    {
+//        pos = itCL->second.find("=", 0);
+//        std::string boundary;
+//        boundary.append(itCL->second, pos + 1, std::string::npos);
+//
+//        addHeaderStatus(updateFile(boundary));
+//        addHeaderServer();
+//        addHeaderDate();
+//        addHeaderContentLanguage();
+//        addHeaderContentLocation();
+//        addHeaderContentLength("0");
+//        addHeaderLocation();
+//        this->response.append("\r\n");
+//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//        return;
+//    }
 
     if (this->request.formData->size() != 0) // регистрация
     {
@@ -284,26 +240,26 @@ void Handler::handle_post(void)
         this->response.append(body);
         return;
     }
-
-    char ** envPost = create_env();
-
+    char ** envPost = create_env(); // all headers
    	if (!(envPost))
-	{
-		error_message(500);
-       return ;
-	}
+        return error_message(500);
 
-	std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+   	// hardcode
+   	std::string pathBodyFile;
+    if (config.locations[index_location]->cgi_name == "python_upload.py")
+        pathBodyFile= "./content/website1/users/bodyCGI.txt";
+    else
+        pathBodyFile = this->path.c_str();
+
+    std::ofstream ofs(pathBodyFile, std::ios_base::trunc);
 	if (!ofs.good())
-	{
-		error_message(500);
-		return;
-	}
+        return error_message(500);
 	ofs << request.body;
 	ofs.close();
 
-	char *args[3] = {(char*)"./cgi/cgi_tester", (char *)path.c_str(), NULL};
-    // char *args[3] = {(char*)"./content/ubuntu_cgi_tester", (char *)path.c_str(), NULL};  // подтянуть из конфига
+    const char *pathToCGI = config.locations[index_location]->cgi.c_str();
+
+	char *args[3] = { (char *)pathToCGI, (char *)path.c_str(), NULL};
     std::string body;
     if (launch_cgi(args, envPost, &body) == 1)
     {
@@ -404,7 +360,7 @@ int Handler::createNewFile(std::string fileName, std::string content, std::strin
     if (fileName.length() == 0 && fileExtension.length() == 0 )
         return 1;
 
-    std::string path = "./content/users/";
+    std::string path = "." + config.locations[index_location]->root + "/"; // "./content/website1/users/";
     path += _userData.login;
     mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
@@ -417,21 +373,6 @@ int Handler::createNewFile(std::string fileName, std::string content, std::strin
     outfile.close();
 
     return 200;
-
-
-//    if (fileName.length() == 0)
-//        fileName = "default";
-//
-//    std::string path = "./content/users/";
-//    path += _userData.login;
-//    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-//
-//    std::string newFileName = path + "/" + fileName + "." + fileExtension;
-//
-//    std::ofstream outfile (newFileName);
-//    outfile << content << std::endl;
-//    outfile.close();
-//    return 200;
 }
 
 /*
@@ -610,8 +551,7 @@ void         Handler::add_headers(std::vector<std::string> * headers)
 	headers->push_back("REMOTE_USER=");
     headers->push_back("REQUEST_METHOD=" + request.method);
 	headers->push_back("REQUEST_URI=" + request.path);
-	headers->push_back("SCRIPT_NAME=cgi_tester"); // должно быть подтянуто из конфига
-	// headers->push_back("SCRIPT_NAME=ubuntu_cgi_tester"); // должно быть подтянуто из конфига
+	headers->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi_name);
 	headers->push_back("SERVER_NAME=" + config.server_name);
 	headers->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
     headers->push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -624,7 +564,7 @@ void         Handler::add_headers(std::vector<std::string> * headers)
 
 char **         Handler::create_env(void)
 {
-    char **result;
+    char **result; // all headers
 	std::vector<std::string> headers;
 	int headersNmb;
 
@@ -759,6 +699,9 @@ void Handler::error_message(int const & status_code)
 		case 400:
             message = "Bad Request";
 			break;
+		case 401:
+            message = "Unauthorized";
+            break;
 	    case 403:
             message = "Forbidden";
             break;
@@ -782,16 +725,24 @@ void Handler::error_message(int const & status_code)
 		case 505:
             message = "HTTP Version Not Supported";
 			break;
+        case 511:
+            message = "Network Authentication Required";
+            break;
 	}
     this->response.append(std::to_string(status_code));
     this->response.append(" ");
     this->response.append(message);
     this->response.append("\r\n");
 
+    if (status_code == 401 || status_code == 511)
+    {
+        this->response.append("WWW-Authenticate: Basic realm=\"Access to the staging site\", charset=\"UTF-8\"\r\n");
+        this->response.append("Content-Disposition: inline\r\n");
+    }
+
     std::string body;
     std::string errorPagePath = "." + config.error_page;
-//    "./content/website1/error_page/error.html"
-    loadBodyFromFile(&body, errorPagePath); // path to error page from config
+    loadBodyFromFile(&body, errorPagePath);
 
     size_t pos = body.find("<?php errorStatus(); ?>", 0);
     if (pos != std::string::npos)
@@ -806,8 +757,16 @@ void Handler::error_message(int const & status_code)
 
     addHeaderContentLength(std::to_string(body.length()));
 
+    //    addHeaderServer();
+//    addHeaderDate();
+//    addHeaderContentLanguage();
+    //    this->response.append("Content-Type: text/html\r\n");
+//    addHeaderLastModified();
+
     this->response.append("Location: /error_page/");
     this->response.append("\r\n");
+//    addHeaderContentLocation();
+
 
     this->response.append("Content-Location: /error_page/");
     this->response.append("\r\n");
@@ -972,7 +931,7 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
  * ------------------------- Add headers ----------------------------
  */
 
-void Handler::addHeaderStatus(int status)
+void Handler::addHeaderStatus(int status) // no errors here
 {
     switch (status) {
         case 200:
@@ -990,14 +949,8 @@ void Handler::addHeaderStatus(int status)
         case 308:
             this->response.append("308 Permanent Redirect\r\n");
             break;
-        case 401:
-            this->response.append("401 Unauthorized\r\n");
-            break;
         case 404:
             this->response.append("404 Not Found\r\n");
-            break;
-        case 511:
-            this->response.append("511 Network Authentication Required\r\n");
             break;
     }
 }
