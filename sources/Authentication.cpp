@@ -9,9 +9,13 @@ Authentication::~Authentication() {}
 
 bool Authentication::addNewUser(std::string login, std::string password) // call checkUserExist() -> create new user
 {
-    if (checkUserExist(login))
+    if (login.length() == 0 || password.length() == 0)
         return false;
+    else if (checkUserExist(login))
+        return false;
+
     _credentials.insert(std::pair<std::string, std::string> (login, password));
+
     return true;
 }
 
@@ -39,7 +43,7 @@ bool Authentication::checkAuthenticationData(std::string login, std::string pass
 //            throw _loginNotExists;
             return false;
         }
-        if (it->second != password)
+        else if (it->second != password)
         {
 //            throw _passwordNotCorrect;
             return false;

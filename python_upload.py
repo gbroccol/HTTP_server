@@ -2,6 +2,7 @@
 
 import os
 
+user_name = os.environ.get("REMOTE_USER")
 
 def multipart_save_file(boundary, path_body):
     with open(path_body, "r") as file_read:
@@ -9,7 +10,7 @@ def multipart_save_file(boundary, path_body):
         # tmp = file_read.readline()  # Content-Disposition: form-data; name="photo"; filename="2.png"
         # tmp = file_read.readline()  # Content-Type: image/png
         # tmp = file_read.readline()
-        with open("./content/website1/users/gbroccol/avatar.png", "w") as new_file:  # hardcode
+        with open("./content/website1/users/" + user_name + "/avatar.png", "w") as new_file:  # hardcode
             list_lines = file_read.readlines()
             list_lines = list_lines[4:]
             new_file.writelines(list_lines[:list_lines.index("--" + boundary + "\r\n")])

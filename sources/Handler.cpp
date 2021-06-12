@@ -20,10 +20,8 @@ Handler::~Handler(void)
 
 std::string const & Handler::handle(data const & req, user & userData)
 {
-	this->response.clear();                             // ответ для клиента
-
+	this->response.clear();
 	this->response.append("HTTP/1.1 ");
-
 	this->request = req;
 	this->_userData = userData;
 
@@ -32,13 +30,9 @@ std::string const & Handler::handle(data const & req, user & userData)
 		std::cout << this->response << std::endl; //for debug
 		return this->response;
 	}
-
 	makePath();
-
 	if(config.locations[this->index_location]->autoIndex == ON)
 		getFilesOrDirFromRoot(config.locations[this->index_location]->root);
-
-
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
@@ -203,7 +197,7 @@ void Handler::handle_head(void)
         addHeaderLocation();
     addHeaderContentType();
     addHeaderContentLength(this->contentLength);
-    addHeaderLastModified();
+    addHeaderLastModified(); 
 
 	this->response.append("\r\n");
 
@@ -211,7 +205,19 @@ void Handler::handle_head(void)
 	
 	if (request.method == "GET") {
 		if (body.length() == 0)
-			loadBodyFromFile(&body);
+        {
+            loadBodyFromFile(&body);
+
+            if (this->path == "./content/website1/close/user_profile.html")
+            {
+                size_t pos = body.find("<?php userName(); ?>", 0);
+                while (pos != std::string::npos)
+                {
+                    body.replace(pos, 20, _userData.login);
+                    pos = body.find("<?php userName(); ?>", 0);
+                }
+            }
+        }
 		this->response.append(body);
 	}
 }
@@ -222,7 +228,7 @@ void Handler::handle_head(void)
 
 void Handler::handle_post(void)
 {
-    if (this->request.formData->size() != 0) // регистрация
+    if (this->request.formData->size() != 0)
     {
         int status = 200;
         std::string body;
@@ -253,7 +259,7 @@ void Handler::handle_post(void)
         std::ofstream outfile (path);
         outfile.close();
 
-        this->path = (this->path + "gbroccol" + "/tmp.txt"); // hardcode
+        this->path = (this->path + _userData.login + "/tmp.txt"); // hardcode
     }
     std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 
@@ -292,107 +298,105 @@ void Handler::handle_post(void)
     addHeaderDate();
     addHeaderContentLanguage();
     addHeaderContentLocation();
-		
-	this->response.append(lengthHeader);
 
+	this->response.append(lengthHeader);
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
+    std::cout << PURPLE << "RESPONSE" << std::endl << this->response << BW << std::endl; //for debug
 	this->response.append(body);
-
-	std::cout << PURPLE << "RESPONSE" << std::endl << this->response << BW << std::endl; //for debug
 }
 
-int Handler::updateFile(std::string & boundary)
-{
-    int status = 200;
-    size_t pos;
+//int Handler::updateFile(std::string & boundary)
+//{
+//    int status = 200;
+//    size_t pos;
+//
+//    std::string type;
+//    std::string name;
+//    std::string fileName;
+//    std::string mime;
+//    std::string content;
+//    /*
+//     * пропустить boundary
+//     */
+//    request.body.erase(0, boundary.length() + 2 + 2);
+//    /*
+//     * прочитать хедоры
+//     */
+//    int separate = 0;
+//    std::string header;
+//    while ((pos = request.body.find("\r\n", 0)) != std::string::npos)
+//    {
+//        if (pos == 0)
+//        {
+//            request.body.erase(0, 2);
+//            break;
+//        }
+//        separate = request.body.find(":", 0);
+//        header = request.body.substr(0, separate);
+//        if (header == "Content-Disposition")
+//        {
+//            request.body.erase(0, separate + 2);
+//            /* form-data */
+//            separate = request.body.find(";", 0);
+//            type = request.body.substr(0, separate);
+//            request.body.erase(0, separate + 2);
+//            /* name=\"photo\" */
+//            if (request.body.find("name", 0) == 0)
+//            {
+//                separate = request.body.find(";", 0);
+//                name = request.body.substr(6, separate - 1 - 6);
+//                request.body.erase(0, separate + 2);
+//            }
+//            if ((separate = request.body.find("filename", 0)) == 0)
+//            {
+//                separate = request.body.find("\r\n", 0);
+//                fileName = request.body.substr(10, separate - 1 - 10);
+//                request.body.erase(0, separate + 2);
+//            }
+//        }
+//        else if (header == "Content-Type")
+//        {
+//            separate = request.body.find("\r\n", 0);
+//            mime = request.body.substr(12 + 2, separate - 12 - 2);
+//            request.body.erase(0, separate + 2);
+//        }
+//    }
+//    /*
+//     * прочитать содержимое файла
+//     */
+//    if ((pos = request.body.find(boundary, 0)) != std::string::npos)
+//    {
+//        content = request.body.substr(0, pos - 2);
+//        request.body.erase(0, pos - 2);
+//        request.body.clear();
+//
+//        status = createNewFile("avatar", content, "png");
+//    }
+//    return status;
+//}
 
-    std::string type;
-    std::string name;
-    std::string fileName;
-    std::string mime;
-    std::string content;
-    /*
-     * пропустить boundary
-     */
-    request.body.erase(0, boundary.length() + 2 + 2);
-    /*
-     * прочитать хедоры
-     */
-    int separate = 0;
-    std::string header;
-    while ((pos = request.body.find("\r\n", 0)) != std::string::npos)
-    {
-        if (pos == 0)
-        {
-            request.body.erase(0, 2);
-            break;
-        }
-        separate = request.body.find(":", 0);
-        header = request.body.substr(0, separate);
-        if (header == "Content-Disposition")
-        {
-            request.body.erase(0, separate + 2);
-            /* form-data */
-            separate = request.body.find(";", 0);
-            type = request.body.substr(0, separate);
-            request.body.erase(0, separate + 2);
-            /* name=\"photo\" */
-            if (request.body.find("name", 0) == 0)
-            {
-                separate = request.body.find(";", 0);
-                name = request.body.substr(6, separate - 1 - 6);
-                request.body.erase(0, separate + 2);
-            }
-            if ((separate = request.body.find("filename", 0)) == 0)
-            {
-                separate = request.body.find("\r\n", 0);
-                fileName = request.body.substr(10, separate - 1 - 10);
-                request.body.erase(0, separate + 2);
-            }
-        }
-        else if (header == "Content-Type")
-        {
-            separate = request.body.find("\r\n", 0);
-            mime = request.body.substr(12 + 2, separate - 12 - 2);
-            request.body.erase(0, separate + 2);
-        }
-    }
-    /*
-     * прочитать содержимое файла
-     */
-    if ((pos = request.body.find(boundary, 0)) != std::string::npos)
-    {
-        content = request.body.substr(0, pos - 2);
-        request.body.erase(0, pos - 2);
-        request.body.clear();
-
-        status = createNewFile("avatar", content, "png");
-    }
-    return status;
-}
-
-int Handler::createNewFile(std::string fileName, std::string content, std::string fileExtension)
-{
-
-    if (fileName.length() == 0 && fileExtension.length() == 0 )
-        return 1;
-
-    std::string path = "." + config.locations[index_location]->root + "/"; // "./content/website1/users/";
-    path += _userData.login;
-    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-
-    path += "/";
-    path += "avatar.png";
-
-
-    std::ofstream outfile (path);
-    outfile << content << std::endl;
-    outfile.close();
-
-    return 200;
-}
+//int Handler::createNewFile(std::string fileName, std::string content, std::string fileExtension)
+//{
+//
+//    if (fileName.length() == 0 && fileExtension.length() == 0 )
+//        return 1;
+//
+//    std::string path = "." + config.locations[index_location]->root + "/"; // "./content/website1/users/";
+//    path += _userData.login;
+//    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+//
+//    path += "/";
+//    path += "avatar.png";
+//
+//
+//    std::ofstream outfile (path);
+//    outfile << content << std::endl;
+//    outfile.close();
+//
+//    return 200;
+//}
 
 /*
  * ----------------------------------------- PUT --------------------------------------
@@ -545,9 +549,9 @@ void Handler::loadBodyFromFile(std::string * body, std::string path)
 void         Handler::add_env(std::vector<std::string> * envs)
 {
 	std::string contentType = request.headers->find("Content-Type")->second;
-	std::string user;
-	if (_userData.signIn)
-	    user = _userData.login;
+//	std::string user;
+//	if (_userData.signIn)
+//	    user = _userData.login;
 
 	envs->push_back("AUTH_TYPE=Anonymous");
     envs->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
@@ -558,7 +562,7 @@ void         Handler::add_env(std::vector<std::string> * envs)
     envs->push_back("QUERY_STRING="); // ?...
     envs->push_back("REMOTE_ADDR=");
     envs->push_back("REMOTE_IDENT=");
-    envs->push_back("REMOTE_USER=" + user);
+    envs->push_back("REMOTE_USER=" + _userData.login);
     envs->push_back("REQUEST_METHOD=" + request.method);
     envs->push_back("REQUEST_URI=" + request.path);
     envs->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi_name);

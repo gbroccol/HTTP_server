@@ -90,6 +90,12 @@ void Session::checkAuthentication(void)
             }
         }
     }
+    else if (dataRequest.headers->find("Cookie") != dataRequest.headers->end())
+    {
+        int pos = dataRequest.headers->find("Cookie")->second.find("=");
+        this->_user.signIn = true;
+        this->_user.login = dataRequest.headers->find("Cookie")->second.substr(pos + 1);
+    }
 }
 
 void Session::handle_request(fd_set * writefds)
