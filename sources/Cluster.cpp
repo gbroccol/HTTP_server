@@ -33,6 +33,8 @@ void Cluster::run(void)
 
 	// fcntl(1, F_SETFL, O_NONBLOCK);
 
+	if (this->listenSockets.size() == 0)
+        throw std::runtime_error("All ports unavailable");
 
 	for(;;) {
 		FD_ZERO(&readfds);                  // зачистить сет для чтения

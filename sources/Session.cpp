@@ -67,17 +67,6 @@ int Session::do_read(void)
 	return 1;
 }
 
-//void Session::commit(FILE *f)
-//{
-//	// неразрешенные функции
-//	unsigned int ip = this->from_ip;
-//	fprintf(f, "From %d.%d.%d.%d:%d\n",
-//			(ip>>24 & 0xff), (ip>>16 & 0xff), (ip>>8 & 0xff), (ip & 0xff),
-//			this->from_port);
-//	fflush(f);
-//
-//}
-
 void Session::checkAuthentication(void)
 {
     data dataRequest = parseRequest->getData();

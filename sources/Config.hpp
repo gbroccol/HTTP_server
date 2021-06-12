@@ -41,7 +41,6 @@
         bool 					repeat_authentication;
         std::string 			redirect;
         bool 					repeat_redirect;
-
 	};
 
 struct 	configServer

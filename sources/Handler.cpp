@@ -222,29 +222,6 @@ void Handler::handle_head(void)
 
 void Handler::handle_post(void)
 {
-    /*
-     *  Upload files
-     */
-//    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
-//    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
-//    if (pos != std::string::npos && pos == 0)
-//    {
-//        pos = itCL->second.find("=", 0);
-//        std::string boundary;
-//        boundary.append(itCL->second, pos + 1, std::string::npos);
-//
-//        addHeaderStatus(updateFile(boundary));
-//        addHeaderServer();
-//        addHeaderDate();
-//        addHeaderContentLanguage();
-//        addHeaderContentLocation();
-//        addHeaderContentLength("0");
-//        addHeaderLocation();
-//        this->response.append("\r\n");
-//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-//        return;
-//    }
-
     if (this->request.formData->size() != 0) // регистрация
     {
         int status = 200;
@@ -254,6 +231,7 @@ void Handler::handle_post(void)
         addHeaderStatus(status); // другой статус если такого пользователя нет
         addHeaderServer();
         addHeaderDate();
+        addHeaderSetCookie();
         addHeaderContentLanguage();
         addHeaderContentLocation();
         addHeaderContentLength(std::to_string(body.length()));
@@ -277,7 +255,6 @@ void Handler::handle_post(void)
 
         this->path = (this->path + "gbroccol" + "/tmp.txt"); // hardcode
     }
-
     std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 
 	if (!ofs.good())
@@ -987,6 +964,12 @@ void Handler::addHeaderDate()
 {
     this->response.append("Date: ");
     this->response.append(getPresentTime());
+    this->response.append("\r\n");
+}
+void Handler::addHeaderSetCookie()
+{
+    this->response.append("Set-Cookie: ");
+    this->response.append("login=" + _userData.login);
     this->response.append("\r\n");
 }
 void Handler::addHeaderContentLanguage() { this->response.append("Content-Language: en\r\n"); }

@@ -102,6 +102,7 @@ int isLocation(std::vector<location *> locations, std::string path);
     void addHeaderStatus(int status);
     void addHeaderServer(void);
     void addHeaderDate(void);
+    void addHeaderSetCookie(void);
     void addHeaderContentLanguage(void);
     void addHeaderContentLocation(void);
     void addHeaderContentLength(std::string size);

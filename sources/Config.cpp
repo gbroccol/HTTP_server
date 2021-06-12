@@ -333,9 +333,9 @@ void Config::serverTokenSearch(std::string save, std::string tmp, configServer *
 
 void					Config::initLocNode(location *locNode)
 {
-    locNode->index = "";
+    locNode->index.clear();
     locNode->maxBody = 0;
-    locNode->path = "";
+    locNode->path.clear();
     locNode->method.clear();
     locNode->repeat_method = false;
     locNode->repeat_index = false;
@@ -343,7 +343,7 @@ void					Config::initLocNode(location *locNode)
     locNode->repeat_path = false;
     locNode->repeat_root = false;
 	locNode->repeat_cgi  = false;
-    locNode->root = "";
+    locNode->root.clear();
     locNode->autoIndex = -1;
     locNode->repeat_autoIndex = false;
     locNode->authentication = false;
