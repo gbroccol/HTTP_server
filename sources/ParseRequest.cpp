@@ -299,7 +299,7 @@ ParseRequest::~ParseRequest()
                     if ((pos = tmp.find("&", 0)) != std::string::npos)
                     {
                         value.insert(0, tmp, 0, pos);
-                        tmp =tmp.erase(0, pos + 1);
+                        tmp = tmp.erase(0, pos + 1);
                     }
                     else
                     {

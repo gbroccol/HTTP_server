@@ -225,25 +225,25 @@ void Handler::handle_post(void)
     /*
      *  Upload files
      */
-    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
-    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
-    if (pos != std::string::npos && pos == 0)
-    {
-        pos = itCL->second.find("=", 0);
-        std::string boundary;
-        boundary.append(itCL->second, pos + 1, std::string::npos);
-
-        addHeaderStatus(updateFile(boundary));
-        addHeaderServer();
-        addHeaderDate();
-        addHeaderContentLanguage();
-        addHeaderContentLocation();
-        addHeaderContentLength("0");
-        addHeaderLocation();
-        this->response.append("\r\n");
-        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-        return;
-    }
+//    std::multimap <std::string, std::string>::iterator itCL = this->request.headers->find("Content-Type");
+//    size_t pos = itCL->second.find("multipart/form-data; boundary=", 0);
+//    if (pos != std::string::npos && pos == 0)
+//    {
+//        pos = itCL->second.find("=", 0);
+//        std::string boundary;
+//        boundary.append(itCL->second, pos + 1, std::string::npos);
+//
+//        addHeaderStatus(updateFile(boundary));
+//        addHeaderServer();
+//        addHeaderDate();
+//        addHeaderContentLanguage();
+//        addHeaderContentLocation();
+//        addHeaderContentLength("0");
+//        addHeaderLocation();
+//        this->response.append("\r\n");
+//        std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
+//        return;
+//    }
 
     if (this->request.formData->size() != 0) // регистрация
     {
@@ -263,14 +263,22 @@ void Handler::handle_post(void)
         return;
     }
 
-    // hardcode
-    std::string pathBodyFile;
     if (config.locations[index_location]->cgi_name == "python_upload.py")
-        pathBodyFile= "./content/website1/users/bodyCGI.txt";
-    else
-        pathBodyFile = this->path.c_str();
+    {
+        // create directory
+        std::string path = "." + config.locations[index_location]->root + "/";
+        path += _userData.login;
+        mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
-    std::ofstream ofs(pathBodyFile, std::ios_base::trunc);
+        //  create file
+        path += "/tmp.txt";
+        std::ofstream outfile (path);
+        outfile.close();
+
+        this->path = (this->path + "gbroccol" + "/tmp.txt"); // hardcode
+    }
+
+    std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 
 	if (!ofs.good())
         return error_message(500);
@@ -287,7 +295,7 @@ void Handler::handle_post(void)
             return error_message(500);
 
         const char *pathToCGI = config.locations[index_location]->cgi.c_str();
-        char *args[3] = { (char *)pathToCGI, (char *)pathBodyFile.c_str(), NULL};
+        char *args[3] = { (char *)pathToCGI, (char *)this->path.c_str(), NULL};
 
 		if (launchCgi(args, envPost, &body) == 1)
             return ft_free_array(envPost);
@@ -313,10 +321,9 @@ void Handler::handle_post(void)
 	this->response.append("Location: ");
 	this->response.append(this->location_path);
 	this->response.append("\r\n");
-
-//	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl; //for debug
-
 	this->response.append(body);
+
+	std::cout << PURPLE << "RESPONSE" << std::endl << this->response << BW << std::endl; //for debug
 }
 
 int Handler::updateFile(std::string & boundary)
@@ -457,7 +464,7 @@ void Handler::handle_delete(void)
     int     status = 200;
     bool    deleteAccess = OFF;
 
-    std::string truePath = "./content/users/";
+    std::string truePath = "./content/users/"; // hardcode
     truePath += _userData.login;
     truePath += "/";
 
@@ -472,17 +479,9 @@ void Handler::handle_delete(void)
         error_message(status);
     else
     {
-        if (remove(this->path.c_str()) != 0 ) // this->path
+        if (remove(this->path.c_str()) != 0 )
             return error_message(404);
-
-
         std::string body = "<html>\n<body>\n<h1>File deleted.</h1>\n</body>\n</html>";
-
-//        if (isDir && config.locations[this->index_location]->autoIndex == ON)
-//            makeAutoindexPage(&body);
-//        else if (checkFile() != 0)
-//            return;
-
         addHeaderStatus(status);
         addHeaderServer();
         addHeaderDate();
@@ -496,6 +495,10 @@ void Handler::handle_delete(void)
         this->response.append(body);
     }
 }
+
+/*
+ * ---------------------------------------- AUTOINDEX --------------------------------------
+ */
 
 void Handler::makeAutoindexPage(std::string * body)
 {
@@ -537,6 +540,9 @@ int Handler::checkFile(void)
 	return 0;
 }
 
+
+
+
 void Handler::loadBodyFromFile(std::string * body)
 {	
 	std::ifstream ifs(this->path.c_str());
@@ -563,7 +569,7 @@ void         Handler::add_env(std::vector<std::string> * envs)
 {
 	std::string contentType = request.headers->find("Content-Type")->second;
 	std::string user;
-	if (_userData->signIn)
+	if (_userData.signIn)
 	    user = _userData.login;
 
 	envs->push_back("AUTH_TYPE=Anonymous");
@@ -648,7 +654,6 @@ int Handler::launchCgi(char **args, char **env, std::string * body)
         waitpid(pid, &stat, WUNTRACED); // check exit status
 		while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
 			waitpid(pid, &stat, WUNTRACED);
-
 		status = readCgi(body);
         if (status == 1)
 			error_message(500);
@@ -658,7 +663,7 @@ int Handler::launchCgi(char **args, char **env, std::string * body)
 
 int Handler::readCgi(std::string * body)
 {
-	char buffer[INBUFSIZE];
+	char buffer[INBUFSIZE] = ""; //  = ""; trash
 	size_t offset = 0;
 	int status = 0;
 	int res = 0;
@@ -804,10 +809,10 @@ void Handler::error_message(int const & status_code)
     this->response.append("Content-Location: /error_page/");
     this->response.append("\r\n");
 
+    std::cout << this->response  << std::endl;
+
     this->response.append("\r\n");
     this->response.append(body);
-
-    std::cout << this->response  << std::endl;
 	return ;
 }
 

@@ -39,7 +39,7 @@ void Cluster::run(void)
 		FD_ZERO(&writefds);                 // зачистить сет для записи
 		for (size_t i = 0; i < this->listenSockets.size(); i++)
 			FD_SET(this->listenSockets[i], &readfds);
-		maxfd = this->listenSockets.back();
+		maxfd = this->listenSockets.back();  // sega
 		for(i = 0; i < (int)sessions.size(); i++) {
 			if(sessions[i]) {
 				FD_SET(i, &readfds);
