@@ -63,21 +63,21 @@ print(bcolors.ENDC)
 
 
 def createFile(boundary):
-    print(boundary)
     with open(pathBodyFile, "r") as file_read:
-
-        # читать файл построчно и записывать пока не встречу boundary
-
-        body_to_parse = file_read.read()
-
-        # body_to_parse = body_to_parse[len(boundary):]
-        # print(body_to_parse)
-
-    with open("ava.txt", "w") as file_to_write:
-        file_to_write.write(body_to_parse)
-        file_to_write.write("EXTRA")
-
-
+        tmp = file_read.readline()  # boundary
+        tmp = file_read.readline()  # Content-Disposition: form-data; name="photo"; filename="2.png"
+        tmp = file_read.readline()  # Content-Type: image/png
+        tmp = file_read.readline()
+        with open("ava.png", "w") as new_file:
+            while True:
+                tmp = file_read.readline()
+                if tmp.find(boundary) >= 0:
+                    break
+                new_file.write(tmp)  # boundary
+        tmp = file_read.readline()   # Content-Disposition: form-data; name="user"
+        tmp = file_read.readline()   # free line
+        tmp = file_read.readline()   # {"name":"gbroccol","age":18}
+        tmp = file_read.readline()   # boundary
 
 for val in env:
     if val.find("HTTP_Content-Type=multipart/form-data; boundary=") >= 0:
