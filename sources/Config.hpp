@@ -92,19 +92,27 @@ public:
     configServer        		*getconfigServer(int index) const;
     size_t						getSize(void) const;
 
+	class 						FileNotOpenException: public std::exception { const char *what() const throw(); };
+	class 						FileIsNotCorrectException: public std::exception { const char *what() const throw(); };
+	class 						IncorrectConfigException: public std::exception { const char *what() const throw(); };
+    class 						FileLengthException: public std::exception { const char *what() const throw(); };
+    class 						ServerNameException: public std::exception { const char *what() const throw(); };
+    class 						ValueSaveException: public std::exception { const char *what() const throw(); };
+    class 						ErrorPageException: public std::exception { const char *what() const throw(); };
+    class 						FullServerValueException: public std::exception { const char *what() const throw(); };
+    class 						IncorrectLocationPathException: public std::exception { const char *what() const throw(); };
+    class 						MethodException: public std::exception { const char *what() const throw(); };
+    class 						FullLocationValueException: public std::exception { const char *what() const throw(); };
+    class 						MaxBodyException: public std::exception { const char *what() const throw(); };
+    class 						RootException: public std::exception { const char *what() const throw(); };
+    class 						IndexException: public std::exception { const char *what() const throw(); };
+    class 						RedirectException: public std::exception { const char *what() const throw(); };
+    class 						CGIException: public std::exception { const char *what() const throw(); };
+    class 						AutoindexException: public std::exception { const char *what() const throw(); };
+    class 						AuthenticationException: public std::exception { const char *what() const throw(); };
+    class 						ListenException: public std::exception { const char *what() const throw(); };
+    class 						PortIPException: public std::exception { const char *what() const throw(); };
 
-	class 						FileNotOpenException: public std::exception
-	{
-		const char    *what() const throw();
-	};
-	class 						FileIsNotCorrectException: public std::exception
-	{
-		const char    *what() const throw();
-	};
-	class 						IncorrectConfigException: public std::exception
-	{
-		const char    *what() const throw();
-	};
 };
 
 #endif

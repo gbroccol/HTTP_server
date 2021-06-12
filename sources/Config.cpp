@@ -32,26 +32,32 @@ bool                        IsParenthesesOrDash(char c) {
 }
 void				Config::getFile(std::string file)
 {
-	std::string file_in_str;
+    std::string file_in_str;
 	std::string tmp;
 ;
 	if(file.length() != 0)
 	{
-		std::ifstream fconfig(file);
-		if (!fconfig.is_open())
-			throw Config::FileNotOpenException();
-		while (getline(fconfig, tmp))
-			file_in_str += tmp;
-        file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
+        std::ifstream fconfig(file);
+
+        if (!fconfig.is_open()) {
+		    std::cout << RED << "error" << BW << std::endl;
+//		    std::cout << "ERROR: "<<(int)errno<<std::endl;
+            throw Config::FileNotOpenException();
+        }
+		while (getline(fconfig, tmp)) {
+            file_in_str += tmp;
+        }
+		file_in_str.erase(std::remove_if(file_in_str.begin(), file_in_str.end(), &IsParenthesesOrDash), file_in_str.end());
+
 		while(file_in_str.length() > 0)
-			file_in_str =  parseStr(file_in_str);
-		fconfig.close();
+			file_in_str = parseStr(file_in_str);
+        fconfig.close();
 	}
 	else
-		throw Config::FileIsNotCorrectException();
+		throw Config::FileLengthException();
 }
 
-std::string				Config::parseStr(std::string str)
+std::string				Config::parseStr(std::string str)  // sega
 {
     struct configServer *servNode = new configServer;
     std::string tmp;
@@ -64,7 +70,7 @@ std::string				Config::parseStr(std::string str)
         if(str[pos] == '{')
         {
             if(tmp != "server")
-                throw Config::IncorrectConfigException();
+                throw Config::ServerNameException();
             str.erase(0, pos + 1);
             pos = 0;
             tmp.clear();
@@ -72,7 +78,7 @@ std::string				Config::parseStr(std::string str)
         else if(checkTokens(save, tmp, SERVER) == true)
         {
             if(save.empty())
-                throw Config::IncorrectConfigException();
+                throw Config::ValueSaveException();
             str.erase(0, pos);
             pos = 0;
             tmp.clear();
@@ -94,13 +100,17 @@ std::string				Config::parseStr(std::string str)
             str.erase(0, pos + 1);
             if(checkMainValServ(servNode) == true)
             {
-                if(servNode->repeat_error_page == false) {
-                    servNode->error_page = "./content/error_page/default_error_page.html"; }
+                if(servNode->repeat_error_page == false)
+                {
+                    servNode->error_page = "./content/error.html";
+                    if(checkErrorPage(servNode->error_page) == false)
+                        throw Config::ErrorPageException();
+                }
                 this->servers.push_back(servNode);
                 break ;
             }
             else
-                throw Config::IncorrectConfigException();
+                throw Config::FullServerValueException();
         }
     }
     return (str);
@@ -138,7 +148,6 @@ bool checkErrorPage(std::string path)
 
 bool checkIndex(std::string root, std::string indexPath)
 {
-
     std::string tmp = "";
     if(root[root.length() - 1] == '/')
         indexPath = '.' + root + indexPath;
@@ -173,7 +182,7 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
         if(str[pos] == '{')
         {
             if(tmp.empty() || tmp[0] != '/' || checkLockPath(tmp) == false)
-                throw Config::IncorrectConfigException();
+                throw Config::IncorrectLocationPathException();
             locNode->path.assign(tmp);
             locNode->repeat_path = true;
             str.erase(0, pos + 1);
@@ -188,7 +197,7 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
                 continue ;
             }
             if(save.empty() || (save == "method" && locNode->repeat_method == true))
-                throw Config::IncorrectConfigException();
+                throw Config::MethodException();
             str.erase(0, pos);
             pos = 0;
             tmp.clear();
@@ -223,7 +232,7 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
                 break ;
             }
             else
-                throw Config::IncorrectConfigException();
+                throw Config::FullLocationValueException();
         }
     }
     return(str);
@@ -234,37 +243,37 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     if(save == "maxBody")
     {
         if(locNode->repeat_maxBody == true)
-            throw Config::IncorrectConfigException();
+            throw Config::MaxBodyException();
         locNode->maxBody = std::stoi(tmp);
         if(locNode->maxBody > 1000000 || locNode->maxBody < 0)
-            throw Config::IncorrectConfigException();
+            throw Config::MaxBodyException();
         locNode->repeat_maxBody = true;
     }
     else if(save == "root")
     {
         if(tmp.empty() || tmp[0] != '/' || locNode->repeat_root == true)
-            throw Config::IncorrectConfigException();
+            throw Config::RootException();
         locNode->root.assign(tmp);
         locNode->repeat_root = true;
     }
     else if(save == "index")
     {
         if(tmp.empty() || locNode->repeat_index == true || checkIndex(locNode->root,tmp) == false)
-            throw Config::IncorrectConfigException();
+            throw Config::IndexException();
         locNode->index.assign(tmp);
         locNode->repeat_index = true;
     }
     else if(save == "redirect")
     {
         if(tmp.empty() || locNode->repeat_redirect == true || checkRedirect(tmp) == false)
-            throw Config::IncorrectConfigException();
+            throw Config::RedirectException();
         locNode->redirect.assign(tmp);
         locNode->repeat_redirect = true;
     }
     else if(save == "cgi")
     {
         if(tmp.empty() || locNode->repeat_cgi == true || checkCgi(tmp) == false)
-            throw Config::IncorrectConfigException();
+            throw Config::CGIException();
         locNode->cgi.assign(tmp);
 
         size_t  pos = locNode->cgi.rfind("/", std::string::npos); // "cgi_tester";
@@ -275,31 +284,31 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
     else if(save == "method")
     {
         if(tmp.empty() || checkTokens(save, tmp, METHOD) == false)
-            throw Config::IncorrectConfigException();
+            throw Config::MethodException();
         locNode->method.push_back(tmp);
     }
     else if(save == "autoindex")
     {
         if(tmp.empty() || locNode->repeat_autoIndex == true)
-            throw Config::IncorrectConfigException();
+            throw Config::AutoindexException();
         if(tmp == "on")
             locNode->autoIndex = ON;
         else if(tmp == "off")
             locNode->autoIndex = OFF;
         else
-            throw Config::IncorrectConfigException();
+            throw Config::AutoindexException();
         locNode->repeat_autoIndex = true;
     }
     else if(save == "authentication")
     {
         if(tmp.empty() || locNode->repeat_authentication == true)
-            throw Config::IncorrectConfigException();
+            throw Config::AuthenticationException();
         if(tmp == "on")
             locNode->authentication = ON;
         else if(tmp == "off")
             locNode->authentication = OFF;
         else
-            throw Config::IncorrectConfigException();
+            throw Config::AuthenticationException();
         locNode->repeat_authentication = true;
     }
 }
@@ -309,23 +318,23 @@ void Config::serverTokenSearch(std::string save, std::string tmp, configServer *
     if(save == "listen")
     {
         if(tmp.empty() || servNode->repeat_port == true)
-            throw Config::IncorrectConfigException();
+            throw Config::ListenException();
         getPortsAndIP(servNode, tmp);
         if(servNode->port.size() > 1 && check_repeat_ports(servNode) == true)
-            throw Config::IncorrectConfigException();
+            throw Config::ListenException();
         servNode->repeat_port = true;
     }
     else if(save == "server_name")
     {
         if(tmp.empty() || servNode->repeat_server_name == true)
-            throw Config::IncorrectConfigException();
+            throw Config::ServerNameException();
         servNode->server_name.assign(tmp);
         servNode->repeat_server_name = true;
     }
     else if(save == "error_page")
     {
         if(tmp.empty() || tmp[0] != '/' || servNode->repeat_error_page == true || checkErrorPage(tmp) == false)
-            throw Config::IncorrectConfigException();
+            throw Config::ErrorPageException();
         servNode->error_page.assign(tmp);
         servNode->repeat_error_page = true;
     }
@@ -534,7 +543,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
         if(portsStr[i] > '9' ||  portsStr[i] < '0')
         {
             if (portsStr[i] != ',' && portsStr[i] != ':')
-                throw Config::IncorrectConfigException();
+                throw Config::PortIPException();
         }
         if(portsStr[i] == ':')
         {
@@ -542,7 +551,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
             {
                 tmpPort = std::stoi(tmp);
                 if(tmpPort > 65535 || tmpPort < 0)
-                    throw Config::IncorrectConfigException();
+                    throw Config::PortIPException();
                 servNode->port.push_back(tmpPort);
                 tmp.clear();
             }
@@ -551,7 +560,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
                 tmp.push_back(portsStr[i]);
             }
             if(tmp.empty())
-                throw Config::IncorrectConfigException();
+                throw Config::PortIPException();
             servNode->ip.assign(tmp);
             continue;
         }
@@ -559,7 +568,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
         {
             tmpPort = std::stoi(tmp);
             if(tmpPort > 65535 || tmpPort < 0)
-                throw Config::IncorrectConfigException();
+                throw Config::PortIPException();
             servNode->port.push_back(tmpPort);
             tmp.clear();
             continue;
@@ -585,18 +594,31 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
 /*
 ** --------------------------------- EXCEPTIONS ----------------------------------
 */
-const char   *Config::FileNotOpenException::what() const throw()
-{
-	return ("File not open");
-}
+const char   *Config::FileNotOpenException::what() const throw() { return ("File not open"); }
+const char   *Config::FileIsNotCorrectException::what() const throw() { return ("File is not correct"); }
+const char   *Config::IncorrectConfigException::what() const throw() { return ("Config is not correct"); }
+const char   *Config::FileLengthException::what() const throw() { return ("FileLengthException"); }
+const char   *Config::ServerNameException::what() const throw() { return ("ServerNameException"); }
+const char   *Config::ValueSaveException::what() const throw() { return ("ValueSaveException"); }
+const char   *Config::ErrorPageException::what() const throw() { return ("ErrorPageException"); }
+const char   *Config::FullServerValueException::what() const throw() { return ("FullServerValueException"); }
+const char   *Config::IncorrectLocationPathException::what() const throw() { return ("IncorrectLocationPathException"); }
+const char   *Config::MethodException::what() const throw() { return ("MethodException"); }
+const char   *Config::FullLocationValueException::what() const throw() { return ("FullLocationValueException"); }
+const char   *Config::MaxBodyException::what() const throw() { return ("MaxBodyException"); }
+const char   *Config::RootException::what() const throw() { return ("RootException"); }
+const char   *Config::IndexException::what() const throw() { return ("IndexException"); }
+const char   *Config::RedirectException::what() const throw() { return ("RedirectException"); }
+const char   *Config::CGIException::what() const throw() { return ("CGIException"); }
+const char   *Config::AutoindexException::what() const throw() { return ("AutoindexException"); }
+const char   *Config::AuthenticationException::what() const throw() { return ("AuthenticationException"); }
+const char   *Config::ListenException::what() const throw() { return ("ListenException"); }
+const char   *Config::PortIPException::what() const throw() { return ("PortIPException"); }
 
-const char   *Config::FileIsNotCorrectException::what() const throw()
-{
-	return ("File is not correct");
-}
 
-const char   *Config::IncorrectConfigException::what() const throw()
-{
-	return ("Config is not correct");
-}
+
+
+
+
+
 /* ************************************************************************** */
