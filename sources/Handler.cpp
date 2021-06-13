@@ -14,6 +14,9 @@ Handler::Handler(configServer const & config, int sessionFd)
 
 Handler::~Handler(void)
 {
+	if (this->cgiFd > 0)
+		close(this->cgiFd);
+	remove(this->tmp.c_str());
 	this->response.clear();
 	return;
 }
@@ -95,8 +98,8 @@ int Handler::isRequestCorrect(void)  // errors
 		status_code = 413;
 	else if (config.locations[index_location]->authentication && _userData.signIn == false)
         status_code = 511;
-    else if (config.locations[index_location]->authentication && _userData.signIn == false)
-        status_code = 401;
+    else if (config.locations[index_location]->authentication && _userData.signIn == false) {
+        status_code = 401; }
 
 	if (status_code != 0)
 	{
@@ -124,15 +127,14 @@ void Handler::makePath(void)
 	this->path.append(config.locations[index_location]->root);
     this->path.append("/");
     this->path.append(subpath());
-//        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
+    //    this->location_path.append("./content"); // change otnosit pyt // Kate // test download
     this->location_path.append(request.path);
 
     size_t pos = this->path.find("//", 0);
-    if (pos != std::string::npos)
-        this->path.erase(pos, 1);
+    if (pos != std::string::npos) {
+        this->path.erase(pos, 1); }
 
 	dir = opendir(path.c_str());
-
     if (dir)
     {
 		if (config.locations[index_location]->index.length() > 0) {

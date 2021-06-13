@@ -15,11 +15,10 @@ Server::~Server(void)
 
 void Server::init(const configServer & config)
 {
-	int opt;
 	std::vector<int>sock;
     struct sockaddr_in addr;
-	FILE *f;
-    opt = 1;
+    int opt = 1;
+
 	for(size_t i = 0; i < config.port.size(); i++)
     {
         sock.push_back(socket(AF_INET, SOCK_STREAM, 0));
@@ -31,6 +30,7 @@ void Server::init(const configServer & config)
         if (addr.sin_addr.s_addr == (unsigned int)-1)
             throw std::runtime_error("Invalid server address");
         addr.sin_port = htons(config.port[i]);
+		errno = 0;
         if(bind(sock[i], (struct sockaddr*) &addr, sizeof(addr)) == -1)
         {
             if (errno == EADDRINUSE)
@@ -43,24 +43,14 @@ void Server::init(const configServer & config)
 
         listen(sock[i], LISTEN_QLEN);
         this->listenSockets.push_back(sock[i]);
-
-        f = fopen((config.server_name + "_log").c_str(), "wb");  /// logfile name
-        if(!f) {
-            close(sock[i]);
-            throw std::runtime_error("Could not create a log file");
-        }
-        this->res = f;
         this->config = config;
     }
 
 }
 
-Session * Server::make_new_session(int fd, struct sockaddr_in *from)
+Session * Server::make_new_session(int fd)
 {
 	Session *sess = new Session(this->config, this->_authentication, fd);
-	sess->from_ip = ntohl(from->sin_addr.s_addr);
-	sess->from_port = ntohs(from->sin_port);
-	sess->state = fsm_start;
 	return sess;
 }
 

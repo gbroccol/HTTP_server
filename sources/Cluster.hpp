@@ -22,10 +22,14 @@ public:
 	~Cluster(void);
 	void init(const Config & config);
 	void run(void);
-	void accept_client(int pos);
+	void updateSelectSets(int * maxfd);
+	void acceptClient(int pos);
 	int getServerNum(int pos);
 	void closeSession(int sd);
-	void close_all_sessions(void);
+	void closeAllSessions(void);
+	// sighandler_t signalHandler(void);
 };
+
+
 
 #endif
