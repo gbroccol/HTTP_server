@@ -24,7 +24,7 @@ private:
 	std::vector<int> 		listenSockets;
 	FILE 					*res;
 	configServer			config;
-    Authentication *        _authentication;
+//    Authentication *        _authentication;
 
 public:
 	Server(void);

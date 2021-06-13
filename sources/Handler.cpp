@@ -9,6 +9,9 @@ Handler::Handler(configServer const & config, int sessionFd)
 	this->isDir = false;
 	this->tmp = "./cgi/temp/" + lltostr(sessionFd, 10) + ".txt";
 	this->cgiFd = -1;
+
+    this->_userData.login.clear();
+    this->_userData.signIn = false;
 	return;
 }
 
@@ -18,12 +21,15 @@ Handler::~Handler(void)
 	return;
 }
 
-std::string const & Handler::handle(data const & req, user & userData)
+std::string const & Handler::handle(data const & req)
 {
+    this->_userData.login.clear();
+    this->_userData.signIn = false;
+
 	this->response.clear();
 	this->response.append("HTTP/1.1 ");
 	this->request = req;
-	this->_userData = userData;
+	checkUserLogIn(); // user data
 
 	if (!isRequestCorrect())
 	{
@@ -36,7 +42,7 @@ std::string const & Handler::handle(data const & req, user & userData)
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
-		handle_post();
+	    handle_post();
 	else if (request.method == "PUT")
 		handle_put();
 	else if (request.method == "DELETE")
@@ -73,24 +79,23 @@ std::string const & Handler::handle(void)
 int Handler::isRequestCorrect(void)  // errors
 {
 	std::string methods = "GET, HEAD, PUT, POST, DELETE";
+	index_location = isLocation(config.locations, request.path);
 	int status_code = 0;
 
 	if (request.headers->count("Host") > 1) // проверить, что заголовок и хедеры не пустые
 		status_code = 400;
-	else if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0")
-		status_code = 505;
-    else if ((index_location = isLocation(config.locations, request.path)) < 0)
-	 	status_code = 404;
-	else if (methods.find(request.method) == std::string::npos)
-		status_code = 501;
-	else if (!doesLocationAnswersMethod())
+    else if (index_location < 0)
+        status_code = 404;
+    else if (!doesLocationAnswersMethod())
         status_code = 405;
-	else if (config.locations[index_location]->maxBody > 0 && (int)request.body.length() > config.locations[index_location]->maxBody)
-		status_code = 413;
-	else if (config.locations[index_location]->authentication && _userData.signIn == false)
-        status_code = 511;
-    else if (config.locations[index_location]->authentication && _userData.signIn == false)
-        status_code = 401;
+    else if (config.locations[index_location]->maxBody > 0 && (int)request.body.length() > config.locations[index_location]->maxBody)
+        status_code = 413;
+    else if (methods.find(request.method) == std::string::npos)
+        status_code = 501;
+    else if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0")
+		status_code = 505;
+//	else if (config.locations[index_location]->authentication && _userData.signIn == false)
+//        status_code = 511;
 
 	if (status_code != 0)
 	{
@@ -163,7 +168,7 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
     while((dirStruct = readdir(dir)) != nullptr)
     {
         this->arrDir.push_back(dirStruct->d_name);
-        if((std::string)dirStruct->d_name != ".")
+        if((std::string)dirStruct->d_name != "." || (std::string)dirStruct->d_name != "authentication")
             getLink(dirStruct->d_name);
     }
     closedir(dir);
@@ -175,6 +180,11 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
 
 void Handler::handle_head(void)
 {
+
+    if (config.locations[index_location]->authentication && _userData.signIn == false)
+        return error_message(511);
+
+
 	std::string body;
 	int status_code = 200;
 
@@ -196,207 +206,214 @@ void Handler::handle_head(void)
     if (status_code == 301 || status_code == 308)
         addHeaderLocation();
     addHeaderContentType();
-    addHeaderContentLength(this->contentLength);
     addHeaderLastModified(); 
 
-	this->response.append("\r\n");
-
-	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
+//	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
 	
-	if (request.method == "GET") {
+	if (request.method == "GET")
+	{
 		if (body.length() == 0)
-        {
             loadBodyFromFile(&body);
-
-            if (this->path == "./content/website1/close/user_profile.html")
+        if (this->path == "./content/website1/close/user_profile.html")
+        {
+            size_t pos = body.find("<?php userName(); ?>", 0);
+            while (pos != std::string::npos)
             {
-                size_t pos = body.find("<?php userName(); ?>", 0);
-                while (pos != std::string::npos)
-                {
-                    body.replace(pos, 20, _userData.login);
-                    pos = body.find("<?php userName(); ?>", 0);
-                }
+                body.replace(pos, 20, _userData.login);
+                pos = body.find("<?php userName(); ?>", 0);
             }
         }
+        addHeaderContentLength(std::to_string(body.length()));
+        this->response.append("\r\n");
 		this->response.append(body);
 	}
+	else
+    {
+        addHeaderContentLength(this->contentLength);
+        this->response.append("\r\n");
+    }
+
+
 }
+
+//    if (this->request.formData->size() != 0)
+//    {
+//        int status = 200;
+//        std::string body;
+//
+//        loadBodyFromFile(&body);
+//        addHeaderStatus(status); // другой статус если такого пользователя нет
+//        addHeaderServer();
+//        addHeaderDate();
+//        addHeaderSetCookie();
+//        addHeaderContentLanguage();
+//        addHeaderContentLocation();
+//        addHeaderContentLength(std::to_string(body.length()));
+//        addHeaderLocation();
+//        this->response.append("\r\n");
+//        this->response.append(body);
+//        return;
+//    }
+
+//    else if (config.locations[index_location]->authentication && _userData.signIn == false)
+//        status_code = 511;
 
 /*
  * ----------------------------------------- POST --------------------------------------
  */
 
+//    if (this->request.formData.size() != 0)
+//    {
+//        int status = 200;
+//
+//        addHeaderStatus(status); // другой статус если такого пользователя нет
+//        addHeaderServer();
+//        addHeaderDate();
+//        addHeaderSetCookie();
+//        addHeaderContentLanguage();
+//        addHeaderContentLocation();
+//
+//        addHeaderLocation();
+//        this->response.append("\r\n");
+//        this->response.append(body);
+//        return;
+//    }
+
 void Handler::handle_post(void)
 {
-    if (this->request.formData->size() != 0)
-    {
-        int status = 200;
-        std::string body;
-
-        loadBodyFromFile(&body);
-        addHeaderStatus(status); // другой статус если такого пользователя нет
-        addHeaderServer();
-        addHeaderDate();
-        addHeaderSetCookie();
-        addHeaderContentLanguage();
-        addHeaderContentLocation();
-        addHeaderContentLength(std::to_string(body.length()));
-        addHeaderLocation();
-        this->response.append("\r\n");
-        this->response.append(body);
-        return;
-    }
-
-    if (config.locations[index_location]->cgi_name == "python_upload.py")
+    if (config.locations[index_location]->cgi_name == "python_upload.py" && request.formData.length() == 0) // for upload files
     {
         // create directory
-        std::string path = "." + config.locations[index_location]->root + "/";
-        path += _userData.login;
-        mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+        std::string pathBody = "." + config.locations[index_location]->root;
+        if (_userData.login.length() != 0)
+            pathBody += "/" + _userData.login;
+        mkdir(pathBody.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
         //  create file
-        path += "/tmp.txt";
-        std::ofstream outfile (path);
+        pathBody += "/tmp.txt";
+        std::ofstream outfile (pathBody);
         outfile.close();
 
         this->path = (this->path + _userData.login + "/tmp.txt"); // hardcode
     }
-    std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
 
-	if (!ofs.good())
-        return error_message(500);
-	ofs << request.body;
-	ofs.close();
-   
-	std::string body;
-	std::string lengthHeader;
+    if (request.formData.length() == 0)
+    {
+        std::ofstream ofs(this->path.c_str(), std::ios_base::trunc);
+        if (!ofs.good())
+            return error_message(500);
+        ofs << request.body;
+        ofs.close();
+    }
+    else
+    {
+        std::fstream ifs(this->path.c_str(), std::ios_base::in);
+        if (!ifs.good())
+            return error_message(500);
+        ifs.close();
+    }
 
-	if (config.locations[index_location]->cgi.size() != 0)
-	{
-		char ** envPost = create_env();
-		if (!(envPost))
+    std::string body;
+    std::string lengthHeader;
+
+    if (config.locations[index_location]->cgi.size() != 0)
+    {
+        char ** envPost = create_env(); // sega
+        if (!(envPost))
             return error_message(500);
 
         const char *pathToCGI = config.locations[index_location]->cgi.c_str();
         char *args[3] = { (char *)pathToCGI, (char *)this->path.c_str(), NULL};
 
-		if (launchCgi(args, envPost, &body) == 1)
+        if (launchCgi(args, envPost, &body) == 1)
             return ft_free_array(envPost);
 
-		ft_free_array(envPost);
-		lengthHeader = "Transfer-Encoding: chunked\r\n";
-	}
-	else
-	{
-		body.append("\r\n");
-		body.append(request.body);
-		lengthHeader = "Content-Length: " + lltostr(request.body.length(), 10) + "\r\n";
-	}
+        ft_free_array(envPost);
+
+        if (config.locations[index_location]->cgi_name != "python_upload.py")
+            lengthHeader = "Transfer-Encoding: chunked\r\n";
+        else
+        {
+            body.clear();
+
+            body.append("\r\n");
+            body.append("\r\n");
+
+            loadBodyFromFile(&body);
+
+            body.append("\r\n");
+            body.append("\r\n");
+
+            lengthHeader = "Content-Length: " + std::to_string(body.length()) + "\r\n";
+        }
+
+    }
+    else
+    {
+        body.append("\r\n");
+        body.append(request.body);
+        lengthHeader = "Content-Length: " + lltostr(request.body.length(), 10) + "\r\n";
+    }
+    checkUserLogIn();
+    if (config.locations[index_location]->authentication && _userData.signIn == false)
+        return error_message(511);
 
     addHeaderStatus(200);
+
+    addHeaderSetCookie();
     addHeaderServer();
     addHeaderDate();
     addHeaderContentLanguage();
     addHeaderContentLocation();
 
-	this->response.append(lengthHeader);
-	this->response.append("Location: ");
-	this->response.append(this->location_path);
-	this->response.append("\r\n");
+    this->response.append(lengthHeader);
+    this->response.append("Location: ");
+    this->response.append(this->location_path);
+    this->response.append("\r\n");
+    this->response.append("\r\n");
+    this->response.append(body);
+
     std::cout << PURPLE << "RESPONSE" << std::endl << this->response << BW << std::endl; //for debug
-	this->response.append(body);
 }
 
-//int Handler::updateFile(std::string & boundary)
-//{
-//    int status = 200;
-//    size_t pos;
-//
-//    std::string type;
-//    std::string name;
-//    std::string fileName;
-//    std::string mime;
-//    std::string content;
-//    /*
-//     * пропустить boundary
-//     */
-//    request.body.erase(0, boundary.length() + 2 + 2);
-//    /*
-//     * прочитать хедоры
-//     */
-//    int separate = 0;
-//    std::string header;
-//    while ((pos = request.body.find("\r\n", 0)) != std::string::npos)
-//    {
-//        if (pos == 0)
-//        {
-//            request.body.erase(0, 2);
-//            break;
-//        }
-//        separate = request.body.find(":", 0);
-//        header = request.body.substr(0, separate);
-//        if (header == "Content-Disposition")
-//        {
-//            request.body.erase(0, separate + 2);
-//            /* form-data */
-//            separate = request.body.find(";", 0);
-//            type = request.body.substr(0, separate);
-//            request.body.erase(0, separate + 2);
-//            /* name=\"photo\" */
-//            if (request.body.find("name", 0) == 0)
-//            {
-//                separate = request.body.find(";", 0);
-//                name = request.body.substr(6, separate - 1 - 6);
-//                request.body.erase(0, separate + 2);
-//            }
-//            if ((separate = request.body.find("filename", 0)) == 0)
-//            {
-//                separate = request.body.find("\r\n", 0);
-//                fileName = request.body.substr(10, separate - 1 - 10);
-//                request.body.erase(0, separate + 2);
-//            }
-//        }
-//        else if (header == "Content-Type")
-//        {
-//            separate = request.body.find("\r\n", 0);
-//            mime = request.body.substr(12 + 2, separate - 12 - 2);
-//            request.body.erase(0, separate + 2);
-//        }
-//    }
-//    /*
-//     * прочитать содержимое файла
-//     */
-//    if ((pos = request.body.find(boundary, 0)) != std::string::npos)
-//    {
-//        content = request.body.substr(0, pos - 2);
-//        request.body.erase(0, pos - 2);
-//        request.body.clear();
-//
-//        status = createNewFile("avatar", content, "png");
-//    }
-//    return status;
-//}
+void Handler::checkUserLogIn() // add check from cookie
+{
+    std::fstream ifs("./content/website1/authentication/authentication.txt", std::ios_base::in);
+    if (!ifs.good())
+        return error_message(500);
 
-//int Handler::createNewFile(std::string fileName, std::string content, std::string fileExtension)
-//{
-//
-//    if (fileName.length() == 0 && fileExtension.length() == 0 )
-//        return 1;
-//
-//    std::string path = "." + config.locations[index_location]->root + "/"; // "./content/website1/users/";
-//    path += _userData.login;
-//    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-//
-//    path += "/";
-//    path += "avatar.png";
-//
-//
-//    std::ofstream outfile (path);
-//    outfile << content << std::endl;
-//    outfile.close();
-//
-//    return 200;
-//}
+    std::string str;
+    std::string tmp;
+    while (getline(ifs, tmp))
+        str += tmp;
+    ifs.close();
+
+    std::cout << YELLOW << str << std::endl;
+
+    size_t pos = str.find("true", 0);
+    if (pos != std::string::npos)
+    {
+        str = str.substr(0, pos - 1);
+        pos = str.find_last_of("\r", std::string::npos);
+        str = str.substr(pos + 1, std::string::npos);
+        pos = str.find("_", 0);
+        str = str.substr(0, pos);
+        _userData.login = str;
+        _userData.signIn = true;
+    }
+    else
+    {
+        _userData.login.clear();
+        _userData.signIn = false;
+    }
+
+//    if (request.headers->find("Cookie") != request.headers->end())
+//    {
+//        int pos = request.headers->find("Cookie")->second.find("=");
+//        _userData.signIn = true;
+//        _userData.login = request.headers->find("Cookie")->second.substr(pos + 1);
+//    }
+}
 
 /*
  * ----------------------------------------- PUT --------------------------------------
@@ -521,9 +538,6 @@ int Handler::checkFile(void)
 	return 0;
 }
 
-
-
-
 void Handler::loadBodyFromFile(std::string * body)
 {	
 	std::ifstream ifs(this->path.c_str());
@@ -559,7 +573,7 @@ void         Handler::add_env(std::vector<std::string> * envs)
     envs->push_back("GATEWAY_INTERFACE=CGI/1.1");
     envs->push_back("PATH_INFO=" + request.path);
     envs->push_back("PATH_TRANSLATED=" + this->path);
-    envs->push_back("QUERY_STRING="); // ?...
+    envs->push_back("QUERY_STRING=" + request.formData);
     envs->push_back("REMOTE_ADDR=");
     envs->push_back("REMOTE_IDENT=");
     envs->push_back("REMOTE_USER=" + _userData.login);
@@ -576,7 +590,7 @@ void         Handler::add_env(std::vector<std::string> * envs)
 		envs->push_back("HTTP_" + it->first + "=" + it->second);
 }
 
-char **	Handler::create_env(void)
+char **	Handler::create_env(void) // sega
 {
     char **env; // all headers
 	std::vector<std::string> envs;
@@ -976,6 +990,7 @@ void Handler::addHeaderSetCookie()
     this->response.append("login=" + _userData.login);
     this->response.append("\r\n");
 }
+
 void Handler::addHeaderContentLanguage() { this->response.append("Content-Language: en\r\n"); }
 void Handler::addHeaderContentLocation()
 {

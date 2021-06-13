@@ -23,27 +23,28 @@ public:
 private:
 	ParseRequest *      parseRequest;
 	Handler *           handler;
-    Authentication *    authentication;
+//    Authentication *    authentication;
 	bool                request_left;
 	
 
 public:
 
-   Session(configServer config, Authentication * authentication, int fd);
+   Session(configServer config, int fd);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);
-	void commit(FILE *f);
+//	void commit(FILE *f);
 	void handle_request(fd_set * writefds);
 	void handle_cgi(fd_set * writefds);
 	bool isRequestLeft(void);
 	int  getCgiFd(void) const;
-    void checkAuthentication(void);
+//    void checkAuthentication(void);
+    void setAuthenticationOff();
 
 private:
 
 	Session(void);
-    user    _user;
+//    user    _user;
 };
 
 #endif

@@ -52,15 +52,12 @@ public:
     Handler(configServer const & config, int fd);
 	~Handler(void);
 
-	std::string const & handle(data const & request, user & userData);
+	std::string const & handle(data const & request);
 	std::string const & handle(void);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
     std::string subpath(void);
-
-    /* 401 */
-    void handle_401(void);
 
     /* HEAD */
     void handle_head(void);
@@ -74,8 +71,9 @@ public:
   	void add_env(std::vector<std::string> * envs);
 	int launchCgi(char **args, char ** env, std::string * body);
 	int readCgi(std::string * body);
-	int updateFile(std::string & boundary);
-    int createNewFile(std::string fileName, std::string content, std::string fileExtension);
+//	int updateFile(std::string & boundary);
+//    int createNewFile(std::string fileName, std::string content, std::string fileExtension);
+    void checkUserLogIn();
 
 	/* DELETE */
     void handle_delete(void);
@@ -85,15 +83,15 @@ public:
 	
 	void error_message(int const & status_code);
 
-int isFiles(std::string path, std::string locPath);
-int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
-int searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations,
-						std::string &reqPath, int flag, std::string &locPath);
-int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
-						int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath);
-void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
-						int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
-int isLocation(std::vector<location *> locations, std::string path);
+    int isFiles(std::string path, std::string locPath);
+    int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
+    int searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations,
+                            std::string &reqPath, int flag, std::string &locPath);
+    int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
+                            int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath);
+    void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
+                            int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
+    int isLocation(std::vector<location *> locations, std::string path);
 
     /*
      * ADD HEADERS
@@ -130,7 +128,8 @@ int isLocation(std::vector<location *> locations, std::string path);
     int checkFile(void);
     void loadBodyFromFile(std::string * body);
     void loadBodyFromFile(std::string * body, std::string path);
-     int		getCgiFd(void) const;
+    int getCgiFd(void) const;
+
 
 };
 

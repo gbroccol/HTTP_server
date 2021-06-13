@@ -3,13 +3,13 @@
 
 Server::Server(void)
 {
-    this->_authentication = new Authentication;
+//    this->_authentication = new Authentication;
 	return;
 }
 
 Server::~Server(void)
 {
-	delete this->_authentication;
+//	delete this->_authentication;
 	return;
 }
 
@@ -57,7 +57,7 @@ void Server::init(const configServer & config)
 
 Session * Server::make_new_session(int fd, struct sockaddr_in *from)
 {
-	Session *sess = new Session(this->config, this->_authentication, fd);
+	Session *sess = new Session(this->config, fd);
 	sess->from_ip = ntohl(from->sin_addr.s_addr);
 	sess->from_port = ntohs(from->sin_port);
 	sess->state = fsm_start;
