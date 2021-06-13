@@ -63,6 +63,9 @@ class Config
 private:
 	
 	std::vector<configServer*> 	servers;
+    std::vector<std::string> serverTokens;
+    std::vector<std::string> locationTokens;
+    std::vector<std::string> methodTokens;
 	
 public:
 	Config();
@@ -80,7 +83,7 @@ public:
 
 	bool						checkMainValLoc(location *locNode);
 	bool						checkMainValServ(struct configServer *servNode);
-	unsigned int                ft_strlen(std::string str[]);
+	void                        initConfigEnv();
     bool                        checkIndex(std::string root, std::string indexPath);
     bool                        checkErrorPage(std::string path);
     bool                        checkLockPath(std::string path);

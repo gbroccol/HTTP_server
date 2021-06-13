@@ -65,6 +65,7 @@ std::string				Config::parseStr(std::string str)  // sega
 
     size_t pos = 0;
     initServNode(servNode);
+    initConfigEnv();
     while(str.length() > 0)
     {
         if(str[pos] == '{')
@@ -177,6 +178,7 @@ std::string				Config::parseLocation(std::string str,  configServer *servNode)
 
     size_t pos = 0;
     initLocNode(locNode);
+
     while(str.length() > 0)
     {
         if(str[pos] == '{')
@@ -342,9 +344,9 @@ void Config::serverTokenSearch(std::string save, std::string tmp, configServer *
 
 void					Config::initLocNode(location *locNode)
 {
-    locNode->index = "";
+    locNode->index.clear();
     locNode->maxBody = 0;
-    locNode->path = "";
+    locNode->path.clear();
     locNode->method.clear();
     locNode->repeat_method = false;
     locNode->repeat_index = false;
@@ -352,7 +354,7 @@ void					Config::initLocNode(location *locNode)
     locNode->repeat_path = false;
     locNode->repeat_root = false;
 	locNode->repeat_cgi  = false;
-    locNode->root = "";
+    locNode->root.clear();
     locNode->autoIndex = -1;
     locNode->repeat_autoIndex = false;
     locNode->authentication = false;
@@ -377,17 +379,13 @@ void					Config::initServNode(configServer *servNode)
 
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
 {
-	std::string server_tokens[] = {"listen", "server_name", "error_page", "location"};
-	std::string location_tokens[] = {"index", "root", "maxBody", "method", "autoindex", "authentication", "cgi", "redirect"};
-	std::string method_tokens[] = {"GET", "POST", "PUT", "HEAD", "DELETE"};
-
     if (config_part == SERVER)
     {
-        for(unsigned int i = 0; i < ft_strlen(server_tokens); i++)
+        for(unsigned int i = 0; i < this->serverTokens.size(); i++)
         {
-            if(server_tokens[i] == str)
+            if(this->serverTokens[i] == str)
             {
-                save = server_tokens[i];
+                save = this->serverTokens[i];
                 return (true);
             }
         }
@@ -395,18 +393,18 @@ bool				Config::checkTokens(std::string &save, std::string str, int config_part)
     }
     else if(config_part == METHOD)
     {
-        for(unsigned int i = 0; i < ft_strlen(method_tokens); i++)
-            if(method_tokens[i] == str)
+        for(unsigned int i = 0; i < this->methodTokens.size(); i++)
+            if(this->methodTokens[i] == str)
                 return (true);
         return (false);
     }
     else
     {
-        for(unsigned int i = 0; i < ft_strlen(location_tokens); i++)
+        for(unsigned int i = 0; i <  this->locationTokens.size(); i++)
         {
-            if(location_tokens[i] == str)
+            if(this->locationTokens[i] == str)
             {
-                save = location_tokens[i];
+                save = this->locationTokens[i];
                 return (true);
             }
         }
@@ -428,6 +426,29 @@ bool Config::check_repeat_ports(configServer *servNode)
         }
     }
     return (false);
+}
+
+void Config::initConfigEnv()
+{
+    this->serverTokens.push_back("listen");
+    this->serverTokens.push_back("server_name");
+    this->serverTokens.push_back("error_page");
+    this->serverTokens.push_back("location");
+
+    this->locationTokens.push_back("index");
+    this->locationTokens.push_back("root");
+    this->locationTokens.push_back("maxBody");
+    this->locationTokens.push_back("method");
+    this->locationTokens.push_back("autoindex");
+    this->locationTokens.push_back("authentication");
+    this->locationTokens.push_back("cgi");
+    this->locationTokens.push_back("redirect");
+
+    this->methodTokens.push_back("GET");
+    this->methodTokens.push_back("POST");
+    this->methodTokens.push_back("PUT");
+    this->methodTokens.push_back("HEAD");
+    this->methodTokens.push_back("DELETE");
 }
 
 bool				Config::checkMainValLoc(struct location *locNode)
@@ -525,13 +546,13 @@ bool Config::checkCgi(std::string cgiPath)
     return (true);
 }
 
-unsigned int                 Config::ft_strlen(std::string str[])
-{
-    int sum = 0;
-    for(int i = 0; !str[i].empty(); i++)
-        sum++;
-    return(sum);
-}
+// unsigned int                 Config::ft_strlen(std::string str[])
+// {
+//     int sum = 0;
+//     for(int i = 0; i < (sizeof(str) / sizeof(std::string)); i++)
+//         sum++;
+//     return(sum);
+// }
 
 void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
 {
