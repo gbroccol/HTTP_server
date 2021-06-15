@@ -2,9 +2,8 @@
 
 Handler::Handler(void){ return; } // private
 
-Handler::Handler(configServer const & config, int sessionFd)
+Handler::Handler(int sessionFd)
 {
-    this->config = config;
 	this->isCgiReading = false;
 	this->isDir = false;
 	this->tmp = "./cgi/temp/" + lltostr(sessionFd, 10) + ".txt";
@@ -20,17 +19,22 @@ Handler::Handler(configServer const & config, int sessionFd)
 
 Handler::~Handler(void)
 {
+	if (this->cgiFd > 0)
+		close(this->cgiFd);
+	remove(this->tmp.c_str());
 	this->response.clear();
 	return;
 }
 
-std::string const & Handler::handle(data const & req)
+std::string const & Handler::handle(configServer config, data const & req)
 {
 	this->response.clear();
 	this->response.append("HTTP/1.1 ");
 	this->request = req;
+  this->config = config;
+  
+  checkUserLogInByCookie();
 
-    checkUserLogInByCookie();
 
 	if (!isRequestCorrect())
 	{
@@ -125,15 +129,14 @@ void Handler::makePath(void)
 	this->path.append(config.locations[index_location]->root);
     this->path.append("/");
     this->path.append(subpath());
-//        this->location_path.append("./content"); // change otnosit pyt // Kate // test download
+    //    this->location_path.append("./content"); // change otnosit pyt // Kate // test download
     this->location_path.append(request.path);
 
     size_t pos = this->path.find("//", 0);
-    if (pos != std::string::npos)
-        this->path.erase(pos, 1);
+    if (pos != std::string::npos) {
+        this->path.erase(pos, 1); }
 
 	dir = opendir(path.c_str());
-
     if (dir)
     {
 		if (config.locations[index_location]->index.length() > 0) {

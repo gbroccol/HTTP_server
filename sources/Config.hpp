@@ -45,9 +45,9 @@
 
 struct 	configServer
 {
-        std::vector<int> 		port;
+        std::vector<in_port_t> 	port;
 		bool 					repeat_port;
-        std::string 			ip;
+        in_addr_t 		        ip;
 		std::string 			server_name;
 		bool 					repeat_server_name;
 		std::string 			error_page;
@@ -62,6 +62,9 @@ class Config
 private:
 	
 	std::vector<configServer*> 	servers;
+    std::vector<std::string> serverTokens;
+    std::vector<std::string> locationTokens;
+    std::vector<std::string> methodTokens;
 	
 public:
 	Config();
@@ -79,7 +82,7 @@ public:
 
 	bool						checkMainValLoc(location *locNode);
 	bool						checkMainValServ(struct configServer *servNode);
-	unsigned int                ft_strlen(std::string str[]);
+	void                        initConfigEnv();
     bool                        checkIndex(std::string root, std::string indexPath);
     bool                        checkErrorPage(std::string path);
     bool                        checkLockPath(std::string path);
@@ -90,20 +93,29 @@ public:
 
     configServer        		*getconfigServer(int index) const;
     size_t						getSize(void) const;
+    std::vector<configServer*>  getAllServers() const;
 
+	class 						FileNotOpenException: public std::exception { const char *what() const throw(); };
+	class 						FileIsNotCorrectException: public std::exception { const char *what() const throw(); };
+	class 						IncorrectConfigException: public std::exception { const char *what() const throw(); };
+    class 						FileLengthException: public std::exception { const char *what() const throw(); };
+    class 						ServerNameException: public std::exception { const char *what() const throw(); };
+    class 						ValueSaveException: public std::exception { const char *what() const throw(); };
+    class 						ErrorPageException: public std::exception { const char *what() const throw(); };
+    class 						FullServerValueException: public std::exception { const char *what() const throw(); };
+    class 						IncorrectLocationPathException: public std::exception { const char *what() const throw(); };
+    class 						MethodException: public std::exception { const char *what() const throw(); };
+    class 						FullLocationValueException: public std::exception { const char *what() const throw(); };
+    class 						MaxBodyException: public std::exception { const char *what() const throw(); };
+    class 						RootException: public std::exception { const char *what() const throw(); };
+    class 						IndexException: public std::exception { const char *what() const throw(); };
+    class 						RedirectException: public std::exception { const char *what() const throw(); };
+    class 						CGIException: public std::exception { const char *what() const throw(); };
+    class 						AutoindexException: public std::exception { const char *what() const throw(); };
+    class 						AuthenticationException: public std::exception { const char *what() const throw(); };
+    class 						ListenException: public std::exception { const char *what() const throw(); };
+    class 						PortIPException: public std::exception { const char *what() const throw(); };
 
-	class 						FileNotOpenException: public std::exception
-	{
-		const char    *what() const throw();
-	};
-	class 						FileIsNotCorrectException: public std::exception
-	{
-		const char    *what() const throw();
-	};
-	class 						IncorrectConfigException: public std::exception
-	{
-		const char    *what() const throw();
-	};
 };
 
 #endif

@@ -6,9 +6,6 @@
 # include "Handler.hpp"
 # include "Authentication.hpp"
 
-enum states {
-    fsm_start, fsm_finish, fsm_error, fsm_request
-};
 
 class Session
 {
@@ -16,18 +13,21 @@ public:
 	int fd;
     unsigned long from_ip;
     unsigned short from_port;
+    unsigned long ip;
+    unsigned short port;
+
     std::string buf;
 	std::string wr_buf;
-    enum states state;
 
 private:
+    std::vector<configServer*> confServer;
 	ParseRequest *      parseRequest;
 	Handler *           handler;
 	bool                request_left;
 
 public:
 
-   Session(configServer config, int fd);
+   Session(std::vector<configServer*> config, int fd);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);
@@ -37,6 +37,8 @@ public:
 	bool isRequestLeft(void);
 	int  getCgiFd(void) const;
     void setAuthenticationOff();
+    configServer *getConfig(void);
+
 
 private:
 

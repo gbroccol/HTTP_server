@@ -3,17 +3,23 @@
 Cluster::Cluster(void) 
 {
 	this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
+	return;
 }
 Cluster::~Cluster(void)
 {
-	close_all_sessions();
+	closeAllSessions();
+	for (size_t i = 0; i < servers.size(); i++)
+		delete servers[i];
 	return;
 }
+
 void Cluster::init(const Config & config) 
 {
-	configServer *confServer;
 	Server * server;
+	configServer *confServer;
 	std::vector<int> sockets;
+    std::vector<struct sockaddr_in> addrs;
+    this->config = config.getAllServers();
 
 	for (size_t  i = 0; i < config.getSize(); i++)
 	{
@@ -23,55 +29,34 @@ void Cluster::init(const Config & config)
 		servers.push_back(server);
 		sockets = server->getListenSockets();
 		listenSockets.insert(listenSockets.end(), sockets.begin(), sockets.end());
+		addrs = server->getAddrs();
+		addr.insert(addr.end(), addrs.begin(), addrs.end());
 	}
+	return;
 }
 
 void Cluster::run(void)
 {
-	int i, sr, ssr, maxfd;
-	int cgiFd;
-
-	// fcntl(1, F_SETFL, O_NONBLOCK);
-
-	if (this->listenSockets.size() == 0)
-        throw std::runtime_error("All ports unavailable");
+	size_t i;
+	int sr, ssr, maxfd;
 
 	for(;;) {
-		FD_ZERO(&readfds);                  // зачистить сет для чтения
-		FD_ZERO(&writefds);                 // зачистить сет для записи
-		for (size_t i = 0; i < this->listenSockets.size(); i++)
-			FD_SET(this->listenSockets[i], &readfds);
-		maxfd = this->listenSockets.back();  // sega
-		for(i = 0; i < (int)sessions.size(); i++) {
-			if(sessions[i]) {
-				FD_SET(i, &readfds);
-				if(i > maxfd)
-					maxfd = i;
-				if ((cgiFd = sessions[i]->getCgiFd()) > 0)
-				{
-					FD_SET(cgiFd, &readfds);
-					if(cgiFd > maxfd)
-						maxfd = cgiFd;
-				}
-			}
-		}
-
+		updateSelectSets(&maxfd);
 		sr = select(maxfd+1, &readfds, &writefds, NULL, NULL);
 		if (sr == -1)
 		    throw std::runtime_error("Select error");
-		for (size_t i = 0; i < this->listenSockets.size(); i++) 
+		for (i = 0; i < this->listenSockets.size(); i++) 
 			if (FD_ISSET(this->listenSockets[i], &readfds))
-				accept_client(i);
-		for (size_t i = 0; i < sessions.size(); i++) 
+				acceptClient(i);
+		for (i = 0; i < sessions.size(); i++) 
 		{
 			if (sessions[i]) {
 				if (sessions[i]->getCgiFd() > 0 && FD_ISSET(sessions[i]->getCgiFd(), &readfds))
 					sessions[i]->handle_cgi(&writefds);
 				else if (FD_ISSET(i, &readfds)) {
 					ssr = sessions[i]->do_read();
-					if (ssr == 1 || sessions[i]->isRequestLeft()) {
+					if (ssr == 1 || sessions[i]->isRequestLeft())
 						sessions[i]->handle_request(&writefds);
-					}
 					else if (!ssr)
 						closeSession(i);
 				}
@@ -83,9 +68,37 @@ void Cluster::run(void)
 			}
 		}
 	}
+	return;
 }
 
-void Cluster::accept_client(int pos)
+void Cluster::updateSelectSets(int * maxfd)
+{
+	int cgiFd = 0;
+	size_t i = 0;
+
+	FD_ZERO(&readfds);                  // зачистить сет для чтения
+	FD_ZERO(&writefds);                 // зачистить сет для записи
+	for (; i < this->listenSockets.size(); i++)
+		FD_SET(this->listenSockets[i], &readfds);
+	*maxfd = this->listenSockets.back();
+
+	for(i = 0; i < sessions.size(); i++) {
+		if(sessions[i]) {
+			FD_SET(i, &readfds);
+			if((int)i > *maxfd)
+				*maxfd = i;
+			if ((cgiFd = sessions[i]->getCgiFd()) > 0)
+			{
+				FD_SET(cgiFd, &readfds);
+				if(cgiFd > *maxfd)
+					*maxfd = cgiFd;
+			}
+		}
+	}
+	return;
+}
+
+void Cluster::acceptClient(int pos)
 {
 	int sd;
 	struct sockaddr_in addr;
@@ -101,44 +114,35 @@ void Cluster::accept_client(int pos)
 			newlen += INIT_SESS_ARR_SIZE;
 		this->sessions.resize(newlen, NULL);
 	}
-	int serverNum = getServerNum(listenSockets[pos]);
-	this->sessions[sd] = servers[serverNum]->make_new_session(sd, &addr);
+
+	this->sessions[sd] = make_new_session(sd, &addr, pos);
 }
 
-int Cluster::getServerNum(int pos)
+Session * Cluster::make_new_session(int fd, struct sockaddr_in *from, int pos)
 {
-	std::vector<int> sockets;
-	int serverNum;
-	for (size_t i = 0; i < servers.size(); i++)
-	{
-		sockets = servers[i]->getListenSockets();
-		for (size_t j = 0;  j < sockets.size(); j++)
-		{
-			if (sockets[j] == pos)
-			{
-				serverNum = i;
-				break;
-			}
-		}
-	}
-	return serverNum;
+    Session *sess = new Session(this->config, fd);
+    sess->from_ip = ntohl(from->sin_addr.s_addr);
+    sess->from_port = ntohs(from->sin_port);
+    sess->ip = addr[pos].sin_addr.s_addr;
+    sess->port = addr[pos].sin_port;
+    sess->state = fsm_start;
+    return sess;
 }
 
 void Cluster::closeSession(int sd)
 {
-	// if (this->sessions[sd]->state == fsm_finish)
-	// 	this->sessions[sd]->commit(this->res);
 	close(sd);
 	delete this->sessions[sd];
-	// free(this->sessions[sd]);
 	this->sessions[sd] = NULL;
+	return;
 }
 
-void Cluster::close_all_sessions(void)
+void Cluster::closeAllSessions(void)
 {
 	for (size_t i = 0; i < this->sessions.size(); i++)
 	{
 		if (this->sessions[i])
 			closeSession(i);
 	}
+	return;
 }

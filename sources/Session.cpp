@@ -14,11 +14,11 @@
 #include "Session.hpp" 
 
 Session::Session(void) { return; } // private
-
-Session::Session(configServer config, int fd)
+Session::Session(std::vector<configServer*> config, int fd)
 {
+    this->confServer = config;
 	this->parseRequest = new ParseRequest;
-  	this->handler      = new Handler(config, fd);
+  	this->handler      = new Handler(fd);
 	this->fd = fd;
     setAuthenticationOff();
 	return; 
@@ -33,10 +33,9 @@ Session::~Session(void)
 
 int Session::send_message(void)
 {
-//	if ((send(this->fd, wr_buf.c_str(), wr_buf.length(), MSG_NOSIGNAL)) < 0)
+	// if ((send(this->fd, wr_buf.c_str(), wr_buf.length(), MSG_NOSIGNAL)) < 0)
     if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
-		this->state = fsm_error;
 		wr_buf.clear();
 		std::cout << "Client disconnected" << std::endl;
 		return 0;
@@ -70,7 +69,9 @@ void Session::handle_request(fd_set * writefds)
     this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
     if (parseRequest->isRequestReady()) 
     {
-        this->wr_buf = this->handler->handle(parseRequest->getData());
+        configServer *config = getConfig();
+        checkAuthentication();
+        this->wr_buf = this->handler->handle(*(config), parseRequest->getData());
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
 }
@@ -107,4 +108,25 @@ void Session::setAuthenticationOff()
     if (!ofs.good())
         return;
     ofs << str;
+}
+
+configServer *Session::getConfig(void)
+{
+    std::string host = parseRequest->getHost();
+    int firstConf = -1;
+    std::string serverName = host.substr(0, host.find(":"));
+    for(size_t i = 0; i < confServer.size(); i++)
+    {
+        if(confServer[i]->ip == ip)
+        {
+            for(size_t j = 0; j < confServer[i]->port.size(); j++)
+            {
+                if(firstConf == -1)
+                    firstConf = (int)i;
+                if(this->port == confServer[i]->port[j] && serverName == confServer[i]->server_name)
+                    return confServer[i];
+            }
+        }
+    }
+    return confServer[firstConf];
 }
