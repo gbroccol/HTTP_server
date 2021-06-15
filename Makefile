@@ -12,9 +12,7 @@
 
 
 NAME =		webserv
-
 CC =		clang++
-
 FLAGS =		-Wall -Werror -Wextra -g -Wunreachable-code -MMD  -I ./sources -std=c++98
 # -fsanitize=address
 # -std=c++98
@@ -44,6 +42,7 @@ all: $(NAME)
 
 $(NAME): $(OBJ) $(MAIN)
 	$(CC) $(FLAGS) $(OBJ) -o $(NAME)
+	mkdir ./cgi/temp
 
 -include $(DEP)
 
@@ -51,11 +50,13 @@ $(OBJS_DIR)%.o: $(SRCS_DIR)%.cpp
 	test -d $(OBJS_DIR) || mkdir $(OBJS_DIR)
 	$(CC) $(FLAGS) -c $< -o $@
 
+
 clean:
 	rm -rf $(OBJS_DIR)
 
 fclean:
 	rm -rf $(OBJS_DIR) $(NAME) $(LOGFILE)
+	rm -rf ./cgi/temp
 	./clear.sh
 	
 re: fclean all

@@ -15,10 +15,11 @@
 
 Session::Session(void) { return; } // private
 
-Session::Session(configServer config, Authentication * authentication, int fd)
+Session::Session(std::vector<configServer*> config, Authentication * authentication, int fd)
 {
+    this->confServer = config;
 	this->parseRequest = new ParseRequest;
-  	this->handler      = new Handler(config, fd);
+  	this->handler      = new Handler(fd);
   	this->_user.signIn = false;
   	this->authentication = authentication;
 	this->fd = fd;
@@ -107,8 +108,9 @@ void Session::handle_request(fd_set * writefds)
     this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
     if (parseRequest->isRequestReady()) 
     {
+        configServer *config = getConfig();
         checkAuthentication();
-        this->wr_buf = this->handler->handle(parseRequest->getData(), this->_user);
+        this->wr_buf = this->handler->handle(*(config), parseRequest->getData(), this->_user);
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
 }
@@ -127,4 +129,27 @@ bool Session::isRequestLeft(void)
 int  Session::getCgiFd(void) const
 {
 	return this->handler->getCgiFd();
+}
+
+configServer *Session::getConfig(void)
+{
+    std::string host = parseRequest->getHost();
+    int firstConf = -1;
+    std::string serverName = host.substr(0, host.find(":"));
+    for(size_t i = 0; i < confServer.size(); i++)
+    {
+        if(confServer[i]->ip == ip)
+        {
+            for(size_t j = 0; j < confServer[i]->port.size(); j++)
+            {
+                if(firstConf == -1)
+                    firstConf = (int)i;
+                if(this->port == confServer[i]->port[j] && serverName == confServer[i]->server_name)
+                    return confServer[i];
+            }
+
+        }
+
+    }
+    return confServer[firstConf];
 }

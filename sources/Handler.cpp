@@ -2,9 +2,8 @@
 
 Handler::Handler(void){ return; } // private
 
-Handler::Handler(configServer const & config, int sessionFd)
+Handler::Handler(int sessionFd)
 {
-    this->config = config;
 	this->isCgiReading = false;
 	this->isDir = false;
 	this->tmp = "./cgi/temp/" + lltostr(sessionFd, 10) + ".txt";
@@ -21,7 +20,7 @@ Handler::~Handler(void)
 	return;
 }
 
-std::string const & Handler::handle(data const & req, user & userData)
+std::string const & Handler::handle(configServer config, data const & req, user & userData)
 {
 	this->response.clear();                             // ответ для клиента
 
@@ -29,6 +28,7 @@ std::string const & Handler::handle(data const & req, user & userData)
 
 	this->request = req;
 	this->_userData = userData;
+    this->config = config;
 
 	if (!isRequestCorrect())
 	{

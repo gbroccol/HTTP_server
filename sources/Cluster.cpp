@@ -15,9 +15,11 @@ Cluster::~Cluster(void)
 
 void Cluster::init(const Config & config) 
 {
-	configServer *confServer;
 	Server * server;
+	configServer *confServer;
 	std::vector<int> sockets;
+    std::vector<struct sockaddr_in> addrs;
+    this->config = config.getAllServers();
 
 	for (size_t  i = 0; i < config.getSize(); i++)
 	{
@@ -27,6 +29,8 @@ void Cluster::init(const Config & config)
 		servers.push_back(server);
 		sockets = server->getListenSockets();
 		listenSockets.insert(listenSockets.end(), sockets.begin(), sockets.end());
+		addrs = server->getAddrs();
+		addr.insert(addr.end(), addrs.begin(), addrs.end());
 	}
 	return;
 }
@@ -35,9 +39,6 @@ void Cluster::run(void)
 {
 	size_t i;
 	int sr, ssr, maxfd;
-
-	// fcntl(1, F_SETFL, O_NONBLOCK);
-	// signal(SIGINT, signalHandler());
 
 	for(;;) {
 		updateSelectSets(&maxfd);
@@ -113,28 +114,19 @@ void Cluster::acceptClient(int pos)
 			newlen += INIT_SESS_ARR_SIZE;
 		this->sessions.resize(newlen, NULL);
 	}
-	int serverNum = getServerNum(listenSockets[pos]);
-	this->sessions[sd] = servers[serverNum]->make_new_session(sd);
-	return;
+
+	this->sessions[sd] = make_new_session(sd, &addr, pos);
 }
 
-int Cluster::getServerNum(int pos)
+Session * Cluster::make_new_session(int fd, struct sockaddr_in *from, int pos)
 {
-	std::vector<int> sockets;
-	int serverNum = 0;
-	for (size_t i = 0; i < servers.size(); i++)
-	{
-		sockets = servers[i]->getListenSockets();
-		for (size_t j = 0;  j < sockets.size(); j++)
-		{
-			if (sockets[j] == pos)
-			{
-				serverNum = i;
-				break;
-			}
-		}
-	}
-	return serverNum;
+    Session *sess = new Session(this->config, servers[0]->getAuth(), fd); // hardcode!!
+    sess->from_ip = ntohl(from->sin_addr.s_addr);
+    sess->from_port = ntohs(from->sin_port);
+    sess->ip = addr[pos].sin_addr.s_addr;
+    sess->port = addr[pos].sin_port;
+    sess->state = fsm_start;
+    return sess;
 }
 
 void Cluster::closeSession(int sd)
@@ -154,12 +146,3 @@ void Cluster::closeAllSessions(void)
 	}
 	return;
 }
-
-// sighandler_t Cluster::signalHandler()
-// {
-// 	closeAllSessions();
-// 	for (size_t i = 0; i < servers.size(); i++)
-// 		delete servers[i];
-// 	return SIG_DFL;
-// 	// exit(EXIT_SUCCESS);
-// }

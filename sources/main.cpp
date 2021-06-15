@@ -8,7 +8,7 @@ int main(int argc,  char **argv)
 {
 	Cluster cluster;
 	Config config;
-	std::string configFile = "./config/default.conf";
+	std::string configFile = "./config/multiServer.conf";
 
 	try 
 	{
@@ -19,9 +19,8 @@ int main(int argc,  char **argv)
 			std::cout << "Incorrect argc"<<std::endl;
 			return -1;
 		}
-
 		config.getFile(configFile);
-		cluster.init(config);
+        cluster.init(config);
 		cluster.run();
 	}
     catch (std::exception const & e)
