@@ -38,7 +38,7 @@ std::string const & Handler::handle(configServer config, data const & req)
 
 	if (!isRequestCorrect())
 	{
-		std::cout << this->response << std::endl; //for debug
+//		std::cout << this->response << std::endl; //for debug
 		return this->response;
 	}
 	makePath();
@@ -186,7 +186,7 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
 void Handler::handle_head(void)
 {
 
-    std::cout << YELLOW << "get method user is " << _userData.login << std::endl;
+//    std::cout << YELLOW << "get method user is " << _userData.login << std::endl;
 
     if (config.locations[index_location]->authentication && _userData.signIn == false)
         return error_message(511);
@@ -218,7 +218,7 @@ void Handler::handle_head(void)
     addHeaderContentType();
     addHeaderLastModified(); 
 
-//	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
+	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
 	
 	if (request.method == "GET")
 	{
@@ -340,18 +340,10 @@ void Handler::handle_post(void)
             lengthHeader = "Transfer-Encoding: chunked\r\n";
         else
         {
-//            std::cout << body << std::endl;
             body.clear();
-
-            body.append("\r\n");
-            body.append("\r\n");
-
+            body.append("\r\n\r\n");
             loadBodyFromFile(&body);
-
-            body.append("\r\n");
-            body.append("\r\n");
-
-            lengthHeader = "Content-Length: " + std::to_string(body.length()) + "\r\n";
+            lengthHeader = "Content-Length: " + std::to_string(body.length() - 4) + "\r\n";
         }
 
     }
@@ -374,7 +366,6 @@ void Handler::handle_post(void)
     this->response.append(lengthHeader);
     this->response.append("Location: ");
     this->response.append(this->location_path);
-    this->response.append("\r\n");
     this->response.append("\r\n");
     std::cout << PURPLE << "RESPONSE" << std::endl << this->response << BW << std::endl; //for debug
     this->response.append(body);
@@ -633,8 +624,24 @@ int Handler::launchCgi(char **args, char **env, std::string * body)
     pid = fork();
     if (pid == 0) // дочерний процесс
     {
-		int in = open(this->path.c_str(), O_RDWR);
-		int out = open(this->tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+		int in = -1;
+        int out = -1;
+        while (in < 0 )
+        {
+            in = open(this->path.c_str(), O_RDWR);
+            if (in >= 0)
+                break;
+            std::cout << "Please clean memory" << std::endl;
+            getchar();
+        }
+        while (out < 0)
+        {
+            out = open(this->tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+            if (out >= 0)
+                break;
+            std::cout << "Please clean memory" << std::endl;
+            getchar();
+        }
 		dup2(out, 1);
 		dup2(in, 0);
         if (execve(args[0], args, env) == -1)
@@ -672,8 +679,16 @@ int Handler::readCgi(std::string * body)
 	int status = 0;
 	int res = 0;
 
-	if (!isCgiReading)
-		cgiFd = open(this->tmp.c_str(), O_RDONLY); // check if open
+	if (!isCgiReading) {
+        cgiFd = -1;
+        while (cgiFd < 0) {
+            cgiFd = open(this->tmp.c_str(), O_RDONLY);
+            if (cgiFd >= 0)
+                break;
+            std::cout << "Please clean memory" << std::endl;
+            getchar();
+        }
+    }
 
     if ((res = read(cgiFd, buffer, INBUFSIZE - 1)) > 0) {
 		buffer[res] = 0;
@@ -813,7 +828,7 @@ void Handler::error_message(int const & status_code)
     this->response.append("Content-Location: /error_page/");
     this->response.append("\r\n");
 
-    std::cout << this->response  << std::endl;
+//    std::cout << this->response  << std::endl;
 
     this->response.append("\r\n");
     this->response.append(body);
@@ -953,6 +968,11 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 }
 
 int		Handler::getCgiFd(void) const { return this->cgiFd; }
+
+bool Handler::isReading(void) const
+{
+    return this->isCgiReading;
+}
 
 /*
  * ------------------------- Add headers ----------------------------

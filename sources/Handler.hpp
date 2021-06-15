@@ -137,6 +137,7 @@ public:
     void loadBodyFromFile(std::string * body);
     void loadBodyFromFile(std::string * body, std::string path);
     int getCgiFd(void) const;
+    bool isReading(void) const;
 
 
 };

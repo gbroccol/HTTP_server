@@ -41,34 +41,33 @@ void Cluster::run(void)
 	int sr, ssr, maxfd;
 
 	for(;;) {
-		updateSelectSets(&maxfd);
-		sr = select(maxfd+1, &readfds, &writefds, NULL, NULL);
-		if (sr == -1)
-		    throw std::runtime_error("Select error");
-		for (i = 0; i < this->listenSockets.size(); i++) 
-			if (FD_ISSET(this->listenSockets[i], &readfds))
-				acceptClient(i);
-		for (i = 0; i < sessions.size(); i++) 
-		{
-			if (sessions[i]) {
-				if (sessions[i]->getCgiFd() > 0 && FD_ISSET(sessions[i]->getCgiFd(), &readfds))
-					sessions[i]->handle_cgi(&writefds);
-				else if (FD_ISSET(i, &readfds)) {
-					ssr = sessions[i]->do_read();
-					if (ssr == 1 || sessions[i]->isRequestLeft())
-						sessions[i]->handle_request(&writefds);
-					else if (!ssr)
-						closeSession(i);
-				}
-				if (FD_ISSET(i, &writefds)) {
-					ssr = sessions[i]->send_message();
-					if (!ssr)
-						closeSession(i);
-				}
-			}
-		}
-	}
-	return;
+        updateSelectSets(&maxfd);
+        sr = select(maxfd + 1, &readfds, &writefds, NULL, NULL);
+        if (sr == -1)
+            throw std::runtime_error("Select error");
+        for (i = 0; i < this->listenSockets.size(); i++)
+            if (FD_ISSET(this->listenSockets[i], &readfds))
+                acceptClient(i);
+        for (i = 0; i < sessions.size(); i++) {
+            if (sessions[i]) {
+                if (sessions[i]->getCgiFd() > 0 && FD_ISSET(sessions[i]->getCgiFd(), &readfds))
+                    sessions[i]->handle_cgi(&writefds);
+                else if (FD_ISSET(i, &readfds)) {
+                    ssr = sessions[i]->do_read();
+                    if (ssr == 1 || sessions[i]->isRequestLeft())
+                        sessions[i]->handle_request(&writefds);
+                    if (!ssr)
+                        closeSession(i);
+                }
+                if (FD_ISSET(i, &writefds)) {
+                    ssr = sessions[i]->send_message();
+                    if (!ssr)
+                        closeSession(i);
+                }
+            }
+        }
+    }
+    return;
 }
 
 void Cluster::updateSelectSets(int * maxfd)
@@ -125,7 +124,6 @@ Session * Cluster::make_new_session(int fd, struct sockaddr_in *from, int pos)
     sess->from_port = ntohs(from->sin_port);
     sess->ip = addr[pos].sin_addr.s_addr;
     sess->port = addr[pos].sin_port;
-    sess->state = fsm_start;
     return sess;
 }
 

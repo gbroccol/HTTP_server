@@ -66,7 +66,7 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
                     return true; // запустить парсинг снова
                 return false; // буфер пустой
             }
-		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
+//		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
         }
 
@@ -348,6 +348,14 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
         std::map<std::string, std::string>::iterator it = _data.headers->find("Host");
         return it->second;
     }
+
+    std::string             ParseRequest::getConnection(void) const
+{
+    std::map<std::string, std::string>::iterator it = _data.headers->find("Connection");
+    if (it != _data.headers->end())
+        return it->second;
+    return ("");
+}
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */

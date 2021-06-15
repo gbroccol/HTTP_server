@@ -20,6 +20,7 @@ Session::Session(std::vector<configServer*> config, int fd)
 	this->parseRequest = new ParseRequest;
   	this->handler      = new Handler(fd);
 	this->fd = fd;
+	this->closeConnection = OFF;
     setAuthenticationOff();
 	return; 
 }
@@ -33,7 +34,6 @@ Session::~Session(void)
 
 int Session::send_message(void)
 {
-	// if ((send(this->fd, wr_buf.c_str(), wr_buf.length(), MSG_NOSIGNAL)) < 0)
     if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
 		wr_buf.clear();
@@ -41,6 +41,8 @@ int Session::send_message(void)
 		return 0;
 	}
 	wr_buf.clear();
+    if (closeConnection && !this->handler->isReading())
+        return 0;
 	return 1;
 }
 
@@ -70,7 +72,8 @@ void Session::handle_request(fd_set * writefds)
     if (parseRequest->isRequestReady()) 
     {
         configServer *config = getConfig();
-        checkAuthentication();
+        if (parseRequest->getConnection() == "close")
+            closeConnection = ON;
         this->wr_buf = this->handler->handle(*(config), parseRequest->getData());
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }

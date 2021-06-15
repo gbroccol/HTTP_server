@@ -24,6 +24,7 @@ private:
 	ParseRequest *      parseRequest;
 	Handler *           handler;
 	bool                request_left;
+	bool                closeConnection;
 
 public:
 

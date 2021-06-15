@@ -51,6 +51,7 @@ class ParseRequest
         data                    getData() const;
 		bool					isRequestReady(void) const;
 		std::string             getHost(void) const;
+        std::string             getConnection(void) const;
 
 	private:
 
