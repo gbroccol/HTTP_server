@@ -8,7 +8,7 @@ int main(int argc,  char **argv)
 {
 	Cluster cluster;
 	Config config;
-	std::string configFile = "./config/default.conf";
+	std::string configFile = "./config/multiServer.conf";
 
 	try 
 	{

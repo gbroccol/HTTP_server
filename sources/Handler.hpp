@@ -74,6 +74,7 @@ public:
 //	int updateFile(std::string & boundary);
 //    int createNewFile(std::string fileName, std::string content, std::string fileExtension);
     void checkUserLogIn();
+    void checkUserLogInByCookie();
 
 	/* DELETE */
     void handle_delete(void);

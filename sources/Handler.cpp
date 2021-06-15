@@ -23,13 +23,11 @@ Handler::~Handler(void)
 
 std::string const & Handler::handle(data const & req)
 {
-    this->_userData.login.clear();
-    this->_userData.signIn = false;
-
 	this->response.clear();
 	this->response.append("HTTP/1.1 ");
 	this->request = req;
-	checkUserLogIn(); // user data
+
+    checkUserLogInByCookie();
 
 	if (!isRequestCorrect())
 	{
@@ -184,7 +182,6 @@ void Handler::handle_head(void)
     if (config.locations[index_location]->authentication && _userData.signIn == false)
         return error_message(511);
 
-
 	std::string body;
 	int status_code = 200;
 
@@ -232,52 +229,11 @@ void Handler::handle_head(void)
         addHeaderContentLength(this->contentLength);
         this->response.append("\r\n");
     }
-
-
 }
-
-//    if (this->request.formData->size() != 0)
-//    {
-//        int status = 200;
-//        std::string body;
-//
-//        loadBodyFromFile(&body);
-//        addHeaderStatus(status); // другой статус если такого пользователя нет
-//        addHeaderServer();
-//        addHeaderDate();
-//        addHeaderSetCookie();
-//        addHeaderContentLanguage();
-//        addHeaderContentLocation();
-//        addHeaderContentLength(std::to_string(body.length()));
-//        addHeaderLocation();
-//        this->response.append("\r\n");
-//        this->response.append(body);
-//        return;
-//    }
-
-//    else if (config.locations[index_location]->authentication && _userData.signIn == false)
-//        status_code = 511;
 
 /*
  * ----------------------------------------- POST --------------------------------------
  */
-
-//    if (this->request.formData.size() != 0)
-//    {
-//        int status = 200;
-//
-//        addHeaderStatus(status); // другой статус если такого пользователя нет
-//        addHeaderServer();
-//        addHeaderDate();
-//        addHeaderSetCookie();
-//        addHeaderContentLanguage();
-//        addHeaderContentLocation();
-//
-//        addHeaderLocation();
-//        this->response.append("\r\n");
-//        this->response.append(body);
-//        return;
-//    }
 
 void Handler::handle_post(void)
 {
@@ -334,6 +290,7 @@ void Handler::handle_post(void)
             lengthHeader = "Transfer-Encoding: chunked\r\n";
         else
         {
+//            std::cout << body << std::endl;
             body.clear();
 
             body.append("\r\n");
@@ -360,12 +317,12 @@ void Handler::handle_post(void)
 
     addHeaderStatus(200);
 
-    addHeaderSetCookie();
+
     addHeaderServer();
     addHeaderDate();
     addHeaderContentLanguage();
     addHeaderContentLocation();
-
+    addHeaderSetCookie();
     this->response.append(lengthHeader);
     this->response.append("Location: ");
     this->response.append(this->location_path);
@@ -374,6 +331,19 @@ void Handler::handle_post(void)
     this->response.append(body);
 
     std::cout << PURPLE << "RESPONSE" << std::endl << this->response << BW << std::endl; //for debug
+}
+
+void Handler::checkUserLogInByCookie()
+{
+    if (request.headers->find("Cookie") != request.headers->end())
+    {
+        size_t pos = request.headers->find("Cookie")->second.find("=");
+        _userData.signIn = true;
+        _userData.login = request.headers->find("Cookie")->second.substr(pos + 1);
+        pos = _userData.login.find(";");
+        if (pos != std::string::npos)
+            _userData.login = _userData.login.substr(0, pos);
+    }
 }
 
 void Handler::checkUserLogIn() // add check from cookie
@@ -394,9 +364,9 @@ void Handler::checkUserLogIn() // add check from cookie
     if (pos != std::string::npos)
     {
         str = str.substr(0, pos - 1);
-        pos = str.find_last_of("\r", std::string::npos);
+        pos = str.find_last_of(";", std::string::npos);
         str = str.substr(pos + 1, std::string::npos);
-        pos = str.find("_", 0);
+        pos = str.find("=", 0);
         str = str.substr(0, pos);
         _userData.login = str;
         _userData.signIn = true;
@@ -406,13 +376,6 @@ void Handler::checkUserLogIn() // add check from cookie
         _userData.login.clear();
         _userData.signIn = false;
     }
-
-//    if (request.headers->find("Cookie") != request.headers->end())
-//    {
-//        int pos = request.headers->find("Cookie")->second.find("=");
-//        _userData.signIn = true;
-//        _userData.login = request.headers->find("Cookie")->second.substr(pos + 1);
-//    }
 }
 
 /*
@@ -562,10 +525,9 @@ void Handler::loadBodyFromFile(std::string * body, std::string path)
 
 void         Handler::add_env(std::vector<std::string> * envs)
 {
-	std::string contentType = request.headers->find("Content-Type")->second;
-//	std::string user;
-//	if (_userData.signIn)
-//	    user = _userData.login;
+	std::string contentType;
+	if (request.headers->find("Content-Type") != request.headers->end())
+        contentType = request.headers->find("Content-Type")->second;
 
 	envs->push_back("AUTH_TYPE=Anonymous");
     envs->push_back("CONTENT_LENGTH=" + lltostr(request.body.length(), 10));
@@ -581,7 +543,7 @@ void         Handler::add_env(std::vector<std::string> * envs)
     envs->push_back("REQUEST_URI=" + request.path);
     envs->push_back("SCRIPT_NAME=" + config.locations[index_location]->cgi_name);
     envs->push_back("SERVER_NAME=" + config.server_name);
-    envs->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); //// hardcode
+    envs->push_back("SERVER_PORT=" + lltostr(config.port[0], 10)); // hardcode
     envs->push_back("SERVER_PROTOCOL=HTTP/1.1");
     envs->push_back("SERVER_SOFTWARE=Webserv/1.1");
 
@@ -986,9 +948,27 @@ void Handler::addHeaderDate()
 }
 void Handler::addHeaderSetCookie()
 {
-    this->response.append("Set-Cookie: ");
-    this->response.append("login=" + _userData.login);
-    this->response.append("\r\n");
+//    if (this->path == "./content/website1//home_page/index.html" || this->path == "./content/website/home_page/index.html")
+//    {
+//        this->_userData.login.clear();
+//        this->_userData.signIn = false;
+//        this->response.append("Set-Cookie: ");
+//        this->response.append("login=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+//        this->response.append("\r\n");
+//    }
+//    else
+//
+    if (_userData.login.length() != 0)
+    {
+        this->response.append("Set-Cookie: ");
+        this->response.append("login=" + _userData.login);
+        this->response.append("\r\n");
+    } else
+    {
+        this->response.append("Set-Cookie: ");
+        this->response.append("login=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        this->response.append("\r\n");
+    }
 }
 
 void Handler::addHeaderContentLanguage() { this->response.append("Content-Language: en\r\n"); }
