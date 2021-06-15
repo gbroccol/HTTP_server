@@ -23,9 +23,7 @@ public:
 private:
 	ParseRequest *      parseRequest;
 	Handler *           handler;
-//    Authentication *    authentication;
 	bool                request_left;
-	
 
 public:
 
@@ -38,13 +36,11 @@ public:
 	void handle_cgi(fd_set * writefds);
 	bool isRequestLeft(void);
 	int  getCgiFd(void) const;
-//    void checkAuthentication(void);
     void setAuthenticationOff();
 
 private:
 
 	Session(void);
-//    user    _user;
 };
 
 #endif

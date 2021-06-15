@@ -46,38 +46,45 @@ private:
 	std::string		lastModTime;
 	std::string		contentLength;
 
-public:
+//	std::map<std::string, std::map<std::string, std::string> > _session_management;
 
+public:
 
     Handler(configServer const & config, int fd);
 	~Handler(void);
 
 	std::string const & handle(data const & request);
 	std::string const & handle(void);
+
+
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
     std::string subpath(void);
 
+
     /* HEAD */
-    void handle_head(void);
+    void        handle_head(void);
+//    bool        ResponseFromSessionManagement();
+//    void        AddResponseToSessionManagement();
 
     /* PUT */
-	void handle_put(void);
+	void        handle_put(void);
 
 	/* POST */
-	void handle_post(void);
-	char ** create_env(void);
-  	void add_env(std::vector<std::string> * envs);
-	int launchCgi(char **args, char ** env, std::string * body);
-	int readCgi(std::string * body);
-//	int updateFile(std::string & boundary);
-//    int createNewFile(std::string fileName, std::string content, std::string fileExtension);
-    void checkUserLogIn();
-    void checkUserLogInByCookie();
+	void        handle_post(void);
+	char **     create_env(void);
+  	void        add_env(std::vector<std::string> * envs);
+	int         launchCgi(char **args, char ** env, std::string * body);
+	int         readCgi(std::string * body);
+    void        checkUserLogIn();
+    void        checkUserLogInByCookie();
 
 	/* DELETE */
-    void handle_delete(void);
+    void        handle_delete(void);
+
+
+
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);

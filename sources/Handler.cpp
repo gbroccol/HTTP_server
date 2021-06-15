@@ -12,6 +12,9 @@ Handler::Handler(configServer const & config, int sessionFd)
 
     this->_userData.login.clear();
     this->_userData.signIn = false;
+
+//    this->_session_management = new std::map<std::string, std::map<std::string, std::string> >;
+
 	return;
 }
 
@@ -37,6 +40,7 @@ std::string const & Handler::handle(data const & req)
 	makePath();
 	if(config.locations[this->index_location]->autoIndex == ON)
 		getFilesOrDirFromRoot(config.locations[this->index_location]->root);
+
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
 	else if (request.method == "POST")
@@ -92,8 +96,8 @@ int Handler::isRequestCorrect(void)  // errors
         status_code = 501;
     else if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0")
 		status_code = 505;
-//	else if (config.locations[index_location]->authentication && _userData.signIn == false)
-//        status_code = 511;
+	else if (request.method != "POST" && config.locations[index_location]->authentication && _userData.signIn == false)
+        status_code = 511;
 
 	if (status_code != 0)
 	{
@@ -179,8 +183,13 @@ void Handler::getFilesOrDirFromRoot(std::string LocPath)
 void Handler::handle_head(void)
 {
 
+    std::cout << YELLOW << "get method user is " << _userData.login << std::endl;
+
     if (config.locations[index_location]->authentication && _userData.signIn == false)
         return error_message(511);
+
+//    if (ResponseFromSessionManagement())
+//        return;
 
 	std::string body;
 	int status_code = 200;
@@ -189,6 +198,7 @@ void Handler::handle_head(void)
 		makeAutoindexPage(&body);
 	else if (checkFile() != 0)
 		return;
+
 
     if (config.locations[index_location]->repeat_redirect == true)
         status_code = 301;
@@ -229,7 +239,44 @@ void Handler::handle_head(void)
         addHeaderContentLength(this->contentLength);
         this->response.append("\r\n");
     }
+//    AddResponseToSessionManagement();
 }
+
+//bool    Handler::ResponseFromSessionManagement()
+//{
+//    std::string session_key = "gbroccol";
+//
+//    std::map<std::string, std::map<std::string, std::string> >::iterator it = _session_management.find(session_key);
+//    if (it == _session_management.end())
+//        return false;
+//
+//    std::map<std::string, std::string> path_response = it->second;
+//    std::map<std::string, std::string> >::iterator it2 = path_response.find(this->path);
+//
+//
+//
+//    return false;
+//}
+//
+//void    Handler::AddResponseToSessionManagement()
+//{
+//    std::string session_key = "gbroccol";
+//
+//    std::map<std::string, std::map<std::string, std::string> >::iterator it = _session_management.find(session_key);
+//
+//    if (it != _session_management.end())
+//    {
+//        std::map<std::string, std::string> path_response = it->second;
+//        std::pair<std::string, std::string> data = std::make_pair (this->path, this->response);
+//        path_response.insert(data);
+//    }
+//    else
+//    {
+//        std::map<std::string, std::string> new_session = new std::map<std::string, std::string>;
+//        _session_management.insert(std::make_pair(session_key, new_session));
+//        new_session.insert(std::make_pair (this->path, this->response));
+//    }
+//}
 
 /*
  * ----------------------------------------- POST --------------------------------------
@@ -274,7 +321,7 @@ void Handler::handle_post(void)
 
     if (config.locations[index_location]->cgi.size() != 0)
     {
-        char ** envPost = create_env(); // sega
+        char ** envPost = create_env();
         if (!(envPost))
             return error_message(500);
 
@@ -316,8 +363,6 @@ void Handler::handle_post(void)
         return error_message(511);
 
     addHeaderStatus(200);
-
-
     addHeaderServer();
     addHeaderDate();
     addHeaderContentLanguage();
@@ -328,9 +373,8 @@ void Handler::handle_post(void)
     this->response.append(this->location_path);
     this->response.append("\r\n");
     this->response.append("\r\n");
-    this->response.append(body);
-
     std::cout << PURPLE << "RESPONSE" << std::endl << this->response << BW << std::endl; //for debug
+    this->response.append(body);
 }
 
 void Handler::checkUserLogInByCookie()
@@ -358,7 +402,7 @@ void Handler::checkUserLogIn() // add check from cookie
         str += tmp;
     ifs.close();
 
-    std::cout << YELLOW << str << std::endl;
+//    std::cout << YELLOW << str << std::endl;
 
     size_t pos = str.find("true", 0);
     if (pos != std::string::npos)
@@ -773,8 +817,6 @@ void Handler::error_message(int const & status_code)
 	return ;
 }
 
-// Additional functions
-
 std::string Handler::subpath(void)
 {
     size_t i = 0;
@@ -907,10 +949,7 @@ int Handler::isLocation(std::vector<location *> locations, std::string path)
 	return(theBestLocation);
 }
 
-int		Handler::getCgiFd(void) const
-{
-	return this->cgiFd;
-}
+int		Handler::getCgiFd(void) const { return this->cgiFd; }
 
 /*
  * ------------------------- Add headers ----------------------------
@@ -948,20 +987,10 @@ void Handler::addHeaderDate()
 }
 void Handler::addHeaderSetCookie()
 {
-//    if (this->path == "./content/website1//home_page/index.html" || this->path == "./content/website/home_page/index.html")
-//    {
-//        this->_userData.login.clear();
-//        this->_userData.signIn = false;
-//        this->response.append("Set-Cookie: ");
-//        this->response.append("login=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT");
-//        this->response.append("\r\n");
-//    }
-//    else
-//
     if (_userData.login.length() != 0)
     {
         this->response.append("Set-Cookie: ");
-        this->response.append("login=" + _userData.login);
+        this->response.append("login=" + _userData.login); // Secure; HttpOnly
         this->response.append("\r\n");
     } else
     {

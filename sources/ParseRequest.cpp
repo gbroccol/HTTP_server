@@ -20,10 +20,7 @@ ParseRequest::ParseRequest()
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-ParseRequest::~ParseRequest()
-{
-    delete _data.headers;
-}
+ParseRequest::~ParseRequest() { delete _data.headers; }
 
 
 /*
