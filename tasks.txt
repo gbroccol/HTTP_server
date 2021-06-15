@@ -19,6 +19,7 @@
 - server name
 + define an HTTP redirection (add to config)
 + HTTP redirection (for example, from users/ to home_page)
+- check dir content/website1/authentication does not show (autoindex)
 
 КАТЯ
 - CGI working with php-cgi/python

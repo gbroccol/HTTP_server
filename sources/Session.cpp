@@ -14,16 +14,13 @@
 #include "Session.hpp" 
 
 Session::Session(void) { return; } // private
-
-Session::Session(std::vector<configServer*> config, Authentication * authentication, int fd)
+Session::Session(std::vector<configServer*> config, int fd)
 {
     this->confServer = config;
 	this->parseRequest = new ParseRequest;
   	this->handler      = new Handler(fd);
-  	this->_user.signIn = false;
-  	this->authentication = authentication;
 	this->fd = fd;
-//	fcntl(this->fd, F_SETFL, O_NONBLOCK);
+    setAuthenticationOff();
 	return; 
 }
 
@@ -67,42 +64,6 @@ int Session::do_read(void)
 	return 1;
 }
 
-//void Session::commit(FILE *f)
-//{
-//	// неразрешенные функции
-//	unsigned int ip = this->from_ip;
-//	fprintf(f, "From %d.%d.%d.%d:%d\n",
-//			(ip>>24 & 0xff), (ip>>16 & 0xff), (ip>>8 & 0xff), (ip & 0xff),
-//			this->from_port);
-//	fflush(f);
-//
-//}
-
-void Session::checkAuthentication(void)
-{
-    data dataRequest = parseRequest->getData();
-
-    if (dataRequest.path == "/home_page/index.html" || dataRequest.path == "/")
-        this->_user.signIn = false;
-
-    if (dataRequest.formData->size() != 0) // есть данные для обработки их формы
-    {
-        if (this->_user.signIn == false) // && dataRequest.path.find("authorize"))
-        {
-            if (authentication->checkAuthenticationData(dataRequest.formData->find("login")->second, dataRequest.formData->find("password")->second))
-            {
-                this->_user.signIn = true;
-                this->_user.login = dataRequest.formData->find("login")->second;
-            }
-            else if (authentication->addNewUser(dataRequest.formData->find("loginSignUp")->second, dataRequest.formData->find("passwordSignUp")->second))
-            {
-                this->_user.signIn = true;
-                this->_user.login = dataRequest.formData->find("loginSignUp")->second;
-            }
-        }
-    }
-}
-
 void Session::handle_request(fd_set * writefds)
 {
     this->request_left = this->parseRequest->addToBuffer((std::string) this->buf);
@@ -110,25 +71,43 @@ void Session::handle_request(fd_set * writefds)
     {
         configServer *config = getConfig();
         checkAuthentication();
-        this->wr_buf = this->handler->handle(*(config), parseRequest->getData(), this->_user);
+        this->wr_buf = this->handler->handle(*(config), parseRequest->getData());
         FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
     }
 }
 
 void Session::handle_cgi(fd_set * writefds)
 {
-		this->wr_buf = this->handler->handle();
-		FD_SET(this->fd, writefds);
+    this->wr_buf = this->handler->handle();
+    FD_SET(this->fd, writefds);
 }
 
-bool Session::isRequestLeft(void)
-{
-	return this->request_left;
-}
+bool Session::isRequestLeft(void) { return this->request_left; }
+int  Session::getCgiFd(void) const { return this->handler->getCgiFd(); }
 
-int  Session::getCgiFd(void) const
+void Session::setAuthenticationOff()
 {
-	return this->handler->getCgiFd();
+    std::fstream ifs("./content/website1/authentication/authentication.txt", std::ios_base::in);
+    if (!ifs.good())
+        return;
+    std::string str;
+    std::string tmp;
+    while (getline(ifs, tmp))
+        str += tmp;
+    ifs.close();
+
+    size_t pos = str.find("true", 0);
+    while (pos != std::string::npos)
+    {
+        str.erase(pos, 4);
+        str.insert(pos, "false");
+
+        pos = str.find("true", 0);
+    }
+    std::ofstream ofs("./content/website1/authentication/authentication.txt", std::ios_base::trunc);
+    if (!ofs.good())
+        return;
+    ofs << str;
 }
 
 configServer *Session::getConfig(void)
@@ -147,9 +126,7 @@ configServer *Session::getConfig(void)
                 if(this->port == confServer[i]->port[j] && serverName == confServer[i]->server_name)
                     return confServer[i];
             }
-
         }
-
     }
     return confServer[firstConf];
 }

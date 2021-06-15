@@ -72,7 +72,7 @@ struct data
     int                                         nmb;
     int                                         bodyEncryption;
 
-    std::multimap <std::string, std::string> *  formData;
+    std::string  formData;
 };
 
 struct user

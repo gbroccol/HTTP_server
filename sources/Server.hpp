@@ -25,7 +25,7 @@ private:
   std::vector<struct sockaddr_in> addrs;
 
 	configServer			config;
-    Authentication *        _authentication;
+//    Authentication *        _authentication;
 
 public:
 	Server(void);

@@ -8,7 +8,7 @@ ParseRequest::ParseRequest()
 {
     _data.nmb      = 0;
     _data.headers  = new std::multimap<std::string, std::string>;
-    _data.formData = new std::multimap<std::string, std::string>;
+//    _data.formData = new std::multimap<std::string, std::string>;
 	clearData();
 }
 
@@ -20,10 +20,7 @@ ParseRequest::ParseRequest()
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-ParseRequest::~ParseRequest()
-{
-    delete _data.headers;
-}
+ParseRequest::~ParseRequest() { delete _data.headers; }
 
 
 /*
@@ -69,7 +66,7 @@ ParseRequest::~ParseRequest()
                     return true; // запустить парсинг снова
                 return false; // буфер пустой
             }
-//		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
+		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
         }
 
@@ -136,28 +133,29 @@ ParseRequest::~ParseRequest()
 	void					ParseRequest::parseStartingLine(std::string head)
 	{
         std::cout << YELLOW << "REQUEST #" << _data.nmb++ << std::endl << BW;
-
         _parsPart = START_LINE_PART;
-
 		std::cout << RED << "Starting Line " << BW;
-
 		size_t pos = 0;
-
-		if ((pos = head.find(" ", 0)) != std::string::npos) // error
+		if ((pos = head.find(" ", 0)) != std::string::npos)
 		{
 			_data.method.insert(0, head, 0, pos);
 			head.erase(0, pos + 1);
 		}
-		if ((pos = head.find(" ", 0)) != std::string::npos) // error
+		if ((pos = head.find(" ", 0)) != std::string::npos)
 		{
 			_data.path.insert(0, head, 0, pos);
 			head.erase(0, pos + 1);
-
-//            if (_data.path.find("/close/space.html", 0) != std::string::npos)
-//                _data.path = "/close/space.html";
 		}
+        pos = _data.path.find("?", 0);
+		if (pos != std::string::npos)
+        {
+            _data.formData = _data.path.substr(pos + 1);
+            _data.path = _data.path.substr(0, pos);
+            _data.method = "POST";
+        }
 
-		pos = head.size(); // error
+
+		pos = head.size();
 		_data.version.insert(0, head, 0, pos);
 
 		std::cout << BLUE << _data.method << " " << _data.path << " " << _data.version << BW << std::endl << std::endl;
@@ -299,7 +297,7 @@ ParseRequest::~ParseRequest()
                     if ((pos = tmp.find("&", 0)) != std::string::npos)
                     {
                         value.insert(0, tmp, 0, pos);
-                        tmp =tmp.erase(0, pos + 1);
+                        tmp = tmp.erase(0, pos + 1);
                     }
                     else
                     {
@@ -307,7 +305,7 @@ ParseRequest::~ParseRequest()
                         tmp.clear();
                     }
 //                    std::cout << BLUE << key << ": " << value << BW << std::endl;
-                    _data.formData->insert(std::make_pair(key, value));
+//                    _data.formData->insert(std::make_pair(key, value));
                 }
             }
         }
@@ -333,7 +331,7 @@ ParseRequest::~ParseRequest()
 		 * headers
 		 */
         _data.bodyEncryption = -1;
-        _data.formData->clear();
+        _data.formData.clear();
 	}
 
 /*

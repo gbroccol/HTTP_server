@@ -3,13 +3,11 @@
 
 Server::Server(void)
 {
-    this->_authentication = new Authentication;
 	return;
 }
 
 Server::~Server(void)
 {
-	delete this->_authentication;
 	return;
 }
 
@@ -44,13 +42,6 @@ void Server::init(const configServer & config)
     }
 
 }
-
-
-Authentication * Server::getAuth(void) const
-{
-    return this->_authentication;
-}
-
 
 std::vector<int> Server::getListenSockets(void) const
 {

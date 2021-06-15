@@ -46,54 +46,60 @@ private:
 	std::string		lastModTime;
 	std::string		contentLength;
 
-public:
+//	std::map<std::string, std::map<std::string, std::string> > _session_management;
 
+public:
 
     Handler(int fd);
 	~Handler(void);
 
-	std::string const & handle(configServer	config, data const & request, user & userData);
+	std::string const & handle(configServer	config, data const & request);
 	std::string const & handle(void);
+
+
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
 	void makePath(void);
     std::string subpath(void);
 
-    /* 401 */
-    void handle_401(void);
 
     /* HEAD */
-    void handle_head(void);
+    void        handle_head(void);
+//    bool        ResponseFromSessionManagement();
+//    void        AddResponseToSessionManagement();
 
     /* PUT */
-	void handle_put(void);
+	void        handle_put(void);
 
 	/* POST */
-	void handle_post(void);
-	char ** create_env(void);
-  	void add_env(std::vector<std::string> * envs);
-	int launchCgi(char **args, char ** env, std::string * body);
-	int readCgi(std::string * body);
-	int updateFile(std::string & boundary);
-    int createNewFile(std::string fileName, std::string content, std::string fileExtension);
+	void        handle_post(void);
+	char **     create_env(void);
+  	void        add_env(std::vector<std::string> * envs);
+	int         launchCgi(char **args, char ** env, std::string * body);
+	int         readCgi(std::string * body);
+    void        checkUserLogIn();
+    void        checkUserLogInByCookie();
 
 	/* DELETE */
-    void handle_delete(void);
+    void        handle_delete(void);
+
+
+
 
 	std::string getPresentTime(void);
 	std::string getLastModificationTime(time_t const & time);
 	
 	void error_message(int const & status_code);
 
-int isFiles(std::string path, std::string locPath);
-int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
-int searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations,
-						std::string &reqPath, int flag, std::string &locPath);
-int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
-						int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath);
-void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
-						int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
-int isLocation(std::vector<location *> locations, std::string path);
+    int isFiles(std::string path, std::string locPath);
+    int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
+    int searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations,
+                            std::string &reqPath, int flag, std::string &locPath);
+    int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
+                            int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath);
+    void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
+                            int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
+    int isLocation(std::vector<location *> locations, std::string path);
 
     /*
      * ADD HEADERS
@@ -102,6 +108,7 @@ int isLocation(std::vector<location *> locations, std::string path);
     void addHeaderStatus(int status);
     void addHeaderServer(void);
     void addHeaderDate(void);
+    void addHeaderSetCookie(void);
     void addHeaderContentLanguage(void);
     void addHeaderContentLocation(void);
     void addHeaderContentLength(std::string size);
@@ -129,7 +136,8 @@ int isLocation(std::vector<location *> locations, std::string path);
     int checkFile(void);
     void loadBodyFromFile(std::string * body);
     void loadBodyFromFile(std::string * body, std::string path);
-     int		getCgiFd(void) const;
+    int getCgiFd(void) const;
+
 
 };
 

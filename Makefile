@@ -13,6 +13,7 @@
 
 NAME =		webserv
 CC =		clang++
+
 FLAGS =		-Wall -Werror -Wextra -g -Wunreachable-code -MMD  -I ./sources -std=c++98
 # -fsanitize=address
 # -std=c++98
