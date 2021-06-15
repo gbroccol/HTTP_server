@@ -16,11 +16,14 @@ public:
 	int fd;
     unsigned long from_ip;
     unsigned short from_port;
+    unsigned long ip;
+    unsigned short port;
     std::string buf;
 	std::string wr_buf;
     enum states state;
 
 private:
+    std::vector<configServer*> confServer;
 	ParseRequest *      parseRequest;
 	Handler *           handler;
     Authentication *    authentication;
@@ -29,7 +32,7 @@ private:
 
 public:
 
-   Session(configServer config, Authentication * authentication, int fd);
+   Session(std::vector<configServer*> config, Authentication * authentication, int fd);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);
@@ -39,6 +42,7 @@ public:
 	bool isRequestLeft(void);
 	int  getCgiFd(void) const;
     void checkAuthentication(void);
+    configServer *getConfig(void);
 
 private:
 

@@ -345,7 +345,11 @@ ParseRequest::~ParseRequest()
 	{
 		return _data.status == REQUEST_READY;
 	}
-
+    std::string             ParseRequest::getHost(void) const
+    {
+        std::map<std::string, std::string>::iterator it = _data.headers->find("Host");
+        return it->second;
+    }
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */

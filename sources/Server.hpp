@@ -22,6 +22,7 @@ class Server
 {
 private:
 	std::vector<int> 		listenSockets;
+    std::vector<struct sockaddr_in> addrs;
 	FILE 					*res;
 	configServer			config;
     Authentication *        _authentication;
@@ -30,8 +31,10 @@ public:
 	Server(void);
 	~Server(void);
 	void init(const configServer & config);
-	Session * make_new_session(int fd, struct sockaddr_in *from);
 	std::vector<int> getListenSockets(void) const;
+    std::vector<struct sockaddr_in> getAddrs(void) const;
+
+    Authentication * getAuth(void) const;
 
 };
 
