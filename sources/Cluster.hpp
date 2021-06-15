@@ -24,11 +24,15 @@ public:
 	~Cluster(void);
 	void init(const Config & config);
 	void run(void);
-	void accept_client(int pos);
-    Session * make_new_session(int fd, struct sockaddr_in *from, int pos);
-//	int getServerNum(int pos);
+
+	void updateSelectSets(int * maxfd);
+	void acceptClient(int pos);
+  Session * make_new_session(int fd, struct sockaddr_in *from, int pos);
+
 	void closeSession(int sd);
-	void close_all_sessions(void);
+	void closeAllSessions(void);
 };
+
+
 
 #endif

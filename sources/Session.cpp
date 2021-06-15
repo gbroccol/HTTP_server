@@ -36,10 +36,9 @@ Session::~Session(void)
 
 int Session::send_message(void)
 {
-//	if ((send(this->fd, wr_buf.c_str(), wr_buf.length(), MSG_NOSIGNAL)) < 0)
+	// if ((send(this->fd, wr_buf.c_str(), wr_buf.length(), MSG_NOSIGNAL)) < 0)
     if ((write(this->fd, wr_buf.c_str(), wr_buf.length())) < 0)
 	{
-		this->state = fsm_error;
 		wr_buf.clear();
 		std::cout << "Client disconnected" << std::endl;
 		return 0;

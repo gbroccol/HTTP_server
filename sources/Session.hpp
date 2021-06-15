@@ -6,9 +6,6 @@
 # include "Handler.hpp"
 # include "Authentication.hpp"
 
-enum states {
-    fsm_start, fsm_finish, fsm_error, fsm_request
-};
 
 class Session
 {
@@ -18,9 +15,9 @@ public:
     unsigned short from_port;
     unsigned long ip;
     unsigned short port;
+
     std::string buf;
 	std::string wr_buf;
-    enum states state;
 
 private:
     std::vector<configServer*> confServer;

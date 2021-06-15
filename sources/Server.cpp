@@ -15,11 +15,10 @@ Server::~Server(void)
 
 void Server::init(const configServer & config)
 {
-	int opt;
 	std::vector<int>sock;
     struct sockaddr_in addr;
-	FILE *f;
-    opt = 1;
+    int opt = 1;
+
 	for(size_t i = 0; i < config.port.size(); i++)
     {
         sock.push_back(socket(AF_INET, SOCK_STREAM, 0));
@@ -41,17 +40,11 @@ void Server::init(const configServer & config)
         listen(sock[i], LISTEN_QLEN);
         this->listenSockets.push_back(sock[i]);
         this->addrs.push_back(addr);
-
-        f = fopen((config.server_name + "_log").c_str(), "wb");  /// logfile name
-        if(!f) {
-            close(sock[i]);
-            throw std::runtime_error("Could not create a log file");
-        }
-        this->res = f;
         this->config = config;
     }
 
 }
+
 
 Authentication * Server::getAuth(void) const
 {

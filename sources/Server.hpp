@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pvivian <pvivian@student.42.fr>            +#+  +:+       +#+        */
+/*   By: pvivian <pvivian@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/04 18:28:09 by pvivian           #+#    #+#             */
-/*   Updated: 2021/06/07 14:34:42 by pvivian          ###   ########.fr       */
+/*   Updated: 2021/06/12 17:44:05 by pvivian          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@ class Server
 {
 private:
 	std::vector<int> 		listenSockets;
-    std::vector<struct sockaddr_in> addrs;
-	FILE 					*res;
+  std::vector<struct sockaddr_in> addrs;
+
 	configServer			config;
     Authentication *        _authentication;
 
@@ -35,7 +35,6 @@ public:
     std::vector<struct sockaddr_in> getAddrs(void) const;
 
     Authentication * getAuth(void) const;
-
 };
 
 #endif
