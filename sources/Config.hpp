@@ -46,9 +46,9 @@
 
 struct 	configServer
 {
-        std::vector<int> 		port;
+        std::vector<in_port_t> 	port;
 		bool 					repeat_port;
-        std::string 			ip;
+        in_addr_t 		        ip;
 		std::string 			server_name;
 		bool 					repeat_server_name;
 		std::string 			error_page;
@@ -94,6 +94,7 @@ public:
 
     configServer        		*getconfigServer(int index) const;
     size_t						getSize(void) const;
+    std::vector<configServer*>  getAllServers() const;
 
 	class 						FileNotOpenException: public std::exception { const char *what() const throw(); };
 	class 						FileIsNotCorrectException: public std::exception { const char *what() const throw(); };

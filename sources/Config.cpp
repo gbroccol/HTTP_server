@@ -374,7 +374,7 @@ void					Config::initServNode(configServer *servNode)
     servNode->repeat_error_page = false;
     servNode->repeat_port = false;
     servNode->repeat_server_name = false;
-    servNode->ip.clear();
+    servNode->ip = -1;
 }
 
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
@@ -461,7 +461,7 @@ bool				Config::checkMainValLoc(struct location *locNode)
 
 bool				Config::checkMainValServ(struct configServer *servNode)
 {
-    if(!(servNode->ip.empty()) && servNode->repeat_port == true)
+    if(servNode->ip >= 0 && servNode->repeat_port == true)
         return (true);
     else
         return (false);
@@ -573,7 +573,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
                 tmpPort = std::stoi(tmp);
                 if(tmpPort > 65535 || tmpPort < 0)
                     throw Config::PortIPException();
-                servNode->port.push_back(tmpPort);
+                servNode->port.push_back( htons(tmpPort));
                 tmp.clear();
             }
             while(++i < portsStr.length())
@@ -582,7 +582,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
             }
             if(tmp.empty())
                 throw Config::PortIPException();
-            servNode->ip.assign(tmp);
+            servNode->ip = inet_addr(tmp.c_str());
             continue;
         }
         if( portsStr[i] == ',')
@@ -606,6 +606,10 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
 	{
 		return(servers[index]);
 	}
+	std::vector<configServer*> Config::getAllServers() const
+    {
+        return servers;
+    }
 
 	size_t		Config::getSize(void) const
 	{

@@ -19,9 +19,7 @@ int main(int argc,  char **argv)
 			std::cout << "Incorrect argc"<<std::endl;
 			return -1;
 		}
-        std::cout << RED << "get file start" << BW << std::endl;
 		config.getFile(configFile);
-        std::cout << RED << "get file finish" << BW << std::endl;
         cluster.init(config);
 		cluster.run();
 	}

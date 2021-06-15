@@ -27,22 +27,20 @@ void Server::init(const configServer & config)
             throw std::runtime_error("Could not create a socket");
         setsockopt(sock[i], SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
         addr.sin_family = AF_INET;
-        addr.sin_addr.s_addr = inet_addr(config.ip.c_str());
+        addr.sin_addr.s_addr = config.ip;
         if (addr.sin_addr.s_addr == (unsigned int)-1)
             throw std::runtime_error("Invalid server address");
-        addr.sin_port = htons(config.port[i]);
+        addr.sin_port = config.port[i];
         if(bind(sock[i], (struct sockaddr*) &addr, sizeof(addr)) == -1)
         {
             if (errno == EADDRINUSE)
-            {
-                std::cout<<"Address already in use"<<std::endl;
                 continue;
-            }
             throw std::runtime_error("Could not bind socket");
         }
 
         listen(sock[i], LISTEN_QLEN);
         this->listenSockets.push_back(sock[i]);
+        this->addrs.push_back(addr);
 
         f = fopen((config.server_name + "_log").c_str(), "wb");  /// logfile name
         if(!f) {
@@ -55,16 +53,18 @@ void Server::init(const configServer & config)
 
 }
 
-Session * Server::make_new_session(int fd, struct sockaddr_in *from)
+Authentication * Server::getAuth(void) const
 {
-	Session *sess = new Session(this->config, this->_authentication, fd);
-	sess->from_ip = ntohl(from->sin_addr.s_addr);
-	sess->from_port = ntohs(from->sin_port);
-	sess->state = fsm_start;
-	return sess;
+    return this->_authentication;
 }
+
 
 std::vector<int> Server::getListenSockets(void) const
 {
 	return this->listenSockets;
+}
+
+std::vector<struct sockaddr_in> Server::getAddrs(void) const
+{
+    return this->addrs;
 }

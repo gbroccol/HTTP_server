@@ -49,10 +49,10 @@ private:
 public:
 
 
-    Handler(configServer const & config, int fd);
+    Handler(int fd);
 	~Handler(void);
 
-	std::string const & handle(data const & request, user & userData);
+	std::string const & handle(configServer	config, data const & request, user & userData);
 	std::string const & handle(void);
 	int isRequestCorrect(void);
     int doesLocationAnswersMethod(void);
