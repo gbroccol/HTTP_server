@@ -40,6 +40,9 @@ void Cluster::run(void)
 	size_t i;
 	int sr, ssr, maxfd;
 
+	if (listenSockets.size() == 0)
+        throw std::runtime_error("All ports are unavailable");
+
 	for(;;) {
         updateSelectSets(&maxfd);
         sr = select(maxfd + 1, &readfds, &writefds, NULL, NULL);

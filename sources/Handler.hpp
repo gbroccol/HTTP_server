@@ -129,7 +129,7 @@ public:
      * extra
      */
 
-    void	getFilesOrDirFromRoot(std::string LocPath);
+    void	getFilesOrDirFromRoot();
     std::string getLink(std::string path);
     void makeAutoindexPage(std::string * body);
     int checkFile(void);

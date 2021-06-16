@@ -43,7 +43,7 @@ all: $(NAME)
 
 $(NAME): $(OBJ) $(MAIN)
 	$(CC) $(FLAGS) $(OBJ) -o $(NAME)
-	mkdir ./cgi/temp
+	#mkdir ./cgi/temp
 
 -include $(DEP)
 
@@ -57,7 +57,7 @@ clean:
 
 fclean:
 	rm -rf $(OBJS_DIR) $(NAME) $(LOGFILE)
-	rm -rf ./cgi/temp
+	#rm -rf ./cgi/temp
 	./clear.sh
 	
 re: fclean all

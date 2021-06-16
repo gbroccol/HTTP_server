@@ -30,7 +30,7 @@ std::string const & Handler::handle(configServer config, data const & req)
 	this->response.clear();
 	this->response.append("HTTP/1.1 ");
 	this->request = req;
-  this->config = config;
+	this->config = config;
   
   checkUserLogInByCookie();
 
@@ -41,8 +41,8 @@ std::string const & Handler::handle(configServer config, data const & req)
 		return this->response;
 	}
 	makePath();
-	if(config.locations[this->index_location]->autoIndex == ON)
-		getFilesOrDirFromRoot(config.locations[this->index_location]->root);
+	if(this->isDir && config.locations[this->index_location]->autoIndex == ON)
+		getFilesOrDirFromRoot();
 
 	if (request.method == "HEAD" || request.method == "GET")
 		handle_head();
@@ -61,6 +61,7 @@ std::string const & Handler::handle(configServer config, data const & req)
 	this->arrDir.clear();
 	this->contentLength.clear();
 	this->lastModTime.clear();
+    this->isDir = false;
 	return this->response;
 }
 
@@ -132,8 +133,12 @@ void Handler::makePath(void)
     this->location_path.append(request.path);
 
     size_t pos = this->path.find("//", 0);
-    if (pos != std::string::npos) {
-        this->path.erase(pos, 1); }
+    if (pos != std::string::npos)
+        this->path.erase(pos, 1);
+
+//    this->path.replace();
+
+//    std::replace( this->path.begin(), this->path.end(), "//", '/');
 
 	dir = opendir(path.c_str());
     if (dir)
@@ -150,31 +155,17 @@ void Handler::makePath(void)
     }
 }
 
-void Handler::getFilesOrDirFromRoot(std::string LocPath)
+void Handler::getFilesOrDirFromRoot()
 {
     DIR *dir;
     struct dirent *dirStruct;
-    std::string indexPath = "";
-
 	this->arrDir.clear();
 
-    if( LocPath[ LocPath.length() - 1] == '/')
-        indexPath = '.' + LocPath;
-    else
-        indexPath =  '.' +  LocPath + '/';
-//    if( LocPath[ LocPath.length() - 1] == '/')
-//        indexPath = '.' + config.locations[index_location]->path + LocPath;
-//    else
-//        indexPath =  '.' +  config.locations[index_location]->path + '/' + LocPath + '/';
-   if((dir  = opendir(indexPath.c_str())) == nullptr)
+   if ((dir = opendir(this->path.c_str())) == nullptr)
 		std::cout << RED<< "ERROR OPEN DIR"<< BW<<std::endl;
 
-    while((dirStruct = readdir(dir)) != nullptr)
-    {
+   while((dirStruct = readdir(dir)) != nullptr)
         this->arrDir.push_back(dirStruct->d_name);
-        if((std::string)dirStruct->d_name != "." || (std::string)dirStruct->d_name != "authentication")
-            getLink(dirStruct->d_name);
-    }
     closedir(dir);
 }
 
@@ -217,7 +208,7 @@ void Handler::handle_head(void)
     addHeaderContentType();
     addHeaderLastModified(); 
 
-	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
+//	std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
 	
 	if (request.method == "GET")
 	{
@@ -241,6 +232,7 @@ void Handler::handle_head(void)
         addHeaderContentLength(this->contentLength);
         this->response.append("\r\n");
     }
+    std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
     AddResponseToSessionManagement();
 }
 
@@ -511,18 +503,28 @@ void Handler::handle_delete(void)
 void Handler::makeAutoindexPage(std::string * body)
 {
 	body->append("<html>");
-	for (int i = 1; i < (int)arrDir.size(); i++) {
+	for (int i = 1; i < (int)arrDir.size(); i++)
+	{
+        if (arrDir[i] != "." && arrDir[i] != ".." && arrDir[i] != "authentication")
 		    body->append(getLink(arrDir[i]));
 	}
 	body->append("</html>");
+
 	this->lastModTime = getPresentTime();
 	this->contentLength = lltostr(body->length(), 10);
 }
 
-std::string Handler::getLink(std::string path)
+std::string Handler::getLink(std::string path_link)
 {
+    std::string pre_path = "./";
+    pre_path += this->request.path.substr(1, std::string::npos);
+    pre_path += "/";
+
+    if (path_link == "." || path_link == "..")
+        pre_path.clear();
+
     std::string link;
-    link = "<div style=\"display: inline-block;width: 35%;\"></span><a href=\""+ path +"\">"+ path + "</a></div>"
+    link = "<div style=\"display: inline-block;width: 35%;\"></span><a href=\"" + pre_path + path_link +"\">"+ path_link + "</a></div>"
 	    "<div style=\"display: inline-block\">"+ getPresentTime() +"</div></br>";
     return (link);
 }
@@ -1022,12 +1024,20 @@ void Handler::addHeaderSetCookie()
     if (_userData.login.length() != 0)
     {
         this->response.append("Set-Cookie: ");
-        this->response.append("login=" + _userData.login); // Secure; HttpOnly
+        this->response.append("login=" + _userData.login + "; ");
+        this->response.append("Expires=Thu, 26 Oct 2021 00:00:00 GMT; ");
+//        this->response.append("Max-Age=; ");
+        this->response.append("Path=/; ");
+        this->response.append("Domain=" + config.ip_str);
         this->response.append("\r\n");
     } else
     {
         this->response.append("Set-Cookie: ");
-        this->response.append("login=deleted; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+        this->response.append("login=deleted; ");
+        this->response.append("Expires=Thu, 01 Jan 1970 00:00:00 GMT; ");
+        this->response.append("Max-Age=0; ");
+        this->response.append("Path=/; ");
+        this->response.append("Domain=" + config.ip_str);
         this->response.append("\r\n");
     }
 }
@@ -1056,7 +1066,7 @@ void Handler::addHeaderLocation(void)
     this->response.append("\r\n");
 }
 
-void Handler::addHeaderContentType(void) // hardcode
+void Handler::addHeaderContentType(void)
 {
 //    this->response.append("Content-Type: ");
 //    if (this->request.path.length() > 0)

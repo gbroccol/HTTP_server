@@ -48,6 +48,7 @@ struct 	configServer
         std::vector<in_port_t> 	port;
 		bool 					repeat_port;
         in_addr_t 		        ip;
+        std::string 			ip_str;
 		std::string 			server_name;
 		bool 					repeat_server_name;
 		std::string 			error_page;

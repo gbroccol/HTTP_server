@@ -375,6 +375,7 @@ void					Config::initServNode(configServer *servNode)
     servNode->repeat_port = false;
     servNode->repeat_server_name = false;
     servNode->ip = -1;
+    servNode->ip_str.clear();
 }
 
 bool				Config::checkTokens(std::string &save, std::string str, int config_part)
@@ -575,6 +576,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
             if(tmp.empty())
                 throw Config::PortIPException();
             servNode->ip = inet_addr(tmp.c_str());
+            servNode->ip_str = tmp;
             continue;
         }
         if( portsStr[i] == ',')
