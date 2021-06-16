@@ -28,7 +28,7 @@ private:
 
 public:
 
-   Session(std::vector<configServer*> config, int fd);
+    Session(std::vector<configServer*> config, int fd, struct sockaddr_in *from);
     ~Session(void);
 	int send_message(void);
 	int do_read(void);

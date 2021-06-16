@@ -1,20 +1,19 @@
 #include "Handler.hpp"
+#include <map>
 
 Handler::Handler(void){ return; } // private
 
-Handler::Handler(int sessionFd)
+Handler::Handler(int sessionFd, unsigned long ip)
 {
 	this->isCgiReading = false;
+	this->ip = std::to_string(ip);
 	this->isDir = false;
 	this->tmp = "./cgi/temp/" + lltostr(sessionFd, 10) + ".txt";
 	this->cgiFd = -1;
 
     this->_userData.login.clear();
     this->_userData.signIn = false;
-
-//    this->_session_management = new std::map<std::string, std::map<std::string, std::string> >;
-
-	return;
+    return;
 }
 
 Handler::~Handler(void)
@@ -191,8 +190,8 @@ void Handler::handle_head(void)
     if (config.locations[index_location]->authentication && _userData.signIn == false)
         return error_message(511);
 
-//    if (ResponseFromSessionManagement())
-//        return;
+    if (ResponseFromSessionManagement())
+        return;
 
 	std::string body;
 	int status_code = 200;
@@ -242,44 +241,54 @@ void Handler::handle_head(void)
         addHeaderContentLength(this->contentLength);
         this->response.append("\r\n");
     }
-//    AddResponseToSessionManagement();
+    AddResponseToSessionManagement();
 }
 
-//bool    Handler::ResponseFromSessionManagement()
-//{
-//    std::string session_key = "gbroccol";
-//
-//    std::map<std::string, std::map<std::string, std::string> >::iterator it = _session_management.find(session_key);
-//    if (it == _session_management.end())
-//        return false;
-//
-//    std::map<std::string, std::string> path_response = it->second;
-//    std::map<std::string, std::string> >::iterator it2 = path_response.find(this->path);
-//
-//
-//
-//    return false;
-//}
-//
-//void    Handler::AddResponseToSessionManagement()
-//{
-//    std::string session_key = "gbroccol";
-//
-//    std::map<std::string, std::map<std::string, std::string> >::iterator it = _session_management.find(session_key);
-//
-//    if (it != _session_management.end())
-//    {
-//        std::map<std::string, std::string> path_response = it->second;
-//        std::pair<std::string, std::string> data = std::make_pair (this->path, this->response);
-//        path_response.insert(data);
-//    }
-//    else
-//    {
-//        std::map<std::string, std::string> new_session = new std::map<std::string, std::string>;
-//        _session_management.insert(std::make_pair(session_key, new_session));
-//        new_session.insert(std::make_pair (this->path, this->response));
-//    }
-//}
+bool IsPathExist(const std::string &s)
+{
+    struct stat buffer;
+
+    std::cout << "here" << std::endl;
+    return (stat(s.c_str(), &buffer) == 0);
+}
+
+bool    Handler::ResponseFromSessionManagement()
+{
+    std::string sm_path = "." + config.locations[index_location]->root + "/sessionManagement/" + this->ip;
+    std::string file_name = this->request.path;
+    std::replace( file_name.begin(), file_name.end(), '/', '_');
+    std::replace( file_name.begin(), file_name.end(), '.', '_');
+    sm_path = sm_path + "/" + file_name + ".txt";
+
+    std::ifstream file(sm_path);
+    if (!file.is_open())
+        return false;
+    else
+    {
+        std::string buffer;
+        while (getline(file, buffer))
+            this->response = this->response + buffer + "\n";
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+void    Handler::AddResponseToSessionManagement()
+{
+    std::string sm_path = "." + config.locations[index_location]->root + "/sessionManagement/" + this->ip;
+
+    mkdir(sm_path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+
+    std::string file_name = this->request.path;
+    std::replace( file_name.begin(), file_name.end(), '/', '_');
+    std::replace( file_name.begin(), file_name.end(), '.', '_');
+    sm_path = sm_path + "/" + file_name + ".txt";
+
+    std::ofstream outfile (sm_path);
+    outfile << this->response;
+    outfile.close();
+}
 
 /*
  * ----------------------------------------- POST --------------------------------------

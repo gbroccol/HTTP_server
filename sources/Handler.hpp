@@ -45,12 +45,11 @@ private:
 
 	std::string		lastModTime;
 	std::string		contentLength;
-
-//	std::map<std::string, std::map<std::string, std::string> > _session_management;
+	std::string     ip;
 
 public:
 
-    Handler(int fd);
+    Handler(int sessionFd, unsigned long ip);
 	~Handler(void);
 
 	std::string const & handle(configServer	config, data const & request);
@@ -65,8 +64,8 @@ public:
 
     /* HEAD */
     void        handle_head(void);
-//    bool        ResponseFromSessionManagement();
-//    void        AddResponseToSessionManagement();
+    bool        ResponseFromSessionManagement();
+    void        AddResponseToSessionManagement();
 
     /* PUT */
 	void        handle_put(void);

@@ -14,11 +14,13 @@
 #include "Session.hpp" 
 
 Session::Session(void) { return; } // private
-Session::Session(std::vector<configServer*> config, int fd)
+Session::Session(std::vector<configServer*> config, int fd, struct sockaddr_in *from)
 {
     this->confServer = config;
+    this->from_ip = ntohl(from->sin_addr.s_addr);
+    this->from_port = ntohs(from->sin_port);
 	this->parseRequest = new ParseRequest;
-  	this->handler      = new Handler(fd);
+  	this->handler      = new Handler(fd,from_ip);
 	this->fd = fd;
 	this->closeConnection = OFF;
     setAuthenticationOff();
@@ -116,20 +118,25 @@ void Session::setAuthenticationOff()
 configServer *Session::getConfig(void)
 {
     std::string host = parseRequest->getHost();
-    int firstConf = -1;
+//    int firstConf = -1;
     std::string serverName = host.substr(0, host.find(":"));
-    for(size_t i = 0; i < confServer.size(); i++)
+    for (size_t i = 0; i < confServer.size(); i++)
     {
-        if(confServer[i]->ip == ip)
+        if (confServer[i]->ip == ip)
         {
-            for(size_t j = 0; j < confServer[i]->port.size(); j++)
+            for (size_t j = 0; j < confServer[i]->port.size(); j++)
             {
-                if(firstConf == -1)
-                    firstConf = (int)i;
-                if(this->port == confServer[i]->port[j] && serverName == confServer[i]->server_name)
-                    return confServer[i];
+                if (this->port == confServer[i]->port[j])
+                {
+                    if (this->confServer[i]->server_name.length() == 0)
+                        return confServer[i];
+                    else if (serverName == this->confServer[i]->server_name)
+                        return confServer[i];
+                }
+//                if(firstConf == -1)
+//                    firstConf = (int)i;
             }
         }
     }
-    return confServer[firstConf];
+    return confServer[0];
 }

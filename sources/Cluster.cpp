@@ -119,7 +119,7 @@ void Cluster::acceptClient(int pos)
 
 Session * Cluster::make_new_session(int fd, struct sockaddr_in *from, int pos)
 {
-    Session *sess = new Session(this->config, fd);
+    Session *sess = new Session(this->config, fd, from);
     sess->from_ip = ntohl(from->sin_addr.s_addr);
     sess->from_port = ntohs(from->sin_port);
     sess->ip = addr[pos].sin_addr.s_addr;

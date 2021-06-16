@@ -34,7 +34,7 @@ public:
 	std::vector<int> getListenSockets(void) const;
     std::vector<struct sockaddr_in> getAddrs(void) const;
 
-    Authentication * getAuth(void) const;
+//    Authentication * getAuth(void) const;
 };
 
 #endif

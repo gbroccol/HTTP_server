@@ -26,3 +26,6 @@
 + memory management
 + read from cgi - through select
 - check fd leaks
+
+
+cделать проверки на опены

@@ -117,58 +117,58 @@ std::string				Config::parseStr(std::string str)  // sega
     return (str);
 }
 
-bool checkLockPath(std::string path)
-{
-    std::string tmp = "";
-    int index = path.find('*');
-    if(index > 0)
-    {
-        tmp = path.substr(index, path.length() - 1);
-        if(!tmp.empty() && tmp.length() > 1 &&  tmp[0] == '*' &&  tmp[1] != '.')
-            return(false);
-    }
-    return (true);
-}
+//bool checkLockPath(std::string path)
+//{
+//    std::string tmp = "";
+//    int index = path.find('*');
+//    if(index > 0)
+//    {
+//        tmp = path.substr(index, path.length() - 1);
+//        if(!tmp.empty() && tmp.length() > 1 &&  tmp[0] == '*' &&  tmp[1] != '.')
+//            return(false);
+//    }
+//    return (true);
+//}
 
-bool checkErrorPage(std::string path)
-{
-    std::ifstream err_page(path);
-    std::string tmp = "";
-    int index = path.find('.');
-    if(index > 0)
-    {
-        tmp = path.substr(index, path.length() - 1);
-        if(tmp.length() == 1 || !err_page.is_open())
-            return(false);
-    }
-	err_page.close();
-    if(index < 0)
-        return(false);
-    return (true);
-}
-
-bool checkIndex(std::string root, std::string indexPath)
-{
-    std::string tmp = "";
-    if(root[root.length() - 1] == '/')
-        indexPath = '.' + root + indexPath;
-    else
-        indexPath =  '.' + root + '/' + indexPath;
-
-    std::ifstream fconfig(indexPath);
-
-    int index = 1;
-    if(index > 0)
-    {
-        tmp = indexPath.substr(index,indexPath.length() - 1);
-        if(tmp.length() == 1 || !fconfig.is_open())
-            return(false);
-    }
-	fconfig.close();
-    if(index < 0)
-        return(false);
-    return (true);
-}
+//bool checkErrorPage(std::string path)
+//{
+//    std::ifstream err_page(path);
+//    std::string tmp = "";
+//    int index = path.find('.');
+//    if(index > 0)
+//    {
+//        tmp = path.substr(index, path.length() - 1);
+//        if(tmp.length() == 1 || !err_page.is_open())
+//            return(false);
+//    }
+//	err_page.close();
+//    if(index < 0)
+//        return(false);
+//    return (true);
+//}
+//
+//bool checkIndex(std::string root, std::string indexPath)
+//{
+//    std::string tmp = "";
+//    if(root[root.length() - 1] == '/')
+//        indexPath = '.' + root + indexPath;
+//    else
+//        indexPath =  '.' + root + '/' + indexPath;
+//
+//    std::ifstream fconfig(indexPath);
+//
+//    int index = 1;
+//    if(index > 0)
+//    {
+//        tmp = indexPath.substr(index,indexPath.length() - 1);
+//        if(tmp.length() == 1 || !fconfig.is_open())
+//            return(false);
+//    }
+//	fconfig.close();
+//    if(index < 0)
+//        return(false);
+//    return (true);
+//}
 
 std::string				Config::parseLocation(std::string str,  configServer *servNode)
 {
@@ -546,14 +546,6 @@ bool Config::checkCgi(std::string cgiPath)
     return (true);
 }
 
-// unsigned int                 Config::ft_strlen(std::string str[])
-// {
-//     int sum = 0;
-//     for(int i = 0; i < (sizeof(str) / sizeof(std::string)); i++)
-//         sum++;
-//     return(sum);
-// }
-
 void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
 {
     int tmpPort;
@@ -620,8 +612,6 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
 ** --------------------------------- EXCEPTIONS ----------------------------------
 */
 const char   *Config::FileNotOpenException::what() const throw() { return ("File not open"); }
-const char   *Config::FileIsNotCorrectException::what() const throw() { return ("File is not correct"); }
-const char   *Config::IncorrectConfigException::what() const throw() { return ("Config is not correct"); }
 const char   *Config::FileLengthException::what() const throw() { return ("FileLengthException"); }
 const char   *Config::ServerNameException::what() const throw() { return ("ServerNameException"); }
 const char   *Config::ValueSaveException::what() const throw() { return ("ValueSaveException"); }
