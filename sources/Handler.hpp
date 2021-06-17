@@ -52,58 +52,56 @@ public:
     Handler(int sessionFd, unsigned long ip);
 	~Handler(void);
 
-	std::string const & handle(configServer	config, data const & request);
-	std::string const & handle(void);
+	/* LAUNCH */
+	std::string const &     handle(configServer	config, data const & request);
+	std::string const &     handle(void);
+    void                    makePath(void);
+    std::string             subpath(void);
 
+    /* LOGIN */
+    void                    checkUserLogInByCookie();
+    void                    checkUserLogIn();
 
-	int isRequestCorrect(void);
-    int doesLocationAnswersMethod(void);
-	void makePath(void);
-    std::string subpath(void);
-
+    /* AUTOINDEX */
+    void	                getFilesOrDirFromRoot();
+    void                    makeAutoindexPage(std::string * body);
+    std::string             getLink(std::string path);
 
     /* HEAD */
-    void        handle_head(void);
-    bool        ResponseFromSessionManagement();
-    void        AddResponseToSessionManagement();
+    void                    handle_head(void);
+    bool                    ResponseFromSessionManagement();
+    void                    AddResponseToSessionManagement();
+    int                     checkFile(void);
+
+    /* POST */
+    void                    handle_post(void);
+    char **                 create_env(void);
+    void                    add_env(std::vector<std::string> * envs);
+    int                     launchCgi(char **args, char ** env, std::string * body);
+    int                     readCgi(std::string * body);
 
     /* PUT */
-	void        handle_put(void);
+    void                    handle_put(void);
 
-	/* POST */
-	void        handle_post(void);
-	char **     create_env(void);
-  	void        add_env(std::vector<std::string> * envs);
-	int         launchCgi(char **args, char ** env, std::string * body);
-	int         readCgi(std::string * body);
-    void        checkUserLogIn();
-    void        checkUserLogInByCookie();
+    /* DELETE */
+    void                    handle_delete(void);
 
-	/* DELETE */
-    void        handle_delete(void);
+    /* ERRORS */
 
-
-
-
-	std::string getPresentTime(void);
-	std::string getLastModificationTime(time_t const & time);
-	
-	void error_message(int const & status_code);
-
-    int isFiles(std::string path, std::string locPath);
-    int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
-    int searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations,
-                            std::string &reqPath, int flag, std::string &locPath);
-    int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
-                            int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath);
-    void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
-                            int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
+	int isRequestCorrect(void);
     int isLocation(std::vector<location *> locations, std::string path);
+    int isFiles(std::string path, std::string locPath);
+    void searchPath(std::string &locTmp, std::string &reqTmp, std::string &locPath,size_t &j,size_t i,
+                    int &theBestLocation, std::string &reqPath, std::vector<location *> locations);
+    int searchlocPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i, int &theBestLocation,  std::vector<location *> locations,
+                      std::string &reqPath, int flag, std::string &locPath);
+    int searchreqPath(std::string &locTmp, std::string &reqTmp, size_t &j,size_t i,
+                      int &theBestLocation, std::vector<location *> locations, std::string &reqPath, std::string &locPath);
+    int putVal(std::string locPath,size_t j,size_t i, int theBestLocation, std::vector<location *> locations);
+    int doesLocationAnswersMethod(void);
+    void error_message(int const & status_code);
 
-    /*
-     * ADD HEADERS
-     */
-
+    /* ADD HEADERS */
     void addHeaderStatus(int status);
     void addHeaderServer(void);
     void addHeaderDate(void);
@@ -116,28 +114,22 @@ public:
     void addHeaderLastModified(void);
 	void addHeaderAllow(void);
 
-  	/*
-  	 * libft
-  	 */
+  	/* LIBFT */
 
     int             ft_strlen(const char *str);
     void		    ft_free_array(char **to_free);
     char *          ft_strdup(const char *s);
-	std::string lltostr(long long number, int base);
+	std::string     lltostr(long long number, int base);
 
-    /*
-     * extra
-     */
-
-    void	getFilesOrDirFromRoot();
-    std::string getLink(std::string path);
-    void makeAutoindexPage(std::string * body);
-    int checkFile(void);
+    /* EXTRA */
     void loadBodyFromFile(std::string * body);
     void loadBodyFromFile(std::string * body, std::string path);
+    std::string getPresentTime(void);
+    std::string getLastModificationTime(time_t const & time);
+
+    /* GET */
     int getCgiFd(void) const;
     bool isReading(void) const;
-
 
 };
 

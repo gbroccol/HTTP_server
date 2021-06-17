@@ -20,8 +20,6 @@
 #include <errno.h>
 
 # include <iostream>
-# include <fstream> // нет в сабджекте
-# include <sstream> // нет в сабджекте
 # include <string>
 # include <vector>
 # include <list>
@@ -31,6 +29,8 @@
 # include <algorithm>
 # include <exception>
 # include <ctime>
+# include <fstream>
+# include <sstream>
 
 # define INBUFSIZE 4096
 # define LISTEN_QLEN 128
@@ -49,9 +49,7 @@
 #define YELLOW "\033[0;33m"
 #define PURPLE "\033[0;35m"
 
-/*
- * BODY ENCODING TYPES
- */
+/* BODY ENCODING TYPES */
 #define TRANSFER_ENCODING_CHANG 0
 #define TRANSFER_ENCODING_COMPRESS 1
 #define TRANSFER_ENCODING_DEFLATE 2
@@ -64,7 +62,6 @@ struct data
     std::string							    	method;
     std::string							    	path;
     std::string							    	version;
-
     std::multimap <std::string, std::string> *  headers;
     std::string							    	body;
     int                                         bodyLen;
@@ -72,7 +69,7 @@ struct data
     int                                         nmb;
     int                                         bodyEncryption;
 
-    std::string  formData;
+    std::string                                 formData;
 };
 
 struct user

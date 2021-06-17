@@ -114,7 +114,6 @@ class Config
         class 						AuthenticationException: public std::exception { const char *what() const throw(); };
         class 						ListenException: public std::exception { const char *what() const throw(); };
         class 						PortIPException: public std::exception { const char *what() const throw(); };
-
 };
 
 #endif

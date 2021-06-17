@@ -1,15 +1,8 @@
 #include "Server.hpp"
 
+Server::Server(void) { return; }
 
-Server::Server(void)
-{
-	return;
-}
-
-Server::~Server(void)
-{
-	return;
-}
+Server::~Server(void) { return; }
 
 void Server::init(const configServer & config)
 {
@@ -43,12 +36,5 @@ void Server::init(const configServer & config)
 
 }
 
-std::vector<int> Server::getListenSockets(void) const
-{
-	return this->listenSockets;
-}
-
-std::vector<struct sockaddr_in> Server::getAddrs(void) const
-{
-    return this->addrs;
-}
+std::vector<int> Server::getListenSockets(void) const { return this->listenSockets; }
+std::vector<struct sockaddr_in> Server::getAddrs(void) const { return this->addrs; }

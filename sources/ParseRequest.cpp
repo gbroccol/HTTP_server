@@ -1,47 +1,13 @@
 #include "ParseRequest.hpp"
 
-/*
-** ------------------------------- CONSTRUCTOR --------------------------------
-*/
-
 ParseRequest::ParseRequest()
 {
     _data.nmb      = 0;
     _data.headers  = new std::multimap<std::string, std::string>;
-//    _data.formData = new std::multimap<std::string, std::string>;
 	clearData();
 }
 
-// ParseRequest::ParseRequest( const ParseRequest & src )
-// {
-// }
-
-/*
-** -------------------------------- DESTRUCTOR --------------------------------
-*/
-
 ParseRequest::~ParseRequest() { delete _data.headers; }
-
-
-/*
-** --------------------------------- OVERLOAD ---------------------------------
-*/
-
-// ParseRequest &				ParseRequest::operator=( ParseRequest const & rhs )
-// {
-// 	//if ( this != &rhs )
-// 	//{
-// 		//this->_value = rhs.getValue();
-// 	//}
-// 	return *this;
-// }
-
-// std::ostream &			operator<<( std::ostream & o, ParseRequest const & i )
-// {
-// 	//o << "Value = " << i.getValue();
-// 	return o;
-// }
-
 
 /*
 ** --------------------------------- METHODS ----------------------------------
@@ -53,7 +19,6 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
 	       clearData();
 
         _buff += str;
-//		std::cout << GREEN << _buff << BW << std::endl << std::endl;
 
         this->parseHTTPRequest();
 
@@ -69,23 +34,19 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
 //		    std::cout << YELLOW << "|" << _data.body << "|" << std::endl << std::endl;
             std::cout << GREEN << "REQUEST_READY" << BW << std::endl << std::endl;
         }
-
-
 		if (_buff.length() != 0)
             return true; // запустить парсинг снова
         return false; // буфер пустой
 	}
 
-
-
-	void					ParseRequest::parseHTTPRequest() // <CRLF><CRLF> == "\r\n\r\n"
+	void					ParseRequest::parseHTTPRequest()
 	{
 		size_t pos;
-		std::string tmp; // убрать tmp из body
+		std::string tmp;
 		
 		while (_parsPart != BODY_PART && (pos = _buff.find("\r\n", 0)) != std::string::npos)
 		{
-		    if (pos == 0) // закончились заголовки
+		    if (pos == 0)
             {
                 _buff.erase(0, 2);
                 checkIfBody();
@@ -132,6 +93,7 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
 
 	void					ParseRequest::parseStartingLine(std::string head)
 	{
+        _data.formData.clear();
         std::cout << YELLOW << "REQUEST #" << _data.nmb++ << std::endl << BW;
         _parsPart = START_LINE_PART;
 		std::cout << RED << "Starting Line " << BW;
@@ -153,12 +115,13 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
             _data.path = _data.path.substr(0, pos);
             _data.method = "POST";
         }
-
-
 		pos = head.size();
 		_data.version.insert(0, head, 0, pos);
 
-		std::cout << BLUE << _data.method << " " << _data.path << " " << _data.version << BW << std::endl << std::endl;
+		if (_data.formData.length() != 0)
+		    std::cout << BLUE << _data.method << " " << _data.path << "?" << _data.formData << " " << _data.version << BW << std::endl << std::endl;
+        else
+            std::cout << BLUE << _data.method << " " << _data.path << " " << _data.version << BW << std::endl << std::endl;
 	}
 
 	void					ParseRequest::parseHeaders(std::string header)
@@ -179,20 +142,9 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
 		std::string value;
 		value.clear();
 		value.insert(0, header, 0, pos);
-//		header = header.erase(0, pos + 2);
 	
 		_data.headers->insert(std::make_pair(key, value));
 		std::cout << BLUE << key << ": " << value << BW << std::endl;
-
-//        std::multimap <std::string, std::string>::iterator printB = _data.headers.begin();
-//        std::multimap <std::string, std::string>::iterator printEND = _data.headers.end();
-//
-//        while (printB != printEND)
-//        {
-//            std::cout << "FIRST -> " << printB->first << " SECOND -> " << printB->second << std::endl;
-//
-//            printB++;
-//        }
 	}
 
     void					ParseRequest::checkIfBody()
@@ -207,7 +159,7 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
             _data.bodyLen = stoi(itCL->second, 0, 10);
             _parsPart = BODY_PART;
         }
-        else if (itTE != _data.headers->end()) //
+        else if (itTE != _data.headers->end())
         {
             if (itTE->second == "chunked")
                 _data.bodyEncryption = TRANSFER_ENCODING_CHANG;
@@ -225,10 +177,10 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
             _data.status = REQUEST_READY;
     }
 
-	int				    	ParseRequest::parseBodyChang()     // <длина блока в HEX><CRLF><содержание блока><CRLF>
+	int				    	ParseRequest::parseBodyChang()
 	{
 	    /*
-	     * <длина блока в HEX><CRLF>
+	     * <HEX><CRLF>
 	     */
 	    if (_packetPart == HEX_CRLF_PART)
         {
@@ -240,13 +192,13 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
             _packetPart = BODY_CRLF_PART;
         }
         /*
-	     * <содержание блока>
+	     * <data>
 	     */
         if (_packetPart == BODY_CRLF_PART)
         {
             if ((int)_buff.length() >= _data.bodyLen)
             {
-                _data.body.append(_buff, 0, _data.bodyLen); // а я точно могу считать это все???
+                _data.body.append(_buff, 0, _data.bodyLen);
                 _buff.erase(0, _data.bodyLen);
                 _packetPart = CRLF_PART;
             }
@@ -271,15 +223,13 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
     {
         if ((int)_buff.length() >= _data.bodyLen)
         {
-            _data.body.append(_buff, 0, _data.bodyLen); // _data.bodyLen
+            _data.body.append(_buff, 0, _data.bodyLen);
             _buff.erase(0, _data.bodyLen);
             _data.status = REQUEST_READY;
 
             std::multimap <std::string, std::string>::iterator itCT = _data.headers->find("Content-Type");
             if (itCT != _data.headers->end() && itCT->second == "application/x-www-form-urlencoded")
             {
-                // std::cout << YELLOW << _data.body << BW << std::endl;
-
                 size_t pos = 0;
                 std::string tmp = _data.body;
                 std::string key;
@@ -304,8 +254,6 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
                         value.insert(0, tmp, 0, tmp.length());
                         tmp.clear();
                     }
-//                    std::cout << BLUE << key << ": " << value << BW << std::endl;
-//                    _data.formData->insert(std::make_pair(key, value));
                 }
             }
         }
@@ -326,10 +274,6 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
 		_data.body.clear();
 		_data.bodyLen = -1;
 		_data.status = REQUEST_PARSE;
-
-		/*
-		 * headers
-		 */
         _data.bodyEncryption = -1;
         _data.formData.clear();
 	}
@@ -356,9 +300,3 @@ ParseRequest::~ParseRequest() { delete _data.headers; }
         return it->second;
     return ("");
 }
-/*
-** --------------------------------- ACCESSOR ---------------------------------
-*/
-
-
-/* ************************************************************************** */

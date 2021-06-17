@@ -3,6 +3,7 @@
 Cluster::Cluster(void) 
 {
 	this->sessions = std::vector<Session *>(INIT_SESS_ARR_SIZE, NULL);
+    mkdir("cgi/temp", S_IRWXU | S_IRWXG | S_IRWXO);
 	return;
 }
 Cluster::~Cluster(void)

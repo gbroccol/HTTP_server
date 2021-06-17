@@ -16,25 +16,23 @@
 # include "Webserv.hpp"
 # include "Session.hpp"
 # include "Config.hpp"
-# include "Authentication.hpp"
 
 class Server
 {
 private:
-	std::vector<int> 		listenSockets;
-  std::vector<struct sockaddr_in> addrs;
-
-	configServer			config;
-//    Authentication *        _authentication;
+	std::vector<int> 		        listenSockets;
+	std::vector<struct sockaddr_in> addrs;
+	configServer			        config;
 
 public:
 	Server(void);
 	~Server(void);
-	void init(const configServer & config);
-	std::vector<int> getListenSockets(void) const;
-    std::vector<struct sockaddr_in> getAddrs(void) const;
 
-//    Authentication * getAuth(void) const;
+	void                                init(const configServer & config);
+
+	/* GET */
+	std::vector<int>                    getListenSockets(void) const;
+    std::vector<struct sockaddr_in>     getAddrs(void) const;
 };
 
 #endif

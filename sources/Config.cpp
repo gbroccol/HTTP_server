@@ -39,11 +39,8 @@ void				Config::getFile(std::string file)
 	{
         std::ifstream fconfig(file);
 
-        if (!fconfig.is_open()) {
-		    std::cout << RED << "error" << BW << std::endl;
-//		    std::cout << "ERROR: "<<(int)errno<<std::endl;
+        if (!fconfig.is_open())
             throw Config::FileNotOpenException();
-        }
 		while (getline(fconfig, tmp)) {
             file_in_str += tmp;
         }
@@ -116,59 +113,6 @@ std::string				Config::parseStr(std::string str)  // sega
     }
     return (str);
 }
-
-//bool checkLockPath(std::string path)
-//{
-//    std::string tmp = "";
-//    int index = path.find('*');
-//    if(index > 0)
-//    {
-//        tmp = path.substr(index, path.length() - 1);
-//        if(!tmp.empty() && tmp.length() > 1 &&  tmp[0] == '*' &&  tmp[1] != '.')
-//            return(false);
-//    }
-//    return (true);
-//}
-
-//bool checkErrorPage(std::string path)
-//{
-//    std::ifstream err_page(path);
-//    std::string tmp = "";
-//    int index = path.find('.');
-//    if(index > 0)
-//    {
-//        tmp = path.substr(index, path.length() - 1);
-//        if(tmp.length() == 1 || !err_page.is_open())
-//            return(false);
-//    }
-//	err_page.close();
-//    if(index < 0)
-//        return(false);
-//    return (true);
-//}
-//
-//bool checkIndex(std::string root, std::string indexPath)
-//{
-//    std::string tmp = "";
-//    if(root[root.length() - 1] == '/')
-//        indexPath = '.' + root + indexPath;
-//    else
-//        indexPath =  '.' + root + '/' + indexPath;
-//
-//    std::ifstream fconfig(indexPath);
-//
-//    int index = 1;
-//    if(index > 0)
-//    {
-//        tmp = indexPath.substr(index,indexPath.length() - 1);
-//        if(tmp.length() == 1 || !fconfig.is_open())
-//            return(false);
-//    }
-//	fconfig.close();
-//    if(index < 0)
-//        return(false);
-//    return (true);
-//}
 
 std::string				Config::parseLocation(std::string str,  configServer *servNode)
 {
@@ -631,11 +575,5 @@ const char   *Config::AutoindexException::what() const throw() { return ("Autoin
 const char   *Config::AuthenticationException::what() const throw() { return ("AuthenticationException"); }
 const char   *Config::ListenException::what() const throw() { return ("ListenException"); }
 const char   *Config::PortIPException::what() const throw() { return ("PortIPException"); }
-
-
-
-
-
-
 
 /* ************************************************************************** */

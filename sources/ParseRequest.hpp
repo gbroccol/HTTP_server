@@ -27,27 +27,22 @@ class ParseRequest
 
 		bool					addToBuffer(std::string str);
 		void					parseHTTPRequest();
-		/*
-		 * parse STARTING LINE
-		 */
+
+		/* STARTING LINE */
 		void					parseStartingLine(std::string startLine);
-		/*
-		 * parse HEADERS
-		 */
+
+		/* HEADERS */
 		void					parseHeaders(std::string header);
-		/*
-		 * parse BODY
-		 */
+
+		/* BODY */
         void					checkIfBody();
 		int 					parseBodyChang();
         int                     parseContentLength();
-        /*
-         * clear
-         */
+
+        /* CLEAR */
 		void					clearData();
-		/*
-		 * get
-		 */
+
+		/* GET */
         data                    getData() const;
 		bool					isRequestReady(void) const;
 		std::string             getHost(void) const;
@@ -61,6 +56,4 @@ class ParseRequest
         size_t                  _packetPart;
 };
 
-// std::ostream &			operator<<( std::ostream & o, ParseRequest const & i );
-
-#endif /* **************************************************** PARSEREQUEST_H */
+#endif

@@ -19,7 +19,7 @@ Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
 If-Modified-Since: Wed, 09 Jun 2021 02:24:54 GMT
 
 # you should authenticate to delete file (511 Network Authentication Required) +
-DELETE /users/pvivian/2.png HTTP/1.1
+DELETE /users/pvivian/avatar.png HTTP/1.1
 Host: 127.0.0.1:8080
 Connection: keep-alive
 Content-Length: 0
@@ -32,10 +32,10 @@ User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (
 Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
 
 # authenticate (status 200) +
-POST /close/space.html HTTP/1.1
+POST /close/space.html?login=gbroccol&password=1 HTTP/1.1
 Host: 127.0.0.1:8080
 Connection: keep-alive
-Content-Length: 25
+Content-Length: 0
 Cache-Control: max-age=0
 sec-ch-ua: " Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"
 sec-ch-ua-mobile: ?0
@@ -50,8 +50,6 @@ Sec-Fetch-User: ?1
 Sec-Fetch-Dest: document
 Referer: http://127.0.0.1:8080/
 Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
-
-login=gbroccol&password=1
 
 # should delete (status 200) +
 DELETE /users/gbroccol/avatar.png HTTP/1.1
@@ -80,7 +78,7 @@ User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (
 Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
 
 # no acсess to delete file (status 403) +
-DELETE /users/pvivian/5.png HTTP/1.1
+DELETE /users/pvivian/avatar.png HTTP/1.1
 Host: 127.0.0.1:8080
 Connection: keep-alive
 Content-Length: 0

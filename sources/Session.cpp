@@ -77,7 +77,7 @@ void Session::handle_request(fd_set * writefds)
         if (parseRequest->getConnection() == "close")
             closeConnection = ON;
         this->wr_buf = this->handler->handle(*(config), parseRequest->getData());
-        FD_SET(this->fd, writefds); // готовы ли некоторые из их дескрипторов к чтению, готовы к записи или имеют ожидаемое исключительное состояние,
+        FD_SET(this->fd, writefds);
     }
 }
 
@@ -118,7 +118,6 @@ void Session::setAuthenticationOff()
 configServer *Session::getConfig(void)
 {
     std::string host = parseRequest->getHost();
-//    int firstConf = -1;
     std::string serverName = host.substr(0, host.find(":"));
     for (size_t i = 0; i < confServer.size(); i++)
     {
@@ -133,8 +132,6 @@ configServer *Session::getConfig(void)
                     else if (serverName == this->confServer[i]->server_name)
                         return confServer[i];
                 }
-//                if(firstConf == -1)
-//                    firstConf = (int)i;
             }
         }
     }
