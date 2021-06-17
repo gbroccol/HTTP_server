@@ -95,6 +95,7 @@ def parse_input_data(input_data):
 
 
 def main():
+    print("I am in python")
     for value in os.environ:
         if os.environ[value].find("multipart/form-data; boundary=") >= 0:
             # print("save photo")

@@ -31,7 +31,6 @@ Handler::~Handler(void)
 std::string const & Handler::handle(configServer config, data const & req)
 {
 	this->response.clear();
-	this->response.append("HTTP/1.1 ");
 	this->request = req;
 	this->config = config;
 
@@ -70,10 +69,7 @@ std::string const & Handler::handle(void)
     this->response.clear();
     status = readCgi(&body);
     if (status == 1)
-    {
-        this->response.append("HTTP/1.1 ");
         error_message(500);
-    }
     else
         this->response.append(body);
     return this->response;
@@ -85,13 +81,9 @@ void                Handler::makePath(void)
 
     this->path = ".";
     this->path.append(config.locations[index_location]->root);
-    this->path.append("/");
-    this->path.append(subpath());
-    this->location_path.append(request.path);
+    this->path.append(request.path);
 
-    size_t pos = this->path.find("//", 0);
-    if (pos != std::string::npos)
-        this->path.erase(pos, 1);
+    this->location_path.append(request.path);
 
     dir = opendir(path.c_str());
     if (dir)
@@ -106,16 +98,6 @@ void                Handler::makePath(void)
             this->isDir = true;
         closedir(dir);
     }
-}
-
-std::string         Handler::subpath(void)
-{
-    size_t i = 0;
-    std::string loc_path = config.locations[index_location]->path;
-    if (loc_path != "/close" || loc_path != "/download") // hardcode
-        while (i < loc_path.size() && i < request.path.size() && loc_path[i] == request.path[i])
-            i++;
-    return (request.path.substr(i));
 }
 
 /*
@@ -197,17 +179,19 @@ void                Handler::makeAutoindexPage(std::string * body)
     this->contentLength = lltostr(body->length(), 10);
 }
 
-std::string         Handler::getLink(std::string path_link)
+std::string         Handler::getLink(std::string file_name)
 {
-    std::string pre_path = "./";
-    pre_path += this->request.path.substr(1, std::string::npos);
-    pre_path += "/";
+    std::string file_link;
+    size_t count_del = std::count(this->location_path.begin(), this->location_path.end(), '/');
+    for (size_t i = 0; i < count_del; i++)
+        file_link += "../";
 
-    if (path_link == "." || path_link == "..")
-        pre_path.clear();
+    file_link += this->location_path.substr(1, std::string::npos);
+    file_link += "/";
+    file_link += file_name;
 
     std::string link;
-    link = "<div style=\"display: inline-block;width: 35%;\"></span><a href=\"" + pre_path + path_link +"\">"+ path_link + "</a></div>"
+    link = "<div style=\"display: inline-block;width: 35%;\"></span><a href=\"" + file_link +"\">"+ file_name + "</a></div>"
                         "<div style=\"display: inline-block\">"+ getPresentTime() +"</div></br>";
     return (link);
 }
@@ -276,15 +260,24 @@ void                Handler::handle_head(void)
 
 bool                Handler::ResponseFromSessionManagement()
 {
-    std::string sm_path = "." + config.locations[index_location]->root + "/sessionManagement/" + this->ip;
+    std::string sm_path = config.locations[index_location]->root.substr(1, std::string::npos) + "/sessionManagement";
+    std::string sm_ip_path = sm_path + "/" + this->ip;
+
+    mkdir(sm_path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+    mkdir(sm_ip_path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+
+    std::string sm_link = "./" + sm_ip_path;
     std::string file_name = this->request.path;
     std::replace( file_name.begin(), file_name.end(), '/', '_');
     std::replace( file_name.begin(), file_name.end(), '.', '_');
-    sm_path = sm_path + "/" + file_name + ".txt";
+    sm_link = sm_link + "/" + file_name + ".txt";
 
-    std::ifstream file(sm_path);
+    std::fstream file(sm_link);
     if (!file.is_open())
+    {
+//        std::cout << (int)errno << std::endl;
         return false;
+    }
     else
     {
         std::string buffer;
@@ -342,7 +335,7 @@ void                Handler::handle_post(void)
     if (config.locations[index_location]->cgi_name == "python_upload.py" && request.formData.length() == 0)
     {
         // create directory
-        std::string pathBody = "." + config.locations[index_location]->root;
+        std::string pathBody = "." + config.locations[index_location]->root + this->location_path;
         if (_userData.login.length() != 0)
             pathBody += "/" + _userData.login;
         mkdir(pathBody.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
@@ -352,7 +345,7 @@ void                Handler::handle_post(void)
         std::ofstream outfile (pathBody);
         outfile.close();
 
-        this->path = (this->path + _userData.login + "/tmp.txt");
+        this->path = pathBody;
     }
 
     if (request.formData.length() == 0)
@@ -392,6 +385,7 @@ void                Handler::handle_post(void)
             lengthHeader = "Transfer-Encoding: chunked\r\n";
         else
         {
+            std::cout << body << std::endl;
             body.clear();
             body.append("\r\n\r\n");
             loadBodyFromFile(&body);
@@ -401,6 +395,7 @@ void                Handler::handle_post(void)
     }
     else
     {
+
         body.append("\r\n");
         body.append(request.body);
         lengthHeader = "Content-Length: " + lltostr(request.body.length(), 10) + "\r\n";
@@ -844,6 +839,7 @@ int         Handler::doesLocationAnswersMethod(void)
 void        Handler::error_message(int const & status_code)
 {
     std::string message;
+    this->response.append("HTTP/1.1 ");
 
     switch(status_code)
     {
@@ -918,6 +914,7 @@ void        Handler::error_message(int const & status_code)
 
 void Handler::addHeaderStatus(int status)
 {
+    this->response.append("HTTP/1.1 ");
     switch (status) {
         case 200:
             this->response.append("200 OK\r\n");

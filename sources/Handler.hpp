@@ -56,7 +56,6 @@ public:
 	std::string const &     handle(configServer	config, data const & request);
 	std::string const &     handle(void);
     void                    makePath(void);
-    std::string             subpath(void);
 
     /* LOGIN */
     void                    checkUserLogInByCookie();
@@ -65,7 +64,7 @@ public:
     /* AUTOINDEX */
     void	                getFilesOrDirFromRoot();
     void                    makeAutoindexPage(std::string * body);
-    std::string             getLink(std::string path);
+    std::string             getLink(std::string file_name);
 
     /* HEAD */
     void                    handle_head(void);
