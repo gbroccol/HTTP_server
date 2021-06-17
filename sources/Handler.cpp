@@ -478,32 +478,33 @@ void                Handler::add_env(std::vector<std::string> * envs)
 
 int                 Handler::launchCgi(char **args, char **env, std::string * body)
 {
-    int     status = 0;
-    int     std_input = dup(0);
-    int     std_output = dup(1);
+     int     status = 0;
     pid_t   pid;
+
+	int in = -1;
+    int out = -1;
+    while (in < 0 )
+    {
+        in = open(this->path.c_str(), O_RDWR);
+        if (in >= 0)
+            break;
+        std::cout << "Please clean memory" << std::endl;
+        getchar();
+    }
+    while (out < 0)
+    {
+        out = open(this->tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+        if (out >= 0)
+            break;
+        std::cout << "Please clean memory" << std::endl;
+        getchar();
+    }
 
     pid = fork();
     if (pid == 0)
     {
-        int in = -1;
-        int out = -1;
-        while (in < 0 )
-        {
-            in = open(this->path.c_str(), O_RDWR);
-            if (in >= 0)
-                break;
-            std::cout << "Please clean memory" << std::endl;
-            getchar();
-        }
-        while (out < 0)
-        {
-            out = open(this->tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-            if (out >= 0)
-                break;
-            std::cout << "Please clean memory" << std::endl;
-            getchar();
-        }
+		int     std_input = dup(0);
+   		int     std_output = dup(1);
         dup2(out, 1);
         dup2(in, 0);
         if (execve(args[0], args, env) == -1)
@@ -512,8 +513,7 @@ int                 Handler::launchCgi(char **args, char **env, std::string * bo
             close(out);
             dup2(std_input, 0);
             dup2(std_output, 1);
-            status = 1;
-            exit(status);
+            exit(EXIT_FAILURE);
         }
     }
     else if (pid < 0)
@@ -524,13 +524,22 @@ int                 Handler::launchCgi(char **args, char **env, std::string * bo
     else
     {
         int stat;
-        waitpid(pid, &stat, WUNTRACED); // check exit status
+        waitpid(pid, &stat, WUNTRACED);
         while (!WIFEXITED(stat) && !WIFSIGNALED(stat))
             waitpid(pid, &stat, WUNTRACED);
+		if ((status = WEXITSTATUS(stat)) != 0)
+		{
+			error_message(500);
+			close(in);
+    		close(out);
+			return status;
+		}
         status = readCgi(body);
         if (status == 1)
             error_message(500);
     }
+	close(in);
+    close(out);
     return status;
 }
 
