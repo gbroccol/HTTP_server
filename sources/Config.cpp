@@ -201,6 +201,13 @@ void Config::locTokenSearch(std::string save, std::string tmp, location *locNode
             throw Config::RootException();
         locNode->root.assign(tmp);
         locNode->repeat_root = true;
+
+//        if (locNode->path == "/")
+//            locNode->mini_root = locNode->root;
+//        else if ((locNode->root.find(locNode->path, 0)) != std::string::npos)
+//            locNode->mini_root = locNode->root.substr(0, locNode->root.length() - locNode->path.length());
+//        else
+//            locNode->mini_root = locNode->root;
     }
     else if(save == "index")
     {
@@ -299,6 +306,7 @@ void					Config::initLocNode(location *locNode)
     locNode->repeat_root = false;
 	locNode->repeat_cgi  = false;
     locNode->root.clear();
+//    locNode->mini_root.clear();
     locNode->autoIndex = -1;
     locNode->repeat_autoIndex = false;
     locNode->authentication = false;
