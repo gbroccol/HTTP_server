@@ -86,6 +86,9 @@ void                Handler::makePath(void)
     this->path.append(request.path);
     std::string tmp_location = this->config.locations[index_location]->path;
 
+    if (tmp_location[tmp_location.length() - 1] != '/')
+        tmp_location = tmp_location + "/";
+
     if ((pos = tmp_location.find("*", 0)) != std::string::npos)
         tmp_location = tmp_location.substr(0, pos);
 
@@ -221,7 +224,7 @@ void                Handler::handle_head(void)
     if (config.locations[index_location]->authentication && _userData.signIn == false)
         return error_message(511);
 
-    if (config.locations[index_location]->authentication == OFF && ResponseFromSessionManagement())
+    if (config.locations[index_location]->authentication == OFF && !config.locations[index_location]->repeat_redirect && ResponseFromSessionManagement())
         return;
 
 	std::string body;
@@ -271,7 +274,7 @@ void                Handler::handle_head(void)
         this->response.append("\r\n");
         std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
     }
-	if (config.locations[index_location]->authentication == OFF)
+	if (config.locations[index_location]->authentication == OFF && !config.locations[index_location]->repeat_redirect)
         AddResponseToSessionManagement();
 }
 
@@ -289,18 +292,7 @@ bool                Handler::ResponseFromSessionManagement()
     std::replace( file_name.begin(), file_name.end(), '.', '_');
     sm_link = sm_link + "/" + file_name + ".txt";
 
-    std::fstream file(sm_link);
-    if (!file.is_open())
-        return false;
-    else
-    {
-        std::string buffer;
-        while (getline(file, buffer))
-            this->response = this->response + buffer + "\n";
-        file.close();
-        return true;
-    }
-    return false;
+    return loadBodyFromFile(&this->response, sm_link);
 }
 
 void                Handler::AddResponseToSessionManagement()
@@ -705,18 +697,18 @@ int         Handler::isRequestCorrect(void)
     index_location = isLocation(config.locations, request.path);
     int status_code = 0;
 
-    if (request.headers->count("Host") > 1)
-        status_code = 400;
-    else if (index_location < 0)
-        status_code = 404;
+    if (methods.find(request.method) == std::string::npos)
+        status_code = 501;
     else if (!doesLocationAnswersMethod())
         status_code = 405;
-    else if (config.locations[index_location]->maxBody > 0 && (int)request.body.length() > config.locations[index_location]->maxBody)
-        status_code = 413;
-    else if (methods.find(request.method) == std::string::npos)
-        status_code = 501;
+    else if (index_location < 0)
+        status_code = 404;
     else if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0")
         status_code = 505;
+    else if (request.headers->count("Host") > 1)
+        status_code = 400;
+    else if (config.locations[index_location]->maxBody > 0 && (int)request.body.length() > config.locations[index_location]->maxBody)
+        status_code = 413;
     else if (request.method != "POST" && config.locations[index_location]->authentication && _userData.signIn == false)
         status_code = 511;
 
@@ -1004,7 +996,7 @@ void Handler::addHeaderContentLanguage() { this->response.append("Content-Langua
 void Handler::addHeaderContentLocation()
 {
     this->response.append("Content-Location: ");
-    this->response.append(this->location_path);
+    this->response.append(request.path);
     this->response.append("\r\n");
 }
 void Handler::addHeaderContentLength(std::string size)
@@ -1128,26 +1120,37 @@ std::string     Handler::lltostr(long long number, int base)
  * ------------------------------ EXTRA ------------------------------
  */
 
-void            Handler::loadBodyFromFile(std::string * body)
+bool           Handler::loadBodyFromFile(std::string * body)
 {
     std::ifstream ifs(this->path.c_str());
+
+    if (!ifs.is_open())
+        return false;
+
     std::stringstream ss;
     ss << ifs.rdbuf();
 
     body->append(ss.str());
     ss.clear();
     ifs.close();
+    return true;
 }
 
-void            Handler::loadBodyFromFile(std::string * body, std::string path)
+bool            Handler::loadBodyFromFile(std::string * body, std::string path)
 {
     std::ifstream ifs(path.c_str());
+
+    if (!ifs.is_open())
+        return false;
+
     std::stringstream ss;
     ss << ifs.rdbuf();
 
     body->append(ss.str());
     ss.clear();
     ifs.close();
+
+    return true;
 }
 
 std::string     Handler::getPresentTime(void)

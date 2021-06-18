@@ -118,8 +118,8 @@ public:
 	std::string     lltostr(long long number, int base);
 
     /* EXTRA */
-    void loadBodyFromFile(std::string * body);
-    void loadBodyFromFile(std::string * body, std::string path);
+    bool loadBodyFromFile(std::string * body);
+    bool loadBodyFromFile(std::string * body, std::string path);
     std::string getPresentTime(void);
     std::string getLastModificationTime(time_t const & time);
 
