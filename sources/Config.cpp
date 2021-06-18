@@ -536,7 +536,7 @@ void  Config::getPortsAndIP(configServer *servNode, std::string portsStr)
             tmpPort = std::stoi(tmp);
             if(tmpPort > 65535 || tmpPort < 0)
                 throw Config::PortIPException();
-            servNode->port.push_back(tmpPort);
+            servNode->port.push_back(htons(tmpPort));
             tmp.clear();
             continue;
         }

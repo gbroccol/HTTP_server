@@ -118,6 +118,7 @@ void Session::setAuthenticationOff()
 configServer *Session::getConfig(void)
 {
     std::string host = parseRequest->getHost();
+    int num = -1;
     std::string serverName = host.substr(0, host.find(":"));
     for (size_t i = 0; i < confServer.size(); i++)
     {
@@ -127,13 +128,16 @@ configServer *Session::getConfig(void)
             {
                 if (this->port == confServer[i]->port[j])
                 {
-                    if (this->confServer[i]->server_name.length() == 0)
+                    if(num == -1)
+                        num = (int)i;
+                    if (serverName == this->confServer[i]->server_name) {
                         return confServer[i];
-                    else if (serverName == this->confServer[i]->server_name)
-                        return confServer[i];
+                    }
                 }
             }
         }
     }
-    return confServer[0];
+    if (num == -1)
+        num = 0;
+    return confServer[num];
 }

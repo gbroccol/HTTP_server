@@ -221,7 +221,7 @@ void                Handler::handle_head(void)
     if (config.locations[index_location]->authentication && _userData.signIn == false)
         return error_message(511);
 
-    if (config.locations[index_location]->authentication == false && ResponseFromSessionManagement())
+    if (config.locations[index_location]->authentication == OFF && ResponseFromSessionManagement())
         return;
 
 	std::string body;
@@ -271,7 +271,7 @@ void                Handler::handle_head(void)
         this->response.append("\r\n");
         std::cout << PURPLE << "RESPONSE" << BW << std::endl << this->response << std::endl;
     }
-	if (config.locations[index_location]->authentication == false)
+	if (config.locations[index_location]->authentication == OFF)
         AddResponseToSessionManagement();
 }
 
@@ -793,7 +793,7 @@ int         Handler::isFiles(std::string path, std::string locPath)
         return(1);
     else if(locPath[1] == '.' && expansion.length() > 1)
     {
-        int pos = locPath.find('.');
+        size_t pos = locPath.find('.');
         if(pos != std::string::npos)
         {
             tmp = locPath.substr(pos, locPath.length() - 1);

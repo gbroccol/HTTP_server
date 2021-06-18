@@ -17,9 +17,6 @@
 # include "Webserv.hpp"
 # include "Config.hpp"
 
-# define ON true
-# define OFF false
-
 class Handler
 {
 private:
