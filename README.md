@@ -1,9 +1,24 @@
 # webserv
 
--> git branch -a # какие ветки существуют -> git branch -v # показать список веток и последний коммит в каждой -> git branch <branch_new_name> 5589877 # создать новую ветку с указанным именем на указанном коммите -> git checkout <branch_name> # перейти на указанную ветку -> git add -> git commit -m "..." -> git push origin <branch_name> -> git pull
+An HTTP server that can respond to GET, HEAD, POST, PUT and DELETE methods.
 
-git branch new_branch # создать новую ветку с указанным именем на текущем коммите git branch new_branch 5589877 # создать новую ветку с указанным именем на указанном коммите
+To clone and compile code:
 
-git checkout new_branch # перейти в указанную ветку git checkout -b new_branch # создать новую ветку с указанным именем и перейти в неё
+1. git clone https://github.com/gbroccol/HTTP_server.git webserv
+2. cd webserv
+3. make
 
-https://github.com/nicothin/web-development/tree/master/git
+To launch server with a website:
+
+4. ./webserv
+5. open a web browser and go to 127.0.0.1:8080
+
+To launch server for testing:
+
+4. ./webserv ./config/tests.conf
+5. in a new tab of terminal: ./tester http://127.0.0.1:8080
+
+Contributors:
+* https://github.com/helenSsnow - config parsing, autoindex pages creating etc.
+* https://github.com/kate-eversunny - connection establishment, reading from/writing to sockets, GET and PUT requests handling, POST with cgi-tester (Go script) handling.
+* me - requests parsing, DELETE request handling, POST request with python CGI script handling, cookie, Session, html pages, request path parsing etc.
